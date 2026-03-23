@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createEventDetails } from "../../../config/api";
 import { getAuthToken } from "../../utils/auth";
+import Alert from "../../components/Alert";
 
 const EVENT_DETAILS_STORAGE_KEY = "event-details-form-values";
 
@@ -563,7 +564,9 @@ function EventDetails() {
     }
   });
   const [errors, setErrors] = useState({});
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState("success");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const maxLengthByKey = { objective: 100, benefitLearning: 150, outcomeObtained: 150, remark: 150 };
@@ -818,12 +821,13 @@ function EventDetails() {
     event.preventDefault();
 
     if (!validate()) {
-      setSubmitMessage("Please fill all mandatory fields.");
+      setAlertMessage("Please fill all mandatory fields.");
+      setAlertSeverity("error");
+      setAlertOpen(true);
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("");
 
     try {
       const formData = new FormData();
@@ -855,9 +859,13 @@ function EventDetails() {
       window.localStorage.removeItem(EVENT_DETAILS_STORAGE_KEY);
       setFormValues(initialValues);
       setErrors({});
-      setSubmitMessage("Event details uploaded successfully.");
+      setAlertMessage("Event details uploaded successfully.");
+      setAlertSeverity("success");
+      setAlertOpen(true);
     } catch (error) {
-      setSubmitMessage(error.message || "Failed to upload event details.");
+      setAlertMessage(error.message || "Failed to upload event details.");
+      setAlertSeverity("error");
+      setAlertOpen(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -1140,38 +1148,11 @@ function EventDetails() {
   const isLastStep = currentStepIndex === stepSections.length - 1;
 
   return (
-    <div className="mx-auto w-full p-6">
+    <div className="mx-auto w-full p-2">
       <h1 className="text-2xl font-semibold">IIC / BIP Portal Document Details</h1>
-      <p className="mt-2 text-sm text-gray-600">
-        First 3 attachments (IIC) and remaining attachments (BIP) are merged and displayed.
-      </p>
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+      <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-medium text-gray-700">
-              Step {currentStepIndex + 1} of {stepSections.length}
-            </p>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCurrentStepIndex((previous) => Math.max(0, previous - 1))}
-                disabled={currentStepIndex === 0}
-                className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentStepIndex((previous) => Math.min(stepSections.length - 1, previous + 1))}
-                disabled={isLastStep}
-                className="rounded bg-black px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
 
           <div className="mt-4 overflow-x-auto">
             <div className="relative min-w-190 px-2 pb-1">
@@ -1191,7 +1172,7 @@ function EventDetails() {
                       <span
                         className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
                           isActiveStep || isCompletedStep
-                            ? "border-black bg-black text-white"
+                            ? "border-primary bg-primary text-white"
                             : "border-gray-300 bg-white text-gray-600"
                         }`}
                       >
@@ -1199,7 +1180,7 @@ function EventDetails() {
                       </span>
                       <span
                         className={`mt-2 text-xs ${
-                          isActiveStep ? "font-semibold text-black" : "text-gray-600"
+                          isActiveStep ? "font-semibold text-primary" : "text-gray-600"
                         }`}
                       >
                         {group.section}
@@ -1224,18 +1205,42 @@ function EventDetails() {
           </section>
         )}
 
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-gray-500">{!isLastStep ? "Go to the last step to save." : "Review and save."}</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentStepIndex((previous) => Math.max(0, previous - 1))}
+              disabled={currentStepIndex === 0}
+              className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentStepIndex((previous) => Math.min(stepSections.length - 1, previous + 1))}
+              disabled={isLastStep}
+              className="rounded bg-primary px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
           <button
             type="submit"
             disabled={!isLastStep || Object.values(errors).some(Boolean) || isSubmitting}
-            className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             {isSubmitting ? "Saving..." : "Save Details"}
           </button>
         </div>
 
-        {submitMessage && <p className="text-sm font-medium text-gray-700">{submitMessage}</p>}
+        <Alert
+          isOpen={alertOpen}
+          onClose={() => setAlertOpen(false)}
+          severity={alertSeverity}
+          message={alertMessage}
+          duration={4000}
+          position="bottom"
+        />
       </form>
     </div>
   );

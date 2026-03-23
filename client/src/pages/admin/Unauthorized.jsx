@@ -17,7 +17,7 @@ export default function Unauthorized() {
           >
             Back to Login
           </Link>
-          <Link to="/eventdetails" className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+          <Link to="/eventdetails" className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
             Try Event Details
           </Link>
         </div>
