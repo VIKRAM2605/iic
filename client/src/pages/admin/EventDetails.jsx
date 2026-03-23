@@ -1,7 +1,63 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { createEventDetails } from "../../../config/api";
+
+const EVENT_DETAILS_STORAGE_KEY = "event-details-form-values";
+
+const buildAcademicYearOptions = () => {
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 8 }, (_, index) => {
+    const startYear = currentYear - 4 + index;
+    return `${startYear}-${startYear + 1}`;
+  });
+};
+
+const academicYearOptions = buildAcademicYearOptions();
+
+const countWords = (value) => {
+  const normalizedValue = String(value ?? "").trim().replace(/\s+/g, " ");
+  return normalizedValue ? normalizedValue.split(" ").length : 0;
+};
+
+const getDurationFromDateTime = (startDateTime, endDateTime) => {
+  if (!String(startDateTime ?? "").trim() || !String(endDateTime ?? "").trim()) {
+    return { durationHours: "", error: "" };
+  }
+
+  const startDate = new Date(startDateTime);
+  const endDate = new Date(endDateTime);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return { durationHours: "", error: "Invalid date/time input." };
+  }
+
+  const diffMs = endDate.getTime() - startDate.getTime();
+  if (diffMs < 0) {
+    return { durationHours: "", error: "End Date & Time must be after Start Date & Time" };
+  }
+
+  if (diffMs === 0) {
+    return { durationHours: "0", error: "" };
+  }
+
+  const durationHours = diffMs / (1000 * 60 * 60);
+  return { durationHours: durationHours.toFixed(1), error: "" };
+};
 
 const iicPortalDocFields = [
-  { key: "academicYear", label: "Academic Year", type: "text", required: true },
+  {
+    key: "previousAcademicYear",
+    label: "Previous Academic Year",
+    type: "select",
+    required: true,
+    options: academicYearOptions,
+  },
+  {
+    key: "currentAcademicYear",
+    label: "Current Academic Year",
+    type: "select",
+    required: true,
+    options: academicYearOptions,
+  },
   { key: "quarter", label: "Quarter", type: "text", required: true },
   {
     key: "programDrivenBy",
@@ -65,9 +121,15 @@ const iicPortalDocFields = [
       "Economic Growth & Social Good",
     ],
   },
-  { key: "durationHours", label: "Duration of Activity (Hrs)", type: "number", required: true },
-  { key: "fromDate", label: "Start Date", type: "date", required: true },
-  { key: "toDate", label: "End Date", type: "date", required: true },
+  {
+    key: "durationManual",
+    label: "Enter Duration Manually (Hours)",
+    type: "checkbox",
+    required: false,
+  },
+  { key: "fromDate", label: "Start Date & Time", type: "datetime-local", required: false },
+  { key: "toDate", label: "End Date & Time", type: "datetime-local", required: false },
+  { key: "durationHours", label: "Duration of Activity (Hrs)", type: "number", required: false },
   { key: "studentParticipants", label: "No. of Student Participants", type: "number", required: true },
   { key: "facultyParticipants", label: "No. of Faculty Participants", type: "number", required: true },
   {
@@ -92,9 +154,21 @@ const iicPortalDocFields = [
     type: "textarea",
     required: true,
   },
+  {
+    key: "aboutEvent",
+    label: "About the Event",
+    type: "textarea",
+    required: true,
+  },
   { key: "speakerName", label: "Speaker Name", type: "text", required: true },
   { key: "speakerDesignation", label: "Speaker Designation", type: "text", required: true },
   { key: "speakerOrganization", label: "Speaker Organization", type: "text", required: true },
+  {
+    key: "aboutSpeaker",
+    label: "About the Speaker",
+    type: "textarea",
+    required: true,
+  },
   { key: "sessionVideoUrl", label: "Video URL of Session", type: "url", required: true },
   {
     key: "attendanceSheet",
@@ -139,7 +213,6 @@ const iicPortalDocFields = [
 ];
 
 const bipPortalFields = [
-  { key: "recordId", label: "ID", type: "text", required: false },
   { key: "facultyApplied", label: "Faculty Applied", type: "text", required: false },
   { key: "taskId", label: "Task ID", type: "text", required: false },
   {
@@ -185,7 +258,6 @@ const bipPortalFields = [
   },
   { key: "faculty3", label: "Faculty 3", type: "text", required: false },
   { key: "eventType", label: "Select Type of Event", type: "text", required: false },
-  { key: "coreTheme", label: "Select Core Theme", type: "text", required: false },
   { key: "programActivityName", label: "Name of Event", type: "text", required: false },
   { key: "studentParticipants", label: "No. of Students Participated", type: "number", required: false },
   { key: "facultyParticipants", label: "No. of Faculty Members Participated", type: "number", required: false },
@@ -290,23 +362,25 @@ const displayStructure = [
   {
     section: "Program Details",
     fields: [
-      "academicYear",
+      "previousAcademicYear",
+      "currentAcademicYear",
       "quarter",
       "programDrivenBy",
       "programActivityName",
       "programType",
       "activityLedBy",
       "programTheme",
-      "durationHours",
+      "aboutEvent",
+      "durationManual",
       "fromDate",
       "toDate",
+      "durationHours",
       "studentParticipants",
       "facultyParticipants",
       "externalParticipants",
       "expenditureAmount",
       "modeOfSession",
       "eventType",
-      "coreTheme",
     ],
   },
   {
@@ -315,7 +389,14 @@ const displayStructure = [
   },
   {
     section: "Speaker",
-    fields: ["speakerName", "speakerDesignation", "speakerOrganization", "sessionVideoUrl", "publishedSocialMediaUrl"],
+    fields: [
+      "speakerName",
+      "speakerDesignation",
+      "speakerOrganization",
+      "aboutSpeaker",
+      "sessionVideoUrl",
+      "publishedSocialMediaUrl",
+    ],
   },
   {
     section: "Attachments",
@@ -353,7 +434,6 @@ const displayStructure = [
   {
     section: "BIP Portal Details",
     fields: [
-      "recordId",
       "facultyApplied",
       "taskId",
       "departmentsInvolved",
@@ -445,10 +525,81 @@ function EventDetails() {
     [fields]
   );
 
-  const [formValues, setFormValues] = useState(initialValues);
+  const [formValues, setFormValues] = useState(() => {
+    if (typeof window === "undefined") {
+      return initialValues;
+    }
+
+    try {
+      const rawStoredValues = window.localStorage.getItem(EVENT_DETAILS_STORAGE_KEY);
+      if (!rawStoredValues) {
+        return initialValues;
+      }
+
+      const parsedValues = JSON.parse(rawStoredValues);
+      if (!parsedValues || typeof parsedValues !== "object") {
+        return initialValues;
+      }
+
+      const hydratedValues = { ...initialValues };
+
+      fields.forEach((field) => {
+        if (!(field.key in parsedValues) || field.type === "file") {
+          return;
+        }
+
+        if (field.type === "checkbox") {
+          hydratedValues[field.key] = Boolean(parsedValues[field.key]);
+          return;
+        }
+
+        hydratedValues[field.key] = String(parsedValues[field.key] ?? "");
+      });
+
+      return hydratedValues;
+    } catch {
+      return initialValues;
+    }
+  });
   const [errors, setErrors] = useState({});
   const [submitMessage, setSubmitMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const maxLengthByKey = { objective: 100, benefitLearning: 150, outcomeObtained: 150, remark: 150 };
+  const maxWordsByKey = { aboutEvent: 150, aboutSpeaker: 150 };
+
+  const stepSections = useMemo(
+    () =>
+      structuredSections.map((group) => ({
+        ...group,
+        fields: group.fields.filter((field) => !["durationManual", "fromDate", "toDate", "durationHours"].includes(field.key)),
+      })),
+    [structuredSections]
+  );
+
+  useEffect(() => {
+    if (currentStepIndex > stepSections.length - 1) {
+      setCurrentStepIndex(Math.max(0, stepSections.length - 1));
+    }
+  }, [currentStepIndex, stepSections.length]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const serializableValues = {};
+
+    fields.forEach((field) => {
+      if (field.type === "file") {
+        return;
+      }
+
+      serializableValues[field.key] = formValues[field.key];
+    });
+
+    window.localStorage.setItem(EVENT_DETAILS_STORAGE_KEY, JSON.stringify(serializableValues));
+  }, [fields, formValues]);
 
   const handleChange = (field, value) => {
     if (field.type === "file" && value && field.accept) {
@@ -491,8 +642,54 @@ function EventDetails() {
       }
     }
 
-    setFormValues((previous) => ({ ...previous, [field.key]: value }));
-    setErrors((previous) => ({ ...previous, [field.key]: "" }));
+    if (field.type === "textarea" && maxWordsByKey[field.key]) {
+      const limit = maxWordsByKey[field.key];
+      if (countWords(value) > limit) {
+        alert(`${field.label} must be ${limit} words or less.`);
+        setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${limit} words.` }));
+        return;
+      }
+    }
+
+    setFormValues((previous) => {
+      const nextValues = { ...previous, [field.key]: value };
+
+      if (field.key === "durationManual") {
+        if (value) {
+          nextValues.fromDate = "";
+          nextValues.toDate = "";
+        } else {
+          const calculatedDuration = getDurationFromDateTime(nextValues.fromDate, nextValues.toDate);
+          nextValues.durationHours = calculatedDuration.error ? "" : calculatedDuration.durationHours;
+        }
+      }
+
+      if ((field.key === "fromDate" || field.key === "toDate") && !nextValues.durationManual) {
+        const calculatedDuration = getDurationFromDateTime(nextValues.fromDate, nextValues.toDate);
+        nextValues.durationHours = calculatedDuration.error ? "" : calculatedDuration.durationHours;
+      }
+
+      return nextValues;
+    });
+
+    setErrors((previous) => {
+      const nextErrors = { ...previous, [field.key]: "" };
+
+      if (field.key === "durationManual") {
+        nextErrors.fromDate = "";
+        nextErrors.toDate = "";
+        nextErrors.durationHours = "";
+      }
+
+      if (field.key === "fromDate" || field.key === "toDate") {
+        nextErrors.fromDate = "";
+        nextErrors.toDate = "";
+        nextErrors.durationHours = "";
+      }
+
+      return nextErrors;
+    });
+
     setSubmitMessage("");
   };
 
@@ -554,11 +751,48 @@ function EventDetails() {
           nextErrors[field.key] = `${field.label} must be ${limit} characters or less.`;
         }
       }
+
+      if (field.type === "textarea" && maxWordsByKey[field.key]) {
+        const limit = maxWordsByKey[field.key];
+        if (countWords(value) > limit) {
+          nextErrors[field.key] = `${field.label} must be ${limit} words or less.`;
+        }
+      }
     });
 
-    if (String(formValues.fromDate ?? "").trim() && String(formValues.toDate ?? "").trim()) {
-      if (new Date(formValues.toDate) < new Date(formValues.fromDate)) {
-        nextErrors.toDate = "End Date cannot be before Start Date";
+    if (String(formValues.previousAcademicYear ?? "").trim() && String(formValues.currentAcademicYear ?? "").trim()) {
+      const previousStartYear = Number(String(formValues.previousAcademicYear).split("-")[0]);
+      const currentStartYear = Number(String(formValues.currentAcademicYear).split("-")[0]);
+
+      if (!Number.isNaN(previousStartYear) && !Number.isNaN(currentStartYear) && previousStartYear >= currentStartYear) {
+        nextErrors.currentAcademicYear = "Current Academic Year must be after Previous Academic Year";
+      }
+    }
+
+    if (formValues.durationManual) {
+      const durationValue = String(formValues.durationHours ?? "").trim();
+      if (!durationValue) {
+        nextErrors.durationHours = "Duration of Activity (Hrs) is mandatory";
+      } else if (Number(durationValue) < 0) {
+        nextErrors.durationHours = "Duration of Activity (Hrs) cannot be negative";
+      }
+    } else {
+      const startDateTime = String(formValues.fromDate ?? "").trim();
+      const endDateTime = String(formValues.toDate ?? "").trim();
+
+      if (!startDateTime) {
+        nextErrors.fromDate = "Start Date & Time is mandatory";
+      }
+
+      if (!endDateTime) {
+        nextErrors.toDate = "End Date & Time is mandatory";
+      }
+
+      if (startDateTime && endDateTime) {
+        const calculatedDuration = getDurationFromDateTime(startDateTime, endDateTime);
+        if (calculatedDuration.error) {
+          nextErrors.toDate = calculatedDuration.error;
+        }
       }
     }
 
@@ -579,7 +813,7 @@ function EventDetails() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!validate()) {
@@ -587,7 +821,40 @@ function EventDetails() {
       return;
     }
 
-    setSubmitMessage("All IIC mandatory fields and BIP portal fields are captured without repetition.");
+    setIsSubmitting(true);
+    setSubmitMessage("");
+
+    try {
+      const formData = new FormData();
+
+      fields.forEach((field) => {
+        const value = formValues[field.key];
+
+        if (field.type === "file") {
+          if (value) {
+            formData.append(field.key, value);
+          }
+          return;
+        }
+
+        if (field.type === "checkbox") {
+          formData.append(field.key, value ? "true" : "false");
+          return;
+        }
+
+        formData.append(field.key, String(value ?? ""));
+      });
+
+      await createEventDetails(formData);
+      window.localStorage.removeItem(EVENT_DETAILS_STORAGE_KEY);
+      setFormValues(initialValues);
+      setErrors({});
+      setSubmitMessage("Event details uploaded successfully.");
+    } catch (error) {
+      setSubmitMessage(error.message || "Failed to upload event details.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderFieldHint = (field) => {
@@ -627,16 +894,36 @@ function EventDetails() {
       return <p className="text-xs text-gray-500">(Upload the video with minimum duration of 2 mins)</p>;
     }
 
+    if (field.key === "durationManual") {
+      return <p className="text-xs text-gray-500">Uncheck to auto-calculate using Start and End Date & Time</p>;
+    }
+
+    if (field.key === "durationHours" && !formValues.durationManual) {
+      return <p className="text-xs text-gray-500">Auto-calculated from Start and End Date & Time</p>;
+    }
+
+    if ((field.key === "fromDate" || field.key === "toDate") && formValues.durationManual) {
+      return <p className="text-xs text-gray-500">Disabled while manual duration mode is enabled</p>;
+    }
+
     if (field.type === "textarea" && maxLengthByKey[field.key]) {
       const limit = maxLengthByKey[field.key];
       return <p className="text-xs text-gray-500">Max {limit} characters (including spaces)</p>;
+    }
+
+    if (field.type === "textarea" && maxWordsByKey[field.key]) {
+      const limit = maxWordsByKey[field.key];
+      return <p className="text-xs text-gray-500">Max {limit} words</p>;
     }
 
     return null;
   };
 
   const renderField = (field) => (
-    <div key={field.key} className="space-y-1">
+    <div
+      key={field.key}
+      className={`space-y-1 ${field.key === "fromDate" || field.key === "toDate" ? "md:col-span-2" : ""}`}
+    >
       <label className="block text-sm font-medium text-gray-800" htmlFor={field.key}>
         {field.label} {field.required && <span className="text-red-600">*</span>}
       </label>
@@ -660,6 +947,17 @@ function EventDetails() {
               }`}
             >
               {String(formValues[field.key] ?? "").length} / {maxLengthByKey[field.key]}
+            </p>
+          )}
+          {maxWordsByKey[field.key] && (
+            <p
+              className={`text-xs ${
+                countWords(formValues[field.key]) / maxWordsByKey[field.key] >= 0.8
+                  ? "text-red-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {countWords(formValues[field.key])} / {maxWordsByKey[field.key]} words
             </p>
           )}
         </div>
@@ -712,6 +1010,13 @@ function EventDetails() {
           id={field.key}
           name={field.key}
           type={field.type}
+          step={
+            field.key === "fromDate" || field.key === "toDate"
+              ? "60"
+              : field.key === "durationHours"
+                ? "0.1"
+                : undefined
+          }
           min={
             field.type === "number"
               ? "0"
@@ -721,7 +1026,11 @@ function EventDetails() {
           }
           value={formValues[field.key]}
           onChange={(event) => handleChange(field, event.target.value)}
-          className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
+          disabled={(field.key === "fromDate" || field.key === "toDate") && !!formValues.durationManual}
+          readOnly={field.key === "durationHours" && !formValues.durationManual}
+          className={`w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500 ${
+            field.key === "fromDate" || field.key === "toDate" ? "whitespace-nowrap" : ""
+          }`}
         />
       )}
 
@@ -731,30 +1040,194 @@ function EventDetails() {
     </div>
   );
 
+  const renderDurationGroup = () => {
+    const durationManualField = fieldsByKey.durationManual;
+    const fromDateField = fieldsByKey.fromDate;
+    const toDateField = fieldsByKey.toDate;
+    const durationHoursField = fieldsByKey.durationHours;
+
+    if (!fromDateField || !toDateField || !durationHoursField) {
+      return null;
+    }
+
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="text-base font-medium text-gray-900">Duration of Event in Hrs</h3>
+          {durationManualField && (
+            <label className="flex items-center gap-2 text-sm text-gray-700" htmlFor={durationManualField.key}>
+              <input
+                id={durationManualField.key}
+                name={durationManualField.key}
+                type="checkbox"
+                checked={!!formValues[durationManualField.key]}
+                onChange={(event) => handleChange(durationManualField, event.target.checked)}
+                className="h-4 w-4"
+              />
+              Enter manually
+            </label>
+          )}
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-800" htmlFor={fromDateField.key}>
+              {fromDateField.label}
+            </label>
+            <input
+              id={fromDateField.key}
+              name={fromDateField.key}
+              type={fromDateField.type}
+              step="60"
+              value={formValues[fromDateField.key]}
+              onChange={(event) => handleChange(fromDateField, event.target.value)}
+              disabled={!!formValues.durationManual}
+              className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
+            />
+            {renderFieldHint(fromDateField)}
+            {errors[fromDateField.key] && <p className="text-sm text-red-600">{errors[fromDateField.key]}</p>}
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-800" htmlFor={toDateField.key}>
+              {toDateField.label}
+            </label>
+            <input
+              id={toDateField.key}
+              name={toDateField.key}
+              type={toDateField.type}
+              step="60"
+              min={formValues.fromDate || undefined}
+              value={formValues[toDateField.key]}
+              onChange={(event) => handleChange(toDateField, event.target.value)}
+              disabled={!!formValues.durationManual}
+              className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
+            />
+            {renderFieldHint(toDateField)}
+            {errors[toDateField.key] && <p className="text-sm text-red-600">{errors[toDateField.key]}</p>}
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-800" htmlFor={durationHoursField.key}>
+              {durationHoursField.label}
+            </label>
+            <input
+              id={durationHoursField.key}
+              name={durationHoursField.key}
+              type={durationHoursField.type}
+              step="0.1"
+              min="0"
+              value={formValues[durationHoursField.key]}
+              onChange={(event) => handleChange(durationHoursField, event.target.value)}
+              readOnly={!formValues.durationManual}
+              className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
+            />
+            {renderFieldHint(durationHoursField)}
+            {errors[durationHoursField.key] && <p className="text-sm text-red-600">{errors[durationHoursField.key]}</p>}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const activeStep = stepSections[currentStepIndex];
+  const isLastStep = currentStepIndex === stepSections.length - 1;
+
   return (
     <div className="mx-auto w-full p-6">
       <h1 className="text-2xl font-semibold">IIC / BIP Portal Document Details</h1>
       <p className="mt-2 text-sm text-gray-600">
-        First 3 attachments (IIC) and remaining attachments (BIP) are merged and displayed once without repetition.
+        First 3 attachments (IIC) and remaining attachments (BIP) are merged and displayed.
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-        {structuredSections.map((group) => (
-          <section key={group.section} className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="text-lg font-medium text-gray-900">{group.section}</h2>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium text-gray-700">
+              Step {currentStepIndex + 1} of {stepSections.length}
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStepIndex((previous) => Math.max(0, previous - 1))}
+                disabled={currentStepIndex === 0}
+                className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentStepIndex((previous) => Math.min(stepSections.length - 1, previous + 1))}
+                disabled={isLastStep}
+                className="rounded bg-black px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 overflow-x-auto">
+            <div className="relative min-w-[760px] px-2 pb-1">
+              <div className="absolute left-8 right-8 top-4 h-0.5 bg-gray-300" />
+              <div className="relative flex items-start justify-between gap-2">
+                {stepSections.map((group, index) => {
+                  const isActiveStep = index === currentStepIndex;
+                  const isCompletedStep = index < currentStepIndex;
+
+                  return (
+                    <button
+                      key={group.section}
+                      type="button"
+                      onClick={() => setCurrentStepIndex(index)}
+                      className="flex w-28 flex-col items-center text-center"
+                    >
+                      <span
+                        className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                          isActiveStep || isCompletedStep
+                            ? "border-black bg-black text-white"
+                            : "border-gray-300 bg-white text-gray-600"
+                        }`}
+                      >
+                        {index + 1}
+                      </span>
+                      <span
+                        className={`mt-2 text-xs ${
+                          isActiveStep ? "font-semibold text-black" : "text-gray-600"
+                        }`}
+                      >
+                        {group.section}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {activeStep && (
+          <section className="rounded-lg border border-gray-200 bg-white p-4">
+            <h2 className="text-lg font-medium text-gray-900">{activeStep.section}</h2>
+
+            {activeStep.section === "Program Details" && <div className="mt-4">{renderDurationGroup()}</div>}
+
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              {group.fields.map((field) => renderField(field))}
+              {activeStep.fields.map((field) => renderField(field))}
             </div>
           </section>
-        ))}
+        )}
 
-        <button
-          type="submit"
-          disabled={Object.keys(errors).length > 0}
-          className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
-        >
-          Save Details
-        </button>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-gray-500">{!isLastStep ? "Go to the last step to save." : "Review and save."}</p>
+          <button
+            type="submit"
+            disabled={!isLastStep || Object.values(errors).some(Boolean) || isSubmitting}
+            className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          >
+            {isSubmitting ? "Saving..." : "Save Details"}
+          </button>
+        </div>
 
         {submitMessage && <p className="text-sm font-medium text-gray-700">{submitMessage}</p>}
       </form>

@@ -6,6 +6,7 @@ export const BACKEND_BASE_URL = normalizeUrl(API_BASE_URL);
 
 export const API_ROUTES = {
 	health: "/",
+	eventDetails: "/api/event-details",
 };
 
 export const getApiUrl = (route) => {
@@ -15,4 +16,20 @@ export const getApiUrl = (route) => {
 
 export const API_URLS = {
 	health: getApiUrl(API_ROUTES.health),
+	eventDetails: getApiUrl(API_ROUTES.eventDetails),
+};
+
+export const createEventDetails = async (formData) => {
+	const response = await fetch(API_URLS.eventDetails, {
+		method: "POST",
+		body: formData,
+	});
+
+	const payload = await response.json().catch(() => ({}));
+
+	if (!response.ok) {
+		throw new Error(payload.message || "Failed to upload event details.");
+	}
+
+	return payload;
 };
