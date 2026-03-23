@@ -102,6 +102,7 @@ const iccPortalDocFields = [
     type: "file",
     required: true,
     accept: ".pdf,.jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "photograph1",
@@ -109,6 +110,7 @@ const iccPortalDocFields = [
     type: "file",
     required: true,
     accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "photograph2",
@@ -116,6 +118,7 @@ const iccPortalDocFields = [
     type: "file",
     required: true,
     accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "overallReport",
@@ -123,6 +126,7 @@ const iccPortalDocFields = [
     type: "file",
     required: true,
     accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   { key: "promoteTwitter", label: "Twitter", type: "checkbox", required: false },
   { key: "twitterUrl", label: "Twitter URL", type: "url", required: false },
@@ -194,6 +198,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "offlineEventProof2",
@@ -201,6 +206,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "onlineEventProof1",
@@ -208,6 +214,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "onlineEventProof2",
@@ -229,6 +236,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "sessionSchedule",
@@ -236,6 +244,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "brochureWithLogo",
@@ -243,6 +252,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "brochureProofName",
@@ -256,6 +266,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "attendanceSheetName",
@@ -269,6 +280,7 @@ const bipPortalFields = [
     type: "file",
     required: false,
     accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   { key: "iqacVerification", label: "IQAC Verification", type: "text", required: false },
   { key: "remark", label: "Remarks", type: "textarea", required: false },
@@ -436,8 +448,49 @@ function EventDetails() {
   const [formValues, setFormValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [submitMessage, setSubmitMessage] = useState("");
+  const maxLengthByKey = { objective: 100, benefitLearning: 150, outcomeObtained: 150, remark: 150 };
 
   const handleChange = (field, value) => {
+    if (field.type === "file" && value && field.accept) {
+      const acceptList = field.accept
+        .split(",")
+        .map((entry) => entry.trim().toLowerCase())
+        .filter(Boolean);
+      const fileName = String(value.name ?? "").toLowerCase();
+      const fileType = String(value.type ?? "").toLowerCase();
+      const isAllowed = acceptList.some((acceptEntry) => {
+        if (acceptEntry.startsWith(".")) {
+          return fileName.endsWith(acceptEntry);
+        }
+        return acceptEntry === fileType;
+      });
+
+      if (!isAllowed) {
+        alert(`Invalid file type. Allowed: ${field.accept}`);
+        setErrors((previous) => ({
+          ...previous,
+          [field.key]: `Invalid file type. Allowed: ${field.accept}`,
+        }));
+        return;
+      }
+    }
+
+    if (field.type === "file" && value && field.maxSizeBytes && value.size > field.maxSizeBytes) {
+      const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
+      alert(`${field.label} must be ${maxMb}MB or less.`);
+      setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${maxMb}MB.` }));
+      return;
+    }
+
+    if (field.type === "textarea" && maxLengthByKey[field.key]) {
+      const limit = maxLengthByKey[field.key];
+      if (String(value ?? "").length > limit) {
+        alert(`${field.label} must be ${limit} characters or less (including spaces).`);
+        setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${limit} characters.` }));
+        return;
+      }
+    }
+
     setFormValues((previous) => ({ ...previous, [field.key]: value }));
     setErrors((previous) => ({ ...previous, [field.key]: "" }));
     setSubmitMessage("");
@@ -459,8 +512,55 @@ function EventDetails() {
 
       if (isFileMissing || isCheckboxMissing || isTextMissing) {
         nextErrors[field.key] = `${field.label} is mandatory`;
+        return;
+      }
+
+      if (field.type === "number" && String(value ?? "").trim()) {
+        if (Number(value) < 0) {
+          nextErrors[field.key] = `${field.label} cannot be negative`;
+          return;
+        }
+      }
+
+      if (field.type === "file" && field.maxSizeBytes && value?.size > field.maxSizeBytes) {
+        const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
+        nextErrors[field.key] = `${field.label} must be ${maxMb}MB or less.`;
+        return;
+      }
+
+      if (field.type === "file" && field.accept && value) {
+        const acceptList = field.accept
+          .split(",")
+          .map((entry) => entry.trim().toLowerCase())
+          .filter(Boolean);
+        const fileName = String(value.name ?? "").toLowerCase();
+        const fileType = String(value.type ?? "").toLowerCase();
+        const isAllowed = acceptList.some((acceptEntry) => {
+          if (acceptEntry.startsWith(".")) {
+            return fileName.endsWith(acceptEntry);
+          }
+          return acceptEntry === fileType;
+        });
+
+        if (!isAllowed) {
+          nextErrors[field.key] = `Invalid file type. Allowed: ${field.accept}`;
+          return;
+        }
+      }
+
+      if (field.type === "textarea" && maxLengthByKey[field.key]) {
+        const limit = maxLengthByKey[field.key];
+        if (String(value ?? "").length > limit) {
+          nextErrors[field.key] = `${field.label} must be ${limit} characters or less.`;
+        }
       }
     });
+
+    if (String(formValues.fromDate ?? "").trim() && String(formValues.toDate ?? "").trim()) {
+      if (new Date(formValues.toDate) < new Date(formValues.fromDate)) {
+        nextErrors.toDate = "End Date cannot be before Start Date";
+      }
+    }
 
     const socialPairs = [
       ["promoteTwitter", "twitterUrl", "Twitter URL is required when Twitter is selected"],
@@ -490,6 +590,51 @@ function EventDetails() {
     setSubmitMessage("All ICC mandatory fields and BIP portal fields are captured without repetition.");
   };
 
+  const renderFieldHint = (field) => {
+    if (field.key === "offlineEventProof1" && field.maxSizeBytes) {
+      const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
+      return (
+        <p className="text-xs text-gray-500">
+          Max {maxMb}MB, photo should cover speaker, participants, stage
+        </p>
+      );
+    }
+
+    if (field.key === "onlineEventProof1" && field.maxSizeBytes) {
+      const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
+      return (
+        <p className="text-xs text-gray-500">
+          Max {maxMb}MB, photo should cover speaker, participants, stage
+        </p>
+      );
+    }
+
+    if (field.key === "offlineEventProof2" && field.maxSizeBytes) {
+      const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
+      return <p className="text-xs text-gray-500">Max {maxMb}MB, photo 2 must be different from photo 1</p>;
+    }
+
+    if (field.type === "file" && field.maxSizeBytes) {
+      const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
+      return <p className="text-xs text-gray-500">Max {maxMb}MB</p>;
+    }
+
+    if (["photograph2", "offlineEventProof2", "onlineEventProof2"].includes(field.key)) {
+      return <p className="text-xs text-gray-500">(Photo 2 must be different from Photo 1)</p>;
+    }
+
+    if (field.key === "publishedSocialMediaUrl") {
+      return <p className="text-xs text-gray-500">(Upload the video with minimum duration of 2 mins)</p>;
+    }
+
+    if (field.type === "textarea" && maxLengthByKey[field.key]) {
+      const limit = maxLengthByKey[field.key];
+      return <p className="text-xs text-gray-500">Max {limit} characters (including spaces)</p>;
+    }
+
+    return null;
+  };
+
   const renderField = (field) => (
     <div key={field.key} className="space-y-1">
       <label className="block text-sm font-medium text-gray-800" htmlFor={field.key}>
@@ -497,14 +642,27 @@ function EventDetails() {
       </label>
 
       {field.type === "textarea" && (
-        <textarea
-          id={field.key}
-          name={field.key}
-          value={formValues[field.key]}
-          onChange={(event) => handleChange(field, event.target.value)}
-          className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
-          rows={4}
-        />
+        <div className="space-y-1">
+          <textarea
+            id={field.key}
+            name={field.key}
+            value={formValues[field.key]}
+            onChange={(event) => handleChange(field, event.target.value)}
+            className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
+            rows={4}
+          />
+          {maxLengthByKey[field.key] && (
+            <p
+              className={`text-xs ${
+                String(formValues[field.key] ?? "").length / maxLengthByKey[field.key] >= 0.8
+                  ? "text-red-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {String(formValues[field.key] ?? "").length} / {maxLengthByKey[field.key]}
+            </p>
+          )}
+        </div>
       )}
 
       {field.type === "file" && (
@@ -554,11 +712,20 @@ function EventDetails() {
           id={field.key}
           name={field.key}
           type={field.type}
+          min={
+            field.type === "number"
+              ? "0"
+              : field.key === "toDate"
+                ? formValues.fromDate || undefined
+                : undefined
+          }
           value={formValues[field.key]}
           onChange={(event) => handleChange(field, event.target.value)}
           className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
         />
       )}
+
+      {renderFieldHint(field)}
 
       {errors[field.key] && <p className="text-sm text-red-600">{errors[field.key]}</p>}
     </div>
@@ -583,7 +750,8 @@ function EventDetails() {
 
         <button
           type="submit"
-          className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          disabled={Object.keys(errors).length > 0}
+          className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
           Save Details
         </button>
