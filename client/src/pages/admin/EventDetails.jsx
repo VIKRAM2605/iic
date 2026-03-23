@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 
-const iccPortalDocFields = [
+const iicPortalDocFields = [
   { key: "academicYear", label: "Academic Year", type: "text", required: true },
   { key: "quarter", label: "Quarter", type: "text", required: true },
   {
@@ -382,7 +382,7 @@ function buildUnifiedFields() {
     });
   };
 
-  iccPortalDocFields.forEach((field) => upsertField(field, "ICC"));
+  iicPortalDocFields.forEach((field) => upsertField(field, "IIC"));
   bipPortalFields.forEach((field) => upsertField(field, "BIP"));
 
   return Array.from(fieldMap.values());
@@ -487,7 +487,7 @@ function EventDetails() {
       return;
     }
 
-    setSubmitMessage("All ICC mandatory fields and BIP portal fields are captured without repetition.");
+    setSubmitMessage("All IIC mandatory fields and BIP portal fields are captured without repetition.");
   };
 
   const renderField = (field) => (
@@ -566,9 +566,9 @@ function EventDetails() {
 
   return (
     <div className="mx-auto w-full p-6">
-      <h1 className="text-2xl font-semibold">ICC / BIP Portal Document Details</h1>
+      <h1 className="text-2xl font-semibold">IIC / BIP Portal Document Details</h1>
       <p className="mt-2 text-sm text-gray-600">
-        First 3 attachments (ICC) and remaining attachments (BIP) are merged and displayed once without repetition.
+        First 3 attachments (IIC) and remaining attachments (BIP) are merged and displayed once without repetition.
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
