@@ -1147,6 +1147,7 @@ function EventDetails() {
   };
 
   const isLastStep = currentStepIndex === stepSections.length - 1;
+  const stepProgress = stepSections.length > 1 ? (currentStepIndex / (stepSections.length - 1)) * 100 : 0;
 
   return (
     <div className="mx-auto w-full p-2">
@@ -1156,6 +1157,10 @@ function EventDetails() {
           <div className="mt-4 overflow-x-auto">
             <div className="relative min-w-190 px-2 pb-1">
               <div className="absolute left-8 right-8 top-4 h-0.5 bg-gray-300" />
+              <div
+                className="absolute left-8 top-4 h-0.5 bg-primary transition-all duration-200"
+                style={{ width: `calc((100% - 4rem) * ${stepProgress / 100})` }}
+              />
               <div className="relative flex items-start justify-between gap-2">
                 {stepSections.map((group, index) => {
                   const isActiveStep = index === currentStepIndex;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getFacultyMyEvents } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
@@ -25,6 +25,7 @@ const getEventDateLabel = (eventItem) => {
 
 export default function TeacherEventsDashboard() {
   const token = useMemo(() => getAuthToken(), []);
+  const location = useLocation();
   const [events, setEvents] = useState([]);
   const [quarterFilter, setQuarterFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -80,6 +81,8 @@ export default function TeacherEventsDashboard() {
     setStatusFilter("");
   };
 
+  const fromPath = `${location.pathname}${location.search}`;
+
   return (
     <section className="-m-6 min-h-[calc(100vh-4rem)] bg-white">
       <div className="grid gap-4 border-b border-gray-200 px-6 py-5 md:grid-cols-2 xl:grid-cols-4">
@@ -125,6 +128,7 @@ export default function TeacherEventsDashboard() {
           {filteredEvents.map((eventItem) => (
             <Link
               to={`/event/${eventItem.id}`}
+              state={{ from: fromPath }}
               key={eventItem.id}
               className="rounded-md border border-gray-200 bg-white p-4 transition-colors hover:border-primary"
             >

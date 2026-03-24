@@ -1,26 +1,79 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getAdminApprovedEvents, getAdminApprovedFilterOptions } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
-const getEventDateLabel = (eventItem) => {
-  if (eventItem.fromDate && eventItem.toDate) {
-    return `${eventItem.fromDate} to ${eventItem.toDate}`;
+const normalizeDate = (rawValue) => {
+  const value = String(rawValue || "").trim();
+  if (!value) {
+    return "";
   }
 
-  if (eventItem.fromDate) {
-    return eventItem.fromDate;
+  const maybeDate = value.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(maybeDate)) {
+    return maybeDate;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getEventDateLabel = (eventItem) => {
+  const fromDate = normalizeDate(eventItem.fromDate);
+  const toDate = normalizeDate(eventItem.toDate);
+
+  if (fromDate && toDate) {
+    return `${fromDate} to ${toDate}`;
+  }
+
+  if (fromDate) {
+    return fromDate;
   }
 
   return "-";
 };
 
+const getDurationLabel = (eventItem) => {
+  const fromDateRaw = String(eventItem.fromDate || "").trim();
+  const toDateRaw = String(eventItem.toDate || "").trim();
+
+  if (!fromDateRaw || !toDateRaw) {
+    return "-";
+  }
+
+  const fromDateTime = new Date(fromDateRaw);
+  const toDateTime = new Date(toDateRaw);
+  if (Number.isNaN(fromDateTime.getTime()) || Number.isNaN(toDateTime.getTime())) {
+    return "-";
+  }
+
+  const hours = (toDateTime.getTime() - fromDateTime.getTime()) / (1000 * 60 * 60);
+  if (!Number.isFinite(hours) || hours < 0) {
+    return "-";
+  }
+
+  if (hours === 0) {
+    return "0 hr";
+  }
+
+  return `${hours.toFixed(1)} hrs`;
+};
+
 export default function AdminApprovedDashboard() {
   const token = useMemo(() => getAuthToken(), []);
+  const location = useLocation();
 
   const [quarter, setQuarter] = useState("");
+  const [useSingleDate, setUseSingleDate] = useState(false);
   const [date, setDate] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -29,22 +82,6 @@ export default function AdminApprovedDashboard() {
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
   const [alertState, setAlertState] = useState({ isOpen: false, message: "", severity: "info" });
-
-  const loadData = async (filters = {}) => {
-    setLoading(true);
-    try {
-      const payload = await getAdminApprovedEvents({ token, ...filters });
-      setEvents(payload.data || []);
-    } catch (error) {
-      setAlertState({
-        isOpen: true,
-        message: error.message || "Failed to fetch approved events.",
-        severity: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -74,33 +111,80 @@ export default function AdminApprovedDashboard() {
     loadInitialData();
   }, [token]);
 
-  const handleApplyFilters = async (event) => {
-    event.preventDefault();
+  useEffect(() => {
+    if (useSingleDate) {
+      setFromDate("");
+      setToDate("");
+      return;
+    }
 
-    await loadData({
-      quarter,
-      date,
-      fromDate,
-      toDate,
-      facultyName,
+    setDate("");
+  }, [useSingleDate]);
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((eventItem) => {
+      if (quarter && String(eventItem.quarter || "") !== quarter) {
+        return false;
+      }
+
+      if (facultyName) {
+        const facultyFields = [
+          eventItem.ownerName,
+          eventItem.faculty1,
+          eventItem.faculty2,
+          eventItem.faculty3,
+          eventItem.facultyApplied,
+        ]
+          .filter(Boolean)
+          .map((value) => String(value).toLowerCase());
+
+        if (!facultyFields.some((value) => value.includes(facultyName.toLowerCase()))) {
+          return false;
+        }
+      }
+
+      const eventFrom = normalizeDate(eventItem.fromDate);
+      const eventTo = normalizeDate(eventItem.toDate) || eventFrom;
+
+      if (useSingleDate && date) {
+        const targetDate = normalizeDate(date);
+        if (!targetDate || !eventFrom || !eventTo || targetDate < eventFrom || targetDate > eventTo) {
+          return false;
+        }
+      }
+
+      if (!useSingleDate && fromDate) {
+        const targetFromDate = normalizeDate(fromDate);
+        if (!targetFromDate || !eventTo || eventTo < targetFromDate) {
+          return false;
+        }
+      }
+
+      if (!useSingleDate && toDate) {
+        const targetToDate = normalizeDate(toDate);
+        if (!targetToDate || !eventFrom || eventFrom > targetToDate) {
+          return false;
+        }
+      }
+
+      return true;
     });
-  };
+  }, [events, quarter, useSingleDate, date, fromDate, toDate, facultyName]);
 
-  const handleResetFilters = async () => {
+  const handleResetFilters = () => {
     setQuarter("");
+    setUseSingleDate(false);
     setDate("");
     setFromDate("");
     setToDate("");
     setFacultyName("");
-    await loadData();
   };
+
+  const fromPath = `${location.pathname}${location.search}`;
 
   return (
     <section className="-m-6 min-h-[calc(100vh-4rem)] bg-white">
-      <form
-        onSubmit={handleApplyFilters}
-        className="grid gap-4 border-b border-gray-200 px-6 py-5 md:grid-cols-2 xl:grid-cols-5"
-      >
+      <div className="grid gap-4 border-b border-gray-200 px-6 py-5 md:grid-cols-2 xl:grid-cols-5">
         <SearchableSelect
           label="Quarter"
           value={quarter}
@@ -110,32 +194,35 @@ export default function AdminApprovedDashboard() {
         />
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Event Date</label>
           <input
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            disabled={!useSingleDate}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">From Date</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Event From Date</label>
           <input
             type="date"
             value={fromDate}
             onChange={(event) => setFromDate(event.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            disabled={useSingleDate}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">To Date</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Event To Date</label>
           <input
             type="date"
             value={toDate}
             onChange={(event) => setToDate(event.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            disabled={useSingleDate}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
           />
         </div>
 
@@ -147,14 +234,16 @@ export default function AdminApprovedDashboard() {
           emptyLabel="All Faculty"
         />
 
-        <div className="flex items-end gap-2 md:col-span-2 xl:col-span-5">
-          <button
-            type="submit"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-            disabled={loading}
-          >
-            {loading ? "Applying..." : "Apply Filters"}
-          </button>
+        <div className="flex items-end justify-between gap-2 md:col-span-2 xl:col-span-5">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={useSingleDate}
+              onChange={(event) => setUseSingleDate(event.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            Use exact Event date search (turns off From/To range)
+          </label>
           <button
             type="button"
             onClick={handleResetFilters}
@@ -164,23 +253,24 @@ export default function AdminApprovedDashboard() {
             Reset
           </button>
         </div>
-      </form>
+      </div>
 
       <div className="px-6 py-5">
         <div className="mb-4 flex items-center justify-end">
           <span className="rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
-            {events.length} events
+            {filteredEvents.length} events
           </span>
         </div>
 
-        {!loading && events.length === 0 && (
+        {!loading && filteredEvents.length === 0 && (
           <div className="rounded-md border border-gray-200 p-6 text-center text-sm text-gray-500">No approved events found.</div>
         )}
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {events.map((eventItem) => (
+          {filteredEvents.map((eventItem) => (
             <Link
               to={`/event/${eventItem.id}`}
+              state={{ from: fromPath }}
               key={eventItem.id}
               className="rounded-md border border-gray-200 bg-white p-4 transition-colors hover:border-primary"
             >
@@ -194,6 +284,7 @@ export default function AdminApprovedDashboard() {
               <div className="mt-4 space-y-1 text-xs text-gray-600">
                 <p><span className="font-semibold">Quarter:</span> {eventItem.quarter || "-"}</p>
                 <p><span className="font-semibold">Date:</span> {getEventDateLabel(eventItem)}</p>
+                <p><span className="font-semibold">Duration:</span> {getDurationLabel(eventItem)}</p>
                 <p><span className="font-semibold">Owner:</span> {eventItem.ownerName || "-"}</p>
               </div>
             </Link>
