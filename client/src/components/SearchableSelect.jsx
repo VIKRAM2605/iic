@@ -49,10 +49,14 @@ export default function SearchableSelect({
       <button
         type="button"
         onClick={() => setIsOpen((previous) => !previous)}
-        className="flex w-full items-center justify-between rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-700 focus:border-primary focus:outline-none"
+        className="relative w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left text-sm text-gray-700 focus:border-primary focus:outline-none"
       >
-        <span className="truncate">{selectedLabel || placeholder}</span>
-        <ChevronDown size={16} className="ml-2 shrink-0 text-gray-500" aria-hidden="true" />
+        <span className="block truncate">{selectedLabel || placeholder}</span>
+        <ChevronDown
+          size={16}
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+          aria-hidden="true"
+        />
       </button>
 
       {isOpen && (
@@ -64,6 +68,7 @@ export default function SearchableSelect({
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
                 placeholder="Search..."
+                autoFocus
                 className="w-full text-sm text-gray-700 outline-none"
               />
             </div>

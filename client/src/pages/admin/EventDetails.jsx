@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createEventDetails } from "../../../config/api";
 import { getAuthToken } from "../../utils/auth";
 import Alert from "../../components/Alert";
+import SearchableSelect from "../../components/SearchableSelect";
 
 const EVENT_DETAILS_STORAGE_KEY = "event-details-form-values";
 
@@ -694,7 +695,6 @@ function EventDetails() {
       return nextErrors;
     });
 
-    setSubmitMessage("");
   };
 
   const validate = () => {
@@ -814,14 +814,16 @@ function EventDetails() {
     });
 
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    return nextErrors;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!validate()) {
-      setAlertMessage("Please fill all mandatory fields.");
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      const firstErrorMessage = Object.values(validationErrors)[0] || "Please fill all mandatory fields.";
+      setAlertMessage(firstErrorMessage);
       setAlertSeverity("error");
       setAlertOpen(true);
       return;
@@ -978,31 +980,31 @@ function EventDetails() {
       )}
 
       {field.type === "file" && (
-        <input
-          id={field.key}
-          name={field.key}
-          type="file"
-          accept={field.accept}
-          onChange={(event) => handleChange(field, event.target.files?.[0] ?? null)}
-          className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
-        />
+        <div className="space-y-1">
+          <input
+            id={field.key}
+            name={field.key}
+            type="file"
+            accept={field.accept}
+            onChange={(event) => handleChange(field, event.target.files?.[0] ?? null)}
+            className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
+          />
+          {formValues[field.key] instanceof File && (
+            <p className="text-xs text-gray-600">
+              Selected: {formValues[field.key].name}
+            </p>
+          )}
+        </div>
       )}
 
       {field.type === "select" && (
-        <select
-          id={field.key}
-          name={field.key}
-          value={formValues[field.key]}
-          onChange={(event) => handleChange(field, event.target.value)}
-          className="w-full rounded border border-gray-300 bg-white p-2 outline-none focus:border-gray-500"
-        >
-          <option value="">Select</option>
-          {field.options?.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <SearchableSelect
+          value={String(formValues[field.key] ?? "")}
+          onChange={(nextValue) => handleChange(field, nextValue)}
+          options={field.options || []}
+          emptyLabel="Select"
+          placeholder="Select"
+        />
       )}
 
       {field.type === "checkbox" && (
@@ -1144,7 +1146,6 @@ function EventDetails() {
     );
   };
 
-  const activeStep = stepSections[currentStepIndex];
   const isLastStep = currentStepIndex === stepSections.length - 1;
 
   return (
@@ -1191,17 +1192,24 @@ function EventDetails() {
           </div>
         </div>
 
-        {activeStep && (
-          <section className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="text-lg font-medium text-gray-900">{activeStep.section}</h2>
+        {stepSections.map((step, index) => {
+          const isActiveStep = index === currentStepIndex;
 
-            {activeStep.section === "Program Details" && <div className="mt-4">{renderDurationGroup()}</div>}
+          return (
+            <section
+              key={step.section}
+              className={`rounded-lg border border-gray-200 bg-white p-4 ${isActiveStep ? "block" : "hidden"}`}
+            >
+              <h2 className="text-lg font-medium text-gray-900">{step.section}</h2>
 
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              {activeStep.fields.map((field) => renderField(field))}
-            </div>
-          </section>
-        )}
+              {step.section === "Program Details" && <div className="mt-4">{renderDurationGroup()}</div>}
+
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                {step.fields.map((field) => renderField(field))}
+              </div>
+            </section>
+          );
+        })}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
