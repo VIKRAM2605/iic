@@ -48,20 +48,19 @@ const getDurationFromDateTime = (startDateTime, endDateTime) => {
 
 const iicPortalDocFields = [
   {
-    key: "previousAcademicYear",
-    label: "Previous Academic Year",
-    type: "select",
-    required: true,
-    options: academicYearOptions,
-  },
-  {
     key: "currentAcademicYear",
     label: "Current Academic Year",
     type: "select",
     required: true,
     options: academicYearOptions,
   },
-  { key: "quarter", label: "Quarter", type: "text", required: true },
+  {
+    key: "quarter",
+    label: "Quarter",
+    type: "select",
+    required: true,
+    options: ["Q-I", "Q-II", "Q-III", "Q-IV"],
+  },
   {
     key: "programDrivenBy",
     label: "Program Driven By",
@@ -174,6 +173,14 @@ const iicPortalDocFields = [
   },
   { key: "sessionVideoUrl", label: "Video URL of Session", type: "url", required: true },
   {
+    key: "feedbackDescription",
+    label: "Upload Feedback",
+    type: "file",
+    required: false,
+    accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
     key: "attendanceSheet",
     label: "Upload Attendance Sheet",
     type: "file",
@@ -213,6 +220,8 @@ const iicPortalDocFields = [
   { key: "instagramUrl", label: "Instagram URL", type: "url", required: false },
   { key: "promoteLinkedin", label: "LinkedIn", type: "checkbox", required: false },
   { key: "linkedinUrl", label: "LinkedIn URL", type: "url", required: false },
+  { key: "promoteYoutube", label: "YouTube", type: "checkbox", required: false },
+  { key: "youtubeUrl", label: "YouTube URL", type: "url", required: false },
 ];
 
 const bipPortalFields = [
@@ -260,58 +269,25 @@ const bipPortalFields = [
     options: ["Yes", "No", "NA"],
   },
   { key: "faculty3", label: "Faculty 3", type: "text", required: false },
-  { key: "eventType", label: "Select Type of Event", type: "text", required: false },
+  {
+    key: "eventType",
+    label: "Select Type of Event",
+    type: "select",
+    required: false,
+    options: ["External", "Internal"],
+  },
   { key: "programActivityName", label: "Name of Event", type: "text", required: false },
   { key: "studentParticipants", label: "No. of Students Participated", type: "number", required: false },
   { key: "facultyParticipants", label: "No. of Faculty Members Participated", type: "number", required: false },
   { key: "externalParticipants", label: "No. of External Participants", type: "number", required: false },
   { key: "expenditureAmount", label: "Expenditure Amount (INR)", type: "number", required: false },
   { key: "modeOfSession", label: "Select Mode of Session", type: "select", required: false, options: ["Offline", "Online", "Hybrid"] },
-  {
-    key: "offlineEventProof1",
-    label: "Upload OFFLINE Event Photo Proof 1",
-    type: "file",
-    required: false,
-    accept: ".jpg,.jpeg,.png",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
-    key: "offlineEventProof2",
-    label: "Upload OFFLINE Event Photo Proof 2",
-    type: "file",
-    required: false,
-    accept: ".jpg,.jpeg,.png",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
-    key: "onlineEventProof1",
-    label: "Upload ONLINE Event Photo Proof 1",
-    type: "file",
-    required: false,
-    accept: ".jpg,.jpeg,.png",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
-    key: "onlineEventProof2",
-    label: "Upload OFFLINE Event Photo Proof 2",
-    type: "file",
-    required: false,
-    accept: ".jpg,.jpeg,.png",
-  },
   { key: "outcomeObtained", label: "Outcome Obtained", type: "textarea", required: false },
   {
     key: "publishedSocialMediaUrl",
     label: "Published Video/Social Media URL",
     type: "url",
     required: false,
-  },
-  {
-    key: "sessionScheduleWithHeader",
-    label: "Upload Session Schedule with Header",
-    type: "file",
-    required: false,
-    accept: ".pdf",
-    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "sessionSchedule",
@@ -322,22 +298,8 @@ const bipPortalFields = [
     maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "brochureWithLogo",
-    label: "Upload Brochure with Institute Logo",
-    type: "file",
-    required: false,
-    accept: ".pdf",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
     key: "brochureProofName",
-    label: "Upload Brochure Proof Name",
-    type: "text",
-    required: false,
-  },
-  {
-    key: "attendanceSheetWithHeader",
-    label: "Upload Attendance Sheet with Header",
+    label: "Upload Brochure",
     type: "file",
     required: false,
     accept: ".pdf",
@@ -357,7 +319,13 @@ const bipPortalFields = [
     accept: ".pdf",
     maxSizeBytes: 2 * 1024 * 1024,
   },
-  { key: "iqacVerification", label: "IQAC Verification", type: "text", required: false },
+  {
+    key: "iqacVerification",
+    label: "IQAC Verification",
+    type: "select",
+    required: false,
+    options: ["Initiated", "Approved", "Rejected"],
+  },
   { key: "remark", label: "Remarks", type: "textarea", required: false },
 ];
 
@@ -365,7 +333,6 @@ const displayStructure = [
   {
     section: "Program Details",
     fields: [
-      "previousAcademicYear",
       "currentAcademicYear",
       "quarter",
       "programDrivenBy",
@@ -373,7 +340,6 @@ const displayStructure = [
       "programType",
       "activityLedBy",
       "programTheme",
-      "aboutEvent",
       "durationManual",
       "fromDate",
       "toDate",
@@ -384,6 +350,7 @@ const displayStructure = [
       "expenditureAmount",
       "modeOfSession",
       "eventType",
+      "aboutEvent",
     ],
   },
   {
@@ -396,9 +363,9 @@ const displayStructure = [
       "speakerName",
       "speakerDesignation",
       "speakerOrganization",
-      "aboutSpeaker",
       "sessionVideoUrl",
       "publishedSocialMediaUrl",
+      "aboutSpeaker",
     ],
   },
   {
@@ -407,18 +374,10 @@ const displayStructure = [
       "attendanceSheet",
       "photograph1",
       "photograph2",
-      "overallReport",
-      "offlineEventProof1",
-      "offlineEventProof2",
-      "onlineEventProof1",
-      "onlineEventProof2",
-      "sessionScheduleWithHeader",
       "sessionSchedule",
-      "brochureWithLogo",
       "brochureProofName",
-      "attendanceSheetWithHeader",
-      "attendanceSheetName",
-      "uploadedReport",
+      "overallReport",
+      "feedbackDescription",
     ],
   },
   {
@@ -432,6 +391,8 @@ const displayStructure = [
       "instagramUrl",
       "promoteLinkedin",
       "linkedinUrl",
+      "promoteYoutube",
+      "youtubeUrl",
     ],
   },
   {
@@ -519,6 +480,8 @@ function EventDetails() {
       fields.reduce((accumulator, field) => {
         if (field.type === "checkbox") {
           accumulator[field.key] = false;
+        } else if (field.key === "iqacVerification") {
+          accumulator[field.key] = "Initiated";
         } else {
           accumulator[field.key] = field.type === "file" ? null : "";
         }
@@ -764,15 +727,6 @@ function EventDetails() {
       }
     });
 
-    if (String(formValues.previousAcademicYear ?? "").trim() && String(formValues.currentAcademicYear ?? "").trim()) {
-      const previousStartYear = Number(String(formValues.previousAcademicYear).split("-")[0]);
-      const currentStartYear = Number(String(formValues.currentAcademicYear).split("-")[0]);
-
-      if (!Number.isNaN(previousStartYear) && !Number.isNaN(currentStartYear) && previousStartYear >= currentStartYear) {
-        nextErrors.currentAcademicYear = "Current Academic Year must be after Previous Academic Year";
-      }
-    }
-
     if (formValues.durationManual) {
       const durationValue = String(formValues.durationHours ?? "").trim();
       if (!durationValue) {
@@ -805,6 +759,7 @@ function EventDetails() {
       ["promoteFacebook", "facebookUrl", "Facebook URL is required when Facebook is selected"],
       ["promoteInstagram", "instagramUrl", "Instagram URL is required when Instagram is selected"],
       ["promoteLinkedin", "linkedinUrl", "LinkedIn URL is required when LinkedIn is selected"],
+      ["promoteYoutube", "youtubeUrl", "YouTube URL is required when YouTube is selected"],
     ];
 
     socialPairs.forEach(([toggleKey, urlKey, message]) => {
@@ -902,7 +857,7 @@ function EventDetails() {
       return <p className="text-xs text-gray-500">Max {maxMb}MB</p>;
     }
 
-    if (["photograph2", "offlineEventProof2", "onlineEventProof2"].includes(field.key)) {
+    if (["photograph2", "offlineEventProof2"].includes(field.key)) {
       return <p className="text-xs text-gray-500">(Photo 2 must be different from Photo 1)</p>;
     }
 
@@ -1055,6 +1010,34 @@ function EventDetails() {
       {errors[field.key] && <p className="text-sm text-red-600">{errors[field.key]}</p>}
     </div>
   );
+
+  const shouldShowField = (fieldKey) => {
+    if (fieldKey === "department") {
+      return String(formValues.departmentsInvolved ?? "").trim().toLowerCase() === "yes";
+    }
+
+    if (fieldKey === "specialLabs") {
+      return String(formValues.specialLabsInvolved ?? "").trim().toLowerCase() === "yes";
+    }
+
+    if (fieldKey === "club") {
+      return String(formValues.clubInvolved ?? "").trim().toLowerCase() === "yes";
+    }
+
+    if (fieldKey === "faculty1") {
+      return String(formValues.firstFacultyInvolved ?? "").trim().toLowerCase() === "yes";
+    }
+
+    if (fieldKey === "faculty2") {
+      return String(formValues.secondFacultyInvolved ?? "").trim().toLowerCase() === "yes";
+    }
+
+    if (fieldKey === "faculty3") {
+      return String(formValues.thirdFacultyInvolved ?? "").trim().toLowerCase() === "yes";
+    }
+
+    return true;
+  };
 
   const renderDurationGroup = () => {
     const durationManualField = fieldsByKey.durationManual;
@@ -1210,7 +1193,9 @@ function EventDetails() {
               {step.section === "Program Details" && <div className="mt-4">{renderDurationGroup()}</div>}
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                {step.fields.map((field) => renderField(field))}
+                {step.fields
+                  .filter((field) => shouldShowField(field.key))
+                  .map((field) => renderField(field))}
               </div>
             </section>
           );
