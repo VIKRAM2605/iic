@@ -18,10 +18,19 @@ function Login() {
 
     setAuthSession({ token, user });
 
-    const fromPath =
+    const stateRedirect =
       typeof location.state?.from === "string" && location.state.from.startsWith("/")
         ? location.state.from
         : "";
+    const storedRedirect =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("post-login-redirect") || ""
+        : "";
+    const fromPath = stateRedirect || storedRedirect;
+
+    if (storedRedirect) {
+      sessionStorage.removeItem("post-login-redirect");
+    }
 
     if (fromPath && fromPath !== "/login") {
       navigate(fromPath, { replace: true });

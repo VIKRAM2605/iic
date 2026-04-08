@@ -4,6 +4,12 @@ import { isAuthenticated } from "../utils/auth";
 export default function ProtectedRoute() {
   const location = useLocation();
   if (!isAuthenticated()) {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        "post-login-redirect",
+        `${location.pathname}${location.search}`
+      );
+    }
     return (
       <Navigate
         to="/login"
