@@ -156,10 +156,10 @@ export async function createIdeaDetails(request, response, next) {
     };
 
     const overview = {
-      objective: getBodyValue(body, "objective"),
-      benefitLearning: getBodyValue(body, "benefitLearning"),
-      outcomeObtained: getBodyValue(body, "outcomeObtained"),
-      remark: getBodyValue(body, "remark"),
+      problemRelevance: getBodyValue(body, "problemRelevance"),
+      solutionDescription: getBodyValue(body, "solutionDescription"),
+      uniquenessFeatures: getBodyValue(body, "uniquenessFeatures"),
+      competitorDifference: getBodyValue(body, "competitorDifference"),
     };
 
     const speakerDetails = {
@@ -171,27 +171,19 @@ export async function createIdeaDetails(request, response, next) {
       publishedSocialMediaUrl: getBodyValue(body, "publishedSocialMediaUrl"),
     };
 
-    const brochureProofFile = getUploadedFilePath(files, "brochureProofName");
-    const brochureWithLogo =
-      getUploadedFilePath(files, "brochureWithLogo") || brochureProofFile || null;
-
     const attachments = {
-      feedbackDescription: getUploadedFilePath(files, "feedbackDescription"),
-      attendanceSheet: getUploadedFilePath(files, "attendanceSheet"),
-      photograph1: getUploadedFilePath(files, "photograph1"),
-      photograph2: getUploadedFilePath(files, "photograph2"),
-      overallReport: getUploadedFilePath(files, "overallReport"),
-      offlineEventProof1: getUploadedFilePath(files, "offlineEventProof1"),
-      offlineEventProof2: getUploadedFilePath(files, "offlineEventProof2"),
-      onlineEventProof1: getUploadedFilePath(files, "onlineEventProof1"),
-      onlineEventProof2: getUploadedFilePath(files, "onlineEventProof2"),
-      sessionScheduleWithHeader: getUploadedFilePath(files, "sessionScheduleWithHeader"),
-      sessionSchedule: getUploadedFilePath(files, "sessionSchedule"),
-      brochureWithLogo,
-      brochureProofName: brochureProofFile || getBodyValue(body, "brochureProofName"),
-      attendanceSheetWithHeader: getUploadedFilePath(files, "attendanceSheetWithHeader"),
-      attendanceSheetName: getBodyValue(body, "attendanceSheetName"),
-      uploadedReport: getUploadedFilePath(files, "uploadedReport"),
+      ipPatentAssociated: getBodyValue(body, "ipPatentAssociated"),
+      ipPatentDocument: getUploadedFilePath(files, "ipPatentDocument"),
+      innovationGrantSupport: getBodyValue(body, "innovationGrantSupport"),
+      innovationGrantDocument: getUploadedFilePath(files, "innovationGrantDocument"),
+      recognitionsObtained: getBodyValue(body, "recognitionsObtained"),
+      latestAchievementDocument: getUploadedFilePath(files, "latestAchievementDocument"),
+      commercializedSolution: getBodyValue(body, "commercializedSolution"),
+      startupRegistrationDocument: getUploadedFilePath(files, "startupRegistrationDocument"),
+      incubationSupportReceived: getBodyValue(body, "incubationSupportReceived"),
+      incubationUnitName: getBodyValue(body, "incubationUnitName"),
+      innovationVideoUrl: getBodyValue(body, "innovationVideoUrl"),
+      innovationPhotograph: getUploadedFilePath(files, "innovationPhotograph"),
     };
 
     const socialMedia = {
