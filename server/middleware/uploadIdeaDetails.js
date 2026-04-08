@@ -5,7 +5,7 @@ import multer from "multer";
 const uploadDirectory = path.join(process.cwd(), "uploads", "idea-details");
 fs.mkdirSync(uploadDirectory, { recursive: true });
 
-const allowedExtensions = new Set([".pdf", ".jpg", ".jpeg", ".png"]);
+const allowedExtensions = new Set([".jpg", ".jpeg", ".png"]);
 
 const storage = multer.diskStorage({
   destination: (_request, _file, callback) => {
@@ -22,7 +22,7 @@ const fileFilter = (_request, file, callback) => {
   const extension = path.extname(file.originalname).toLowerCase();
 
   if (!allowedExtensions.has(extension)) {
-    callback(new Error("Invalid file type. Only PDF/JPG/JPEG/PNG are allowed."));
+    callback(new Error("Invalid file type. Only JPG/JPEG/PNG are allowed."));
     return;
   }
 
@@ -38,19 +38,9 @@ const upload = multer({
 });
 
 export const uploadIdeaDetails = upload.fields([
-  { name: "feedbackDescription", maxCount: 1 },
-  { name: "attendanceSheet", maxCount: 1 },
-  { name: "photograph1", maxCount: 1 },
-  { name: "photograph2", maxCount: 1 },
-  { name: "overallReport", maxCount: 1 },
-  { name: "offlineEventProof1", maxCount: 1 },
-  { name: "offlineEventProof2", maxCount: 1 },
-  { name: "onlineEventProof1", maxCount: 1 },
-  { name: "onlineEventProof2", maxCount: 1 },
-  { name: "sessionScheduleWithHeader", maxCount: 1 },
-  { name: "sessionSchedule", maxCount: 1 },
-  { name: "brochureWithLogo", maxCount: 1 },
-  { name: "brochureProofName", maxCount: 1 },
-  { name: "attendanceSheetWithHeader", maxCount: 1 },
-  { name: "uploadedReport", maxCount: 1 },
+  { name: "ipPatentDocument", maxCount: 1 },
+  { name: "innovationGrantDocument", maxCount: 1 },
+  { name: "latestAchievementDocument", maxCount: 1 },
+  { name: "startupRegistrationDocument", maxCount: 1 },
+  { name: "innovationPhotograph", maxCount: 1 },
 ]);

@@ -38,189 +38,222 @@ const getDurationFromDateTime = (startDateTime, endDateTime) => {
 
 const iicPortalDocFields = [
   { key: "instituteName", label: "Institute Name", type: "text", required: true },
-  { key: "innovationTitle", label: "Title of the Innovation /Prototype", type: "text", required: true },
+  { key: "innovationTitle", label: "Title of the Innovation", type: "text", required: true },
   { key: "teamLeadName", label: "Team Lead Name", type: "text", required: true },
   { key: "teamLeadEmail", label: "Team Lead Email", type: "email", required: true },
-  { key: "teamLeadGender", label: "Team Lead Gender", type: "text", required: true },
-  { key: "fyOfDevelopment", label: "FY of Development", type: "text", required: true },
-  { key: "sectorDomain", label: "Sector /Domain", type: "text", required: true },
-  { key: "developedAsPartOf", label: "Developed as part of", type: "text", required: true },
-  { key: "innovationType", label: "Innovation type", type: "text", required: true },
-  { key: "remark", label: "Remark", type: "textarea", required: true },
-  { key: "objective", label: "Objective", type: "textarea", required: true },
   {
-    key: "benefitLearning",
-    label: "Benefit in terms of Learning/Skill/Knowledge",
+    key: "teamLeadGender",
+    label: "Team Lead Gender",
+    type: "select",
+    required: true,
+    options: ["Female", "Male"],
+  },
+  {
+    key: "fyOfDevelopment",
+    label: "Financial Year of Development",
+    type: "select",
+    required: true,
+    options: [
+      "2019-20",
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26",
+      "2026-27",
+    ],
+  },
+  {
+    key: "sectorDomain",
+    label: "Sector /Domain",
+    type: "select",
+    required: true,
+    options: [
+      "Healthcare & Biomedical devices.",
+      "Agriculture & Rural Development.",
+      "Smart Vehicles/ Electric vehicle/ Electric vehicle motor and battery technology.",
+      "Food Processing/Nutrition/Biotech",
+      "Robotics and Drones.",
+      "Waste Management/Waste to Wealth Creation",
+      "Clean & Potable water.",
+      "Renewable and affordable Energy.",
+      "IoT based technologies (e.g. Security & Surveillance systems etc.)",
+      "ICT, cyber-physical systems, Blockchain, Cognitive computing, Cloud computing, AI & ML.",
+      "Other Emerging Areas Innovation for Start-up",
+      "Software - Mobile App Development",
+      "Software - Web App Development",
+      "Travel & Tourism",
+      "Finance Life Sciences",
+      "Smart Education",
+      "Smart Cities",
+      "Sports & Fitness",
+      "Smart Textiles",
+      "Sustainable Environment",
+      "Infrastructure",
+      "Manufacturing",
+      "Defence & Security",
+      "Mining, Metals, Materials",
+      "Consumer Goods and Retail",
+      "Fashion and Textiles",
+      "Education",
+    ],
+  },
+  {
+    key: "developedAsPartOf",
+    label: "Developed as part of",
+    type: "select",
+    required: true,
+    options: [
+      "Academic Requirement/Study Project",
+      "Academic Research Assignment/Industry Sponsored Project",
+      "Independent Assignment/Non-academic Study Project",
+    ],
+  },
+  {
+    key: "innovationType",
+    label: "Innovation type",
+    type: "select",
+    required: true,
+    options: [
+      "Product",
+      "Process",
+      "Service",
+      "Market Place",
+      "Business/Management Innovation",
+    ],
+  },
+  {
+    key: "developmentStage",
+    label: "Development stage",
+    type: "select",
+    required: true,
+    options: [
+      "TRL 1: Basic research. Principles postulated observed but no experimental proof available",
+      "TRL 2: Technology formulation. Concept and application have been formulated",
+      "TRL 3: Applied research. First laboratory tests completed; proof of concept",
+    ],
+  },
+  {
+    key: "problemRelevance",
+    label: "Define the problem and its relevance to today's market / society / industry need",
     type: "textarea",
     required: true,
   },
-  { key: "speakerName", label: "Speaker Name", type: "text", required: true },
-  { key: "speakerDesignation", label: "Speaker Designation", type: "text", required: true },
-  { key: "speakerOrganization", label: "Speaker Organization", type: "text", required: true },
   {
-    key: "aboutSpeaker",
-    label: "About the Speaker",
+    key: "solutionDescription",
+    label: "Describe the solution / proposed / developed",
     type: "textarea",
     required: true,
   },
-  { key: "sessionVideoUrl", label: "Video URL of Session", type: "url", required: true },
   {
-    key: "feedbackDescription",
-    label: "Upload Feedback",
+    key: "uniquenessFeatures",
+    label: "Explain the uniqueness and distinctive features of the (product / process / service) solution",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "competitorDifference",
+    label:
+      "How your proposed / developed (product / process / service) solution is different from similar kind of product by the competitors if any",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "ipPatentAssociated",
+    label: "Is there any IP or Patentable Component associated with the Solution?",
+    type: "select",
+    required: true,
+    options: ["Yes", "No"],
+  },
+  {
+    key: "ipPatentDocument",
+    label: "Upload the Copy of IP/Patent Applied or Obtained",
     type: "file",
     required: false,
-    accept: ".pdf",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
-    key: "attendanceSheet",
-    label: "Upload Attendance Sheet",
-    type: "file",
-    required: true,
-    accept: ".pdf,.jpg,.jpeg,.png",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
-    key: "photograph1",
-    label: "Photograph 1",
-    type: "file",
-    required: true,
     accept: ".jpg,.jpeg,.png",
     maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "photograph2",
-    label: "Photograph 2",
-    type: "file",
+    key: "innovationGrantSupport",
+    label: "Has the Solution Received any Innovation Grant/Seedfund Support",
+    type: "select",
     required: true,
+    options: ["Yes", "No"],
+  },
+  {
+    key: "innovationGrantDocument",
+    label: "Upload the Copy of IP/Patent Applied or Obtained",
+    type: "file",
+    required: false,
     accept: ".jpg,.jpeg,.png",
     maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "overallReport",
-    label: "Overall Report of the Activity",
-    type: "file",
+    key: "recognitionsObtained",
+    label: "Are there any Recognitions (National/International) Obtained by the Solution?",
+    type: "select",
     required: true,
-    accept: ".pdf",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  { key: "promoteTwitter", label: "Twitter", type: "checkbox", required: false },
-  { key: "twitterUrl", label: "Twitter URL", type: "url", required: false },
-  { key: "promoteFacebook", label: "Facebook", type: "checkbox", required: false },
-  { key: "facebookUrl", label: "Facebook URL", type: "url", required: false },
-  { key: "promoteInstagram", label: "Instagram", type: "checkbox", required: false },
-  { key: "instagramUrl", label: "Instagram URL", type: "url", required: false },
-  { key: "promoteLinkedin", label: "LinkedIn", type: "checkbox", required: false },
-  { key: "linkedinUrl", label: "LinkedIn URL", type: "url", required: false },
-  { key: "promoteYoutube", label: "YouTube", type: "checkbox", required: false },
-  { key: "youtubeUrl", label: "YouTube URL", type: "url", required: false },
-];
-
-const bipPortalFields = [
-  { key: "facultyApplied", label: "Faculty Applied", type: "text", required: false },
-  { key: "taskId", label: "Task ID", type: "text", required: false },
-  {
-    key: "departmentsInvolved",
-    label: "Departments Involved",
-    type: "select",
-    required: false,
     options: ["Yes", "No"],
   },
-  { key: "department", label: "Department", type: "text", required: false },
   {
-    key: "specialLabsInvolved",
-    label: "Special Labs Involved",
-    type: "select",
-    required: false,
-    options: ["Yes", "No"],
-  },
-  { key: "specialLabs", label: "Special Labs", type: "text", required: false },
-  { key: "clubInvolved", label: "Club Involved", type: "select", required: false, options: ["Yes", "No"] },
-  { key: "club", label: "Club", type: "text", required: false },
-  {
-    key: "firstFacultyInvolved",
-    label: "First Faculty Member Involved",
-    type: "select",
-    required: false,
-    options: ["Yes", "No"],
-  },
-  { key: "faculty1", label: "Faculty 1", type: "text", required: false },
-  {
-    key: "secondFacultyInvolved",
-    label: "Second Faculty Member Involved",
-    type: "select",
-    required: false,
-    options: ["Yes", "No"],
-  },
-  { key: "faculty2", label: "Faculty 2", type: "text", required: false },
-  {
-    key: "thirdFacultyInvolved",
-    label: "Third Faculty Member Involved",
-    type: "select",
-    required: false,
-    options: ["Yes", "No", "NA"],
-  },
-  { key: "faculty3", label: "Faculty 3", type: "text", required: false },
-  {
-    key: "eventType",
-    label: "Select Type of Idea",
-    type: "select",
-    required: false,
-    options: ["External", "Internal"],
-  },
-  { key: "outcomeObtained", label: "Outcome Obtained", type: "textarea", required: false },
-  {
-    key: "publishedSocialMediaUrl",
-    label: "Published Video/Social Media URL",
-    type: "url",
-    required: false,
-  },
-  {
-    key: "sessionSchedule",
-    label: "Upload Session Schedule",
+    key: "latestAchievementDocument",
+    label: "Upload the Copy of Latest Achievement",
     type: "file",
     required: false,
-    accept: ".pdf",
+    accept: ".jpg,.jpeg,.png",
     maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "brochureProofName",
-    label: "Upload Brochure",
+    key: "commercializedSolution",
+    label: "Is the Solution Commercialized either through Technology Transfer or Enterprise Development/Startup?",
+    type: "select",
+    required: true,
+    options: ["Yes", "No"],
+  },
+  {
+    key: "startupRegistrationDocument",
+    label: "Upload the Registration Copy of Start-up / Enterprise",
     type: "file",
     required: false,
-    accept: ".pdf",
+    accept: ".jpg,.jpeg,.png",
     maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "attendanceSheetName",
-    label: "Upload Attendance Sheet Name",
+    key: "incubationSupportReceived",
+    label: "Had the Solution Received any Pre-Incubation/Incubation Support?",
+    type: "select",
+    required: true,
+    options: ["Yes", "No"],
+  },
+  {
+    key: "incubationUnitName",
+    label: "Mention the Pre-Incubation / Incubation Unit Name",
     type: "text",
     required: false,
   },
   {
-    key: "uploadedReport",
-    label: "Upload Report",
-    type: "file",
+    key: "innovationVideoUrl",
+    label: "Video URL",
+    type: "url",
     required: false,
-    accept: ".pdf",
-    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "iqacVerification",
-    label: "IQAC Verification",
-    type: "select",
+    key: "innovationPhotograph",
+    label: "Upload Photograph",
+    type: "file",
     required: false,
-    options: ["Initiated", "Approved", "Rejected"],
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
-  { key: "remark", label: "Remarks", type: "textarea", required: false },
 ];
 
 const displayStructure = [
   {
-    section: "Program Details",
+    section: "Idea Details",
     fields: [
-      "instituteName",
       "innovationTitle",
+      "instituteName",
       "teamLeadName",
       "teamLeadEmail",
       "teamLeadGender",
@@ -228,68 +261,33 @@ const displayStructure = [
       "sectorDomain",
       "developedAsPartOf",
       "innovationType",
+      "developmentStage",
     ],
   },
   {
     section: "Overview",
-    fields: ["objective", "benefitLearning", "outcomeObtained", "remark"],
-  },
-  {
-    section: "Speaker",
     fields: [
-      "speakerName",
-      "speakerDesignation",
-      "speakerOrganization",
-      "sessionVideoUrl",
-      "publishedSocialMediaUrl",
-      "aboutSpeaker",
+      "problemRelevance",
+      "solutionDescription",
+      "uniquenessFeatures",
+      "competitorDifference",
     ],
   },
   {
     section: "Attachments",
     fields: [
-      "attendanceSheet",
-      "photograph1",
-      "photograph2",
-      "sessionSchedule",
-      "brochureProofName",
-      "overallReport",
-      "feedbackDescription",
-    ],
-  },
-  {
-    section: "Promotion in Social Media",
-    fields: [
-      "promoteTwitter",
-      "twitterUrl",
-      "promoteFacebook",
-      "facebookUrl",
-      "promoteInstagram",
-      "instagramUrl",
-      "promoteLinkedin",
-      "linkedinUrl",
-      "promoteYoutube",
-      "youtubeUrl",
-    ],
-  },
-  {
-    section: "BIP Portal Details",
-    fields: [
-      "facultyApplied",
-      "taskId",
-      "departmentsInvolved",
-      "department",
-      "specialLabsInvolved",
-      "specialLabs",
-      "clubInvolved",
-      "club",
-      "firstFacultyInvolved",
-      "faculty1",
-      "secondFacultyInvolved",
-      "faculty2",
-      "thirdFacultyInvolved",
-      "faculty3",
-      "iqacVerification",
+      "ipPatentAssociated",
+      "ipPatentDocument",
+      "innovationGrantSupport",
+      "innovationGrantDocument",
+      "recognitionsObtained",
+      "latestAchievementDocument",
+      "commercializedSolution",
+      "startupRegistrationDocument",
+      "incubationSupportReceived",
+      "incubationUnitName",
+      "innovationPhotograph",
+      "innovationVideoUrl",
     ],
   },
 ];
@@ -316,10 +314,16 @@ function buildUnifiedFields() {
   };
 
   iicPortalDocFields.forEach((field) => upsertField(field, "IIC"));
-  bipPortalFields.forEach((field) => upsertField(field, "BIP"));
-
   return Array.from(fieldMap.values());
 }
+
+const attachmentConditionalFields = {
+  ipPatentDocument: "ipPatentAssociated",
+  innovationGrantDocument: "innovationGrantSupport",
+  latestAchievementDocument: "recognitionsObtained",
+  startupRegistrationDocument: "commercializedSolution",
+  incubationUnitName: "incubationSupportReceived",
+};
 
 function IdeaDetails() {
   const fields = useMemo(() => buildUnifiedFields(), []);
@@ -357,8 +361,6 @@ function IdeaDetails() {
       fields.reduce((accumulator, field) => {
         if (field.type === "checkbox") {
           accumulator[field.key] = false;
-        } else if (field.key === "iqacVerification") {
-          accumulator[field.key] = "Initiated";
         } else {
           accumulator[field.key] = field.type === "file" ? null : "";
         }
@@ -410,8 +412,13 @@ function IdeaDetails() {
   const [alertSeverity, setAlertSeverity] = useState("success");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const maxLengthByKey = { objective: 100, benefitLearning: 150, outcomeObtained: 150, remark: 150 };
-  const maxWordsByKey = { aboutEvent: 150, aboutSpeaker: 150 };
+  const maxLengthByKey = {
+    problemRelevance: 100,
+    solutionDescription: 100,
+    uniquenessFeatures: 100,
+    competitorDifference: 100,
+  };
+  const maxWordsByKey = { innovationTitle: 20, aboutEvent: 150 };
 
   const stepSections = useMemo(
     () =>
@@ -487,7 +494,7 @@ function IdeaDetails() {
       }
     }
 
-    if (field.type === "textarea" && maxWordsByKey[field.key]) {
+    if (maxWordsByKey[field.key]) {
       const limit = maxWordsByKey[field.key];
       if (countWords(value) > limit) {
         alert(`${field.label} must be ${limit} words or less.`);
@@ -512,6 +519,26 @@ function IdeaDetails() {
       if ((field.key === "fromDate" || field.key === "toDate") && !nextValues.durationManual) {
         const calculatedDuration = getDurationFromDateTime(nextValues.fromDate, nextValues.toDate);
         nextValues.durationHours = calculatedDuration.error ? "" : calculatedDuration.durationHours;
+      }
+
+      if (field.key === "ipPatentAssociated" && value !== "Yes") {
+        nextValues.ipPatentDocument = null;
+      }
+
+      if (field.key === "innovationGrantSupport" && value !== "Yes") {
+        nextValues.innovationGrantDocument = null;
+      }
+
+      if (field.key === "recognitionsObtained" && value !== "Yes") {
+        nextValues.latestAchievementDocument = null;
+      }
+
+      if (field.key === "commercializedSolution" && value !== "Yes") {
+        nextValues.startupRegistrationDocument = null;
+      }
+
+      if (field.key === "incubationSupportReceived" && value !== "Yes") {
+        nextValues.incubationUnitName = "";
       }
 
       return nextValues;
@@ -596,7 +623,7 @@ function IdeaDetails() {
         }
       }
 
-      if (field.type === "textarea" && maxWordsByKey[field.key]) {
+      if (maxWordsByKey[field.key]) {
         const limit = maxWordsByKey[field.key];
         if (countWords(value) > limit) {
           nextErrors[field.key] = `${field.label} must be ${limit} words or less.`;
@@ -604,17 +631,20 @@ function IdeaDetails() {
       }
     });
 
-    const socialPairs = [
-      ["promoteTwitter", "twitterUrl", "Twitter URL is required when Twitter is selected"],
-      ["promoteFacebook", "facebookUrl", "Facebook URL is required when Facebook is selected"],
-      ["promoteInstagram", "instagramUrl", "Instagram URL is required when Instagram is selected"],
-      ["promoteLinkedin", "linkedinUrl", "LinkedIn URL is required when LinkedIn is selected"],
-      ["promoteYoutube", "youtubeUrl", "YouTube URL is required when YouTube is selected"],
-    ];
+    Object.entries(attachmentConditionalFields).forEach(([fieldKey, dependencyKey]) => {
+      if (String(formValues[dependencyKey] ?? "") !== "Yes") {
+        return;
+      }
 
-    socialPairs.forEach(([toggleKey, urlKey, message]) => {
-      if (formValues[toggleKey] && !String(formValues[urlKey] ?? "").trim()) {
-        nextErrors[urlKey] = message;
+      const field = fieldsByKey[fieldKey];
+      if (!field) {
+        return;
+      }
+
+      const value = formValues[fieldKey];
+      const isMissing = field.type === "file" ? !value : !String(value ?? "").trim();
+      if (isMissing) {
+        nextErrors[fieldKey] = `${field.label} is mandatory when ${fieldsByKey[dependencyKey]?.label || dependencyKey} is Yes`;
       }
     });
 
@@ -704,15 +734,23 @@ function IdeaDetails() {
 
     if (field.type === "file" && field.maxSizeBytes) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
-      return <p className="text-xs text-gray-500">Max {maxMb}MB</p>;
+      return <p className="text-xs text-gray-500">(JPG, PNG max {maxMb}MB) Provide link</p>;
     }
 
-    if (["photograph2", "offlineEventProof2"].includes(field.key)) {
-      return <p className="text-xs text-gray-500">(Photo 2 must be different from Photo 1)</p>;
+    if (field.key === "innovationVideoUrl") {
+      return (
+        <p className="text-xs text-gray-500">
+          Specify the Video URL of your innovation. Give necessary permission to view the file to the following email id: iic.mhrd@aicte-india.org
+        </p>
+      );
     }
 
-    if (field.key === "publishedSocialMediaUrl") {
-      return <p className="text-xs text-gray-500">(Upload the video with minimum duration of 2 mins)</p>;
+    if (field.key === "innovationPhotograph") {
+      return (
+        <p className="text-xs text-gray-500">
+          Upload the photograph of your innovation if any. (JPG / PNG : max 2 MB)
+        </p>
+      );
     }
 
     if (field.key === "durationManual") {
@@ -732,7 +770,7 @@ function IdeaDetails() {
       return <p className="text-xs text-gray-500">Max {limit} characters (including spaces)</p>;
     }
 
-    if (field.type === "textarea" && maxWordsByKey[field.key]) {
+    if (maxWordsByKey[field.key]) {
       const limit = maxWordsByKey[field.key];
       return <p className="text-xs text-gray-500">Max {limit} words</p>;
     }
@@ -827,32 +865,45 @@ function IdeaDetails() {
       )}
 
       {field.type !== "textarea" && field.type !== "file" && field.type !== "select" && field.type !== "checkbox" && (
-        <input
-          id={field.key}
-          name={field.key}
-          type={field.type}
-          step={
-            field.key === "fromDate" || field.key === "toDate"
-              ? "60"
-              : field.key === "durationHours"
-                ? "0.1"
-                : undefined
-          }
-          min={
-            field.type === "number"
-              ? "0"
-              : field.key === "toDate"
-                ? formValues.fromDate || undefined
-                : undefined
-          }
-          value={formValues[field.key]}
-          onChange={(event) => handleChange(field, event.target.value)}
-          disabled={(field.key === "fromDate" || field.key === "toDate") && !!formValues.durationManual}
-          readOnly={field.key === "durationHours" && !formValues.durationManual}
-          className={`w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500 ${
-            field.key === "fromDate" || field.key === "toDate" ? "whitespace-nowrap" : ""
-          }`}
-        />
+        <div className="space-y-1">
+          <input
+            id={field.key}
+            name={field.key}
+            type={field.type}
+            step={
+              field.key === "fromDate" || field.key === "toDate"
+                ? "60"
+                : field.key === "durationHours"
+                  ? "0.1"
+                  : undefined
+            }
+            min={
+              field.type === "number"
+                ? "0"
+                : field.key === "toDate"
+                  ? formValues.fromDate || undefined
+                  : undefined
+            }
+            value={formValues[field.key]}
+            onChange={(event) => handleChange(field, event.target.value)}
+            disabled={(field.key === "fromDate" || field.key === "toDate") && !!formValues.durationManual}
+            readOnly={field.key === "durationHours" && !formValues.durationManual}
+            className={`w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500 ${
+              field.key === "fromDate" || field.key === "toDate" ? "whitespace-nowrap" : ""
+            }`}
+          />
+          {maxWordsByKey[field.key] && (
+            <p
+              className={`text-xs ${
+                countWords(formValues[field.key]) / maxWordsByKey[field.key] >= 0.8
+                  ? "text-red-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {countWords(formValues[field.key])} / {maxWordsByKey[field.key]} words
+            </p>
+          )}
+        </div>
       )}
 
       {renderFieldHint(field)}
@@ -862,31 +913,12 @@ function IdeaDetails() {
   );
 
   const shouldShowField = (fieldKey) => {
-    if (fieldKey === "department") {
-      return String(formValues.departmentsInvolved ?? "").trim().toLowerCase() === "yes";
+    const dependencyKey = attachmentConditionalFields[fieldKey];
+    if (!dependencyKey) {
+      return true;
     }
 
-    if (fieldKey === "specialLabs") {
-      return String(formValues.specialLabsInvolved ?? "").trim().toLowerCase() === "yes";
-    }
-
-    if (fieldKey === "club") {
-      return String(formValues.clubInvolved ?? "").trim().toLowerCase() === "yes";
-    }
-
-    if (fieldKey === "faculty1") {
-      return String(formValues.firstFacultyInvolved ?? "").trim().toLowerCase() === "yes";
-    }
-
-    if (fieldKey === "faculty2") {
-      return String(formValues.secondFacultyInvolved ?? "").trim().toLowerCase() === "yes";
-    }
-
-    if (fieldKey === "faculty3") {
-      return String(formValues.thirdFacultyInvolved ?? "").trim().toLowerCase() === "yes";
-    }
-
-    return true;
+    return String(formValues[dependencyKey] ?? "") === "Yes";
   };
 
   const renderDurationGroup = () => {
@@ -1040,12 +1072,10 @@ function IdeaDetails() {
             >
               <h2 className="text-lg font-medium text-gray-900">{step.section}</h2>
 
-              {step.section === "Program Details" && <div className="mt-4">{renderDurationGroup()}</div>}
+              {step.section === "Idea Details" && <div className="mt-4">{renderDurationGroup()}</div>}
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                {step.fields
-                  .filter((field) => shouldShowField(field.key))
-                  .map((field) => renderField(field))}
+                {step.fields.filter((field) => shouldShowField(field.key)).map((field) => renderField(field))}
               </div>
             </section>
           );

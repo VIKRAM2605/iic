@@ -173,6 +173,14 @@ const iicPortalDocFields = [
   },
   { key: "sessionVideoUrl", label: "Video URL of Session", type: "url", required: true },
   {
+    key: "feedbackDescription",
+    label: "Upload Feedback",
+    type: "file",
+    required: false,
+    accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
     key: "attendanceSheet",
     label: "Upload Attendance Sheet",
     type: "file",
@@ -225,8 +233,8 @@ const iicPortalDocFields = [
 ];
 
 const bipPortalFields = [
-  { key: "facultyApplied", label: "Faculty Applied", type: "text", required: false },
-  { key: "taskId", label: "Task ID", type: "text", required: false },
+  { key: "facultyApplied", label: "Faculty Applied", type: "text", required: true },
+  { key: "taskId", label: "Task ID", type: "text", required: true },
   {
     key: "departmentsInvolved",
     label: "Departments Involved",
@@ -273,7 +281,7 @@ const bipPortalFields = [
     key: "eventType",
     label: "Select Type of Event",
     type: "select",
-    required: false,
+    required: true,
     options: ["External", "Internal"],
   },
   { key: "programActivityName", label: "Name of Event", type: "text", required: false },
@@ -299,7 +307,7 @@ const bipPortalFields = [
     key: "sessionSchedule",
     label: "Upload Session Schedule",
     type: "file",
-    required: false,
+    required: true,
     accept: ".pdf",
     maxSizeBytes: 2 * 1024 * 1024,
   },
@@ -307,7 +315,7 @@ const bipPortalFields = [
     key: "brochureProofName",
     label: "Upload Brochure",
     type: "file",
-    required: false,
+    required: true,
     accept: ".pdf",
     maxSizeBytes: 2 * 1024 * 1024,
   },
