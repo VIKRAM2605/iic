@@ -8,6 +8,7 @@ export default function SearchableSelect({
   options = [],
   placeholder = "Select",
   emptyLabel = "All",
+  disabled = false,
 }) {
   const rootRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -37,6 +38,9 @@ export default function SearchableSelect({
   const selectedLabel = value || emptyLabel;
 
   const handleSelect = (nextValue) => {
+    if (disabled) {
+      return;
+    }
     onChange(nextValue);
     setIsOpen(false);
     setSearchText("");
@@ -48,8 +52,18 @@ export default function SearchableSelect({
 
       <button
         type="button"
-        onClick={() => setIsOpen((previous) => !previous)}
-        className="relative w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left text-sm text-gray-700 focus:border-primary focus:outline-none"
+        disabled={disabled}
+        onClick={() => {
+          if (disabled) {
+            return;
+          }
+          setIsOpen((previous) => !previous);
+        }}
+        className={`relative w-full rounded-md border py-2 pl-3 pr-10 text-left text-sm focus:outline-none ${
+          disabled
+            ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-500"
+            : "border-gray-300 text-gray-700 focus:border-primary"
+        }`}
       >
         <span className="block truncate">{selectedLabel || placeholder}</span>
         <ChevronDown

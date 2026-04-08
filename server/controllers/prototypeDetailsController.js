@@ -22,7 +22,7 @@ const getUploadedFilePath = (files, fieldName) => {
     return null;
   }
 
-  return `/uploads/event-details/${uploadedFile.filename}`;
+  return `/uploads/prototype-details/${uploadedFile.filename}`;
 };
 
 const getQueryValue = (query, key) => String(query?.[key] ?? "").trim();
@@ -32,19 +32,19 @@ const getNumericUserId = (requestUserId) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const triggerReviewNotification = ({ eventRow, nextStatus, rejectionMessage }) => {
-  if (!eventRow?.owner_email) {
+const triggerReviewNotification = ({ prototypeRow, nextStatus, rejectionMessage }) => {
+  if (!prototypeRow?.owner_email) {
     return false;
   }
 
-  const eventName = eventRow.event_name || `Event #${eventRow.id}`;
+  const prototypeName = prototypeRow.event_name || `Prototype #${prototypeRow.id}`;
   const decisionLabel = nextStatus === "approved" ? "approved" : "rejected";
 
-  const subject = `Your event "${eventName}" was ${decisionLabel}`;
+  const subject = `Your Prototype "${prototypeName}" was ${decisionLabel}`;
   const textParts = [
-    `Hello ${eventRow.owner_name || "Faculty"},`,
+    `Hello ${prototypeRow.owner_name || "Faculty"},`,
     "",
-    `Your event "${eventName}" has been ${decisionLabel} by admin.`,
+    `Your Prototype "${prototypeName}" has been ${decisionLabel} by admin.`,
   ];
 
   if (nextStatus === "rejected" && rejectionMessage) {
@@ -54,7 +54,7 @@ const triggerReviewNotification = ({ eventRow, nextStatus, rejectionMessage }) =
   textParts.push("", "Regards,", "BIT IIC Admin");
 
   void sendEmail({
-    to: eventRow.owner_email,
+    to: prototypeRow.owner_email,
     subject,
     text: textParts.join("\n"),
   }).catch((error) => {
@@ -64,7 +64,7 @@ const triggerReviewNotification = ({ eventRow, nextStatus, rejectionMessage }) =
   return true;
 };
 
-const normalizeEventRow = (row) => ({
+const normalizePrototypeRow = (row) => ({
   id: row.id,
   userId: row.user_id,
   status: row.status,
@@ -87,38 +87,38 @@ const normalizeEventRow = (row) => ({
   facultyApplied: row.faculty_applied,
 });
 
-const baseEventSelect = `
+const basePrototypeSelect = `
   SELECT
-    ed.id,
-    ed.user_id,
-    ed.status,
-    ed.rejection_message,
-    ed.created_at,
-    ed.reviewed_at,
-    ed.approved_at,
-    ed.rejected_at,
-    COALESCE(ed.program_details->>'programActivityName', '') AS event_name,
-    COALESCE(ed.program_details->>'aboutEvent', '') AS major_reason,
-    COALESCE(ed.program_details->>'quarter', '') AS quarter,
-    COALESCE(ed.duration_details->>'fromDate', '') AS from_date,
-    COALESCE(ed.duration_details->>'toDate', '') AS to_date,
+    id.id,
+    id.user_id,
+    id.status,
+    id.rejection_message,
+    id.created_at,
+    id.reviewed_at,
+    id.approved_at,
+    id.rejected_at,
+    COALESCE(id.program_details->>'programActivityName', '') AS event_name,
+    COALESCE(id.program_details->>'aboutEvent', '') AS major_reason,
+    COALESCE(id.program_details->>'quarter', '') AS quarter,
+    COALESCE(id.duration_details->>'fromDate', '') AS from_date,
+    COALESCE(id.duration_details->>'toDate', '') AS to_date,
     COALESCE(owner.name, '') AS owner_name,
     COALESCE(owner.email, '') AS owner_email,
     COALESCE(reviewer.name, '') AS reviewer_name,
-    COALESCE(ed.faculty->>'faculty1', '') AS faculty_1,
-    COALESCE(ed.faculty->>'faculty2', '') AS faculty_2,
-    COALESCE(ed.faculty->>'faculty3', '') AS faculty_3,
-    COALESCE(ed.bip_portal->>'facultyApplied', '') AS faculty_applied
-  FROM event_details ed
+    COALESCE(id.faculty->>'faculty1', '') AS faculty_1,
+    COALESCE(id.faculty->>'faculty2', '') AS faculty_2,
+    COALESCE(id.faculty->>'faculty3', '') AS faculty_3,
+    COALESCE(id.bip_portal->>'facultyApplied', '') AS faculty_applied
+  FROM prototype_details id
   LEFT JOIN users owner
     ON owner.id = CASE
-      WHEN ed.user_id ~ '^[0-9]+$' THEN ed.user_id::bigint
+      WHEN id.user_id ~ '^[0-9]+$' THEN id.user_id::bigint
       ELSE NULL
     END
-  LEFT JOIN users reviewer ON reviewer.id = ed.reviewed_by
+  LEFT JOIN users reviewer ON reviewer.id = id.reviewed_by
 `;
 
-export async function createEventDetails(request, response, next) {
+export async function createPrototypeDetails(request, response, next) {
   try {
     const { body, files } = request;
     const bodyUserId = getBodyValue(body, "userId");
@@ -156,10 +156,10 @@ export async function createEventDetails(request, response, next) {
     };
 
     const overview = {
-      objective: getBodyValue(body, "objective"),
-      benefitLearning: getBodyValue(body, "benefitLearning"),
-      outcomeObtained: getBodyValue(body, "outcomeObtained"),
-      remark: getBodyValue(body, "remark"),
+      problemRelevance: getBodyValue(body, "problemRelevance"),
+      solutionDescription: getBodyValue(body, "solutionDescription"),
+      uniquenessFeatures: getBodyValue(body, "uniquenessFeatures"),
+      competitorDifference: getBodyValue(body, "competitorDifference"),
     };
 
     const speakerDetails = {
@@ -171,27 +171,19 @@ export async function createEventDetails(request, response, next) {
       publishedSocialMediaUrl: getBodyValue(body, "publishedSocialMediaUrl"),
     };
 
-    const brochureProofFile = getUploadedFilePath(files, "brochureProofName");
-    const brochureWithLogo =
-      getUploadedFilePath(files, "brochureWithLogo") || brochureProofFile || null;
-
     const attachments = {
-      feedbackDescription: getUploadedFilePath(files, "feedbackDescription"),
-      attendanceSheet: getUploadedFilePath(files, "attendanceSheet"),
-      photograph1: getUploadedFilePath(files, "photograph1"),
-      photograph2: getUploadedFilePath(files, "photograph2"),
-      overallReport: getUploadedFilePath(files, "overallReport"),
-      offlineEventProof1: getUploadedFilePath(files, "offlineEventProof1"),
-      offlineEventProof2: getUploadedFilePath(files, "offlineEventProof2"),
-      onlineEventProof1: getUploadedFilePath(files, "onlineEventProof1"),
-      onlineEventProof2: getUploadedFilePath(files, "onlineEventProof2"),
-      sessionScheduleWithHeader: getUploadedFilePath(files, "sessionScheduleWithHeader"),
-      sessionSchedule: getUploadedFilePath(files, "sessionSchedule"),
-      brochureWithLogo,
-      brochureProofName: brochureProofFile || getBodyValue(body, "brochureProofName"),
-      attendanceSheetWithHeader: getUploadedFilePath(files, "attendanceSheetWithHeader"),
-      attendanceSheetName: getBodyValue(body, "attendanceSheetName"),
-      uploadedReport: getUploadedFilePath(files, "uploadedReport"),
+      ipPatentAssociated: getBodyValue(body, "ipPatentAssociated"),
+      ipPatentDocument: getUploadedFilePath(files, "ipPatentDocument"),
+      innovationGrantSupport: getBodyValue(body, "innovationGrantSupport"),
+      innovationGrantDocument: getUploadedFilePath(files, "innovationGrantDocument"),
+      recognitionsObtained: getBodyValue(body, "recognitionsObtained"),
+      latestAchievementDocument: getUploadedFilePath(files, "latestAchievementDocument"),
+      commercializedSolution: getBodyValue(body, "commercializedSolution"),
+      startupRegistrationDocument: getUploadedFilePath(files, "startupRegistrationDocument"),
+      incubationSupportReceived: getBodyValue(body, "incubationSupportReceived"),
+      incubationUnitName: getBodyValue(body, "incubationUnitName"),
+      innovationVideoUrl: getBodyValue(body, "innovationVideoUrl"),
+      innovationPhotograph: getUploadedFilePath(files, "innovationPhotograph"),
     };
 
     const socialMedia = {
@@ -217,11 +209,11 @@ export async function createEventDetails(request, response, next) {
       firstFacultyInvolved: getBodyValue(body, "firstFacultyInvolved"),
       secondFacultyInvolved: getBodyValue(body, "secondFacultyInvolved"),
       thirdFacultyInvolved: getBodyValue(body, "thirdFacultyInvolved"),
-      iqacVerification: getBodyValue(body, "iqacVerification") || "Initiated",
+      iqacVerification: getBodyValue(body, "iqacVerification"),
     };
 
     const insertedRows = await db`
-      INSERT INTO event_details (
+      INSERT INTO prototype_details (
         user_id,
         program_details,
         duration_details,
@@ -247,7 +239,7 @@ export async function createEventDetails(request, response, next) {
     `;
 
     response.status(201).json({
-      message: "Event details uploaded successfully.",
+      message: "Prototype details uploaded successfully.",
       data: insertedRows[0],
     });
   } catch (error) {
@@ -255,39 +247,42 @@ export async function createEventDetails(request, response, next) {
   }
 }
 
-export async function getApprovedEventsForAdmin(request, response, next) {
+export async function getApprovedPrototypesForAdmin(request, response, next) {
   try {
     const quarter = getQueryValue(request.query, "quarter");
     const date = getQueryValue(request.query, "date");
     const fromDate = getQueryValue(request.query, "fromDate");
     const toDate = getQueryValue(request.query, "toDate");
     const facultyName = getQueryValue(request.query, "facultyName").toLowerCase();
+    const includeRejected = getQueryValue(request.query, "includeRejected").toLowerCase() === "true";
 
-    const conditions = ["ed.status = 'approved'"];
+    const conditions = [
+      includeRejected ? "id.status IN ('approved', 'rejected')" : "id.status = 'approved'",
+    ];
     const params = [];
 
     if (quarter) {
       params.push(quarter);
-      conditions.push(`LOWER(COALESCE(ed.program_details->>'quarter', '')) = LOWER($${params.length})`);
+      conditions.push(`LOWER(COALESCE(id.program_details->>'quarter', '')) = LOWER($${params.length})`);
     }
 
     if (date) {
       params.push(date);
       conditions.push(`
         (
-          NULLIF(ed.duration_details->>'fromDate', '')::date <= $${params.length}::date
-          AND NULLIF(ed.duration_details->>'toDate', '')::date >= $${params.length}::date
+          NULLIF(id.duration_details->>'fromDate', '')::date <= $${params.length}::date
+          AND NULLIF(id.duration_details->>'toDate', '')::date >= $${params.length}::date
         )
       `);
     } else {
       if (fromDate) {
         params.push(fromDate);
-        conditions.push(`NULLIF(ed.duration_details->>'toDate', '')::date >= $${params.length}::date`);
+        conditions.push(`NULLIF(id.duration_details->>'toDate', '')::date >= $${params.length}::date`);
       }
 
       if (toDate) {
         params.push(toDate);
-        conditions.push(`NULLIF(ed.duration_details->>'fromDate', '')::date <= $${params.length}::date`);
+        conditions.push(`NULLIF(id.duration_details->>'fromDate', '')::date <= $${params.length}::date`);
       }
     }
 
@@ -299,38 +294,42 @@ export async function getApprovedEventsForAdmin(request, response, next) {
         (
           LOWER(COALESCE(owner.name, '')) LIKE $${index}
           OR LOWER(COALESCE(owner.email, '')) LIKE $${index}
-          OR LOWER(COALESCE(ed.faculty->>'faculty1', '')) LIKE $${index}
-          OR LOWER(COALESCE(ed.faculty->>'faculty2', '')) LIKE $${index}
-          OR LOWER(COALESCE(ed.faculty->>'faculty3', '')) LIKE $${index}
-          OR LOWER(COALESCE(ed.bip_portal->>'facultyApplied', '')) LIKE $${index}
+          OR LOWER(COALESCE(id.faculty->>'faculty1', '')) LIKE $${index}
+          OR LOWER(COALESCE(id.faculty->>'faculty2', '')) LIKE $${index}
+          OR LOWER(COALESCE(id.faculty->>'faculty3', '')) LIKE $${index}
+          OR LOWER(COALESCE(id.bip_portal->>'facultyApplied', '')) LIKE $${index}
         )
       `);
     }
 
-    const approvedEvents = await db.unsafe(
-      `${baseEventSelect}
+    const approvedPrototypes = await db.unsafe(
+      `${basePrototypeSelect}
        WHERE ${conditions.join(" AND ")}
-       ORDER BY ed.approved_at DESC NULLS LAST, ed.created_at DESC`,
+       ORDER BY id.approved_at DESC NULLS LAST, id.created_at DESC`,
       params
     );
 
     response.status(200).json({
-      message: "Approved events fetched successfully.",
-      data: approvedEvents.map(normalizeEventRow),
+      message: "Approved prototypes fetched successfully.",
+      data: approvedPrototypes.map(normalizePrototypeRow),
     });
   } catch (error) {
     next(error);
   }
 }
 
-export async function getApprovedEventFilterOptionsForAdmin(_request, response, next) {
+export async function getApprovedPrototypeFilterOptionsForAdmin(_request, response, next) {
   try {
+    const includeRejected =
+      getQueryValue(response.req?.query, "includeRejected").toLowerCase() === "true";
+    const statusFilter = includeRejected ? "IN ('approved', 'rejected')" : "= 'approved'";
+
     const quarterRows = await db.unsafe(
       `
-      SELECT DISTINCT TRIM(COALESCE(ed.program_details->>'quarter', '')) AS quarter
-      FROM event_details ed
-      WHERE ed.status = 'approved'
-        AND TRIM(COALESCE(ed.program_details->>'quarter', '')) <> ''
+      SELECT DISTINCT TRIM(COALESCE(id.program_details->>'quarter', '')) AS quarter
+      FROM prototype_details id
+      WHERE id.status ${statusFilter}
+        AND TRIM(COALESCE(id.program_details->>'quarter', '')) <> ''
       ORDER BY quarter
       `
     );
@@ -340,22 +339,22 @@ export async function getApprovedEventFilterOptionsForAdmin(_request, response, 
       SELECT DISTINCT name
       FROM (
         SELECT TRIM(value) AS name
-        FROM event_details ed
+        FROM prototype_details id
         LEFT JOIN users owner
           ON owner.id = CASE
-            WHEN ed.user_id ~ '^[0-9]+$' THEN ed.user_id::bigint
+            WHEN id.user_id ~ '^[0-9]+$' THEN id.user_id::bigint
             ELSE NULL
           END
         CROSS JOIN LATERAL UNNEST(
           ARRAY[
             COALESCE(owner.name, ''),
-            COALESCE(ed.faculty->>'faculty1', ''),
-            COALESCE(ed.faculty->>'faculty2', ''),
-            COALESCE(ed.faculty->>'faculty3', ''),
-            COALESCE(ed.bip_portal->>'facultyApplied', '')
+            COALESCE(id.faculty->>'faculty1', ''),
+            COALESCE(id.faculty->>'faculty2', ''),
+            COALESCE(id.faculty->>'faculty3', ''),
+            COALESCE(id.bip_portal->>'facultyApplied', '')
           ]
         ) AS value
-        WHERE ed.status = 'approved'
+        WHERE id.status ${statusFilter}
       ) names
       WHERE name <> ''
       ORDER BY name
@@ -374,7 +373,7 @@ export async function getApprovedEventFilterOptionsForAdmin(_request, response, 
   }
 }
 
-export async function getMyEventsForFaculty(request, response, next) {
+export async function getMyPrototypesForFaculty(request, response, next) {
   try {
     const userId = String(request.user?.id ?? "").trim();
 
@@ -383,121 +382,121 @@ export async function getMyEventsForFaculty(request, response, next) {
       return;
     }
 
-    const events = await db.unsafe(
-      `${baseEventSelect}
-       WHERE ed.user_id = $1
-       ORDER BY ed.created_at DESC`,
+    const prototypes = await db.unsafe(
+      `${basePrototypeSelect}
+       WHERE id.user_id = $1
+       ORDER BY id.created_at DESC`,
       [userId]
     );
 
     response.status(200).json({
-      message: "Faculty events fetched successfully.",
-      data: events.map(normalizeEventRow),
+      message: "Faculty prototypes fetched successfully.",
+      data: prototypes.map(normalizePrototypeRow),
     });
   } catch (error) {
     next(error);
   }
 }
 
-export async function getReviewQueueForAdmin(_request, response, next) {
+export async function getReviewQueueForAdmin(request, response, next) {
   try {
-    const events = await db.unsafe(
-      `${baseEventSelect}
-       WHERE ed.status IN ('pending', 'rejected')
-       ORDER BY CASE ed.status WHEN 'pending' THEN 0 ELSE 1 END, ed.created_at DESC`
+    const prototypes = await db.unsafe(
+      `${basePrototypeSelect}
+       WHERE id.status IN ('pending', 'rejected')
+       ORDER BY CASE id.status WHEN 'pending' THEN 0 ELSE 1 END, id.created_at DESC`
     );
 
     response.status(200).json({
-      message: "Review queue fetched successfully.",
-      data: events.map(normalizeEventRow),
+      message: "Prototype review queue fetched successfully.",
+      data: prototypes.map(normalizePrototypeRow),
     });
   } catch (error) {
     next(error);
   }
 }
 
-export async function getEventById(request, response, next) {
+export async function getPrototypeById(request, response, next) {
   try {
-    const eventId = Number(request.params?.eventId);
+    const prototypeId = Number(request.params?.prototypeId);
 
-    if (!Number.isFinite(eventId) || eventId <= 0) {
-      response.status(400).json({ message: "Invalid event id." });
+    if (!Number.isFinite(prototypeId) || prototypeId <= 0) {
+      response.status(400).json({ message: "Invalid prototype id." });
       return;
     }
 
-    const eventRows = await db.unsafe(
+    const prototypeRows = await db.unsafe(
       `
       SELECT
-        ed.id,
-        ed.user_id,
-        ed.status,
-        ed.rejection_message,
-        ed.reviewed_at,
-        ed.approved_at,
-        ed.rejected_at,
-        ed.created_at,
-        ed.program_details,
-        ed.duration_details,
-        ed.overview,
-        ed.speaker_details,
-        ed.attachments,
-        ed.social_media,
-        ed.bip_portal,
-        ed.faculty,
+        id.id,
+        id.user_id,
+        id.status,
+        id.rejection_message,
+        id.reviewed_at,
+        id.approved_at,
+        id.rejected_at,
+        id.created_at,
+        id.program_details,
+        id.duration_details,
+        id.overview,
+        id.speaker_details,
+        id.attachments,
+        id.social_media,
+        id.bip_portal,
+        id.faculty,
         COALESCE(owner.name, '') AS owner_name,
         COALESCE(owner.email, '') AS owner_email,
         COALESCE(reviewer.name, '') AS reviewer_name
-      FROM event_details ed
+      FROM prototype_details id
       LEFT JOIN users owner
         ON owner.id = CASE
-          WHEN ed.user_id ~ '^[0-9]+$' THEN ed.user_id::bigint
+          WHEN id.user_id ~ '^[0-9]+$' THEN id.user_id::bigint
           ELSE NULL
         END
-      LEFT JOIN users reviewer ON reviewer.id = ed.reviewed_by
-      WHERE ed.id = $1
+      LEFT JOIN users reviewer ON reviewer.id = id.reviewed_by
+      WHERE id.id = $1
       LIMIT 1
       `,
-      [eventId]
+      [prototypeId]
     );
 
-    const eventRow = eventRows[0];
-    if (!eventRow) {
-      response.status(404).json({ message: "Event not found." });
+    const prototypeRow = prototypeRows[0];
+    if (!prototypeRow) {
+      response.status(404).json({ message: "Prototype not found." });
       return;
     }
 
     const requestRole = String(request.user?.role ?? "").toLowerCase();
     const requestUserId = String(request.user?.id ?? "").trim();
-    if (requestRole === "faculty" && requestUserId !== String(eventRow.user_id)) {
+    if (requestRole === "faculty" && requestUserId !== String(prototypeRow.user_id)) {
       response.status(403).json({ message: "Forbidden" });
       return;
     }
 
     response.status(200).json({
-      message: "Event details fetched successfully.",
+      message: "Prototype details fetched successfully.",
       data: {
-        id: eventRow.id,
-        userId: eventRow.user_id,
-        status: eventRow.status,
-        rejectionMessage: eventRow.rejection_message,
-        reviewedAt: eventRow.reviewed_at,
-        approvedAt: eventRow.approved_at,
-        rejectedAt: eventRow.rejected_at,
-        createdAt: eventRow.created_at,
-        eventName: eventRow.program_details?.programActivityName || "",
-        majorReason: eventRow.program_details?.aboutEvent || "",
-        quarter: eventRow.program_details?.quarter || "",
-        ownerName: eventRow.owner_name,
-        ownerEmail: eventRow.owner_email,
-        reviewerName: eventRow.reviewer_name,
-        programDetails: eventRow.program_details,
-        durationDetails: eventRow.duration_details,
-        overview: eventRow.overview,
-        speakerDetails: eventRow.speaker_details,
-        attachments: eventRow.attachments,
-        socialMedia: eventRow.social_media,
-        bipPortal: eventRow.bip_portal,
-        faculty: eventRow.faculty,
+        id: prototypeRow.id,
+        userId: prototypeRow.user_id,
+        status: prototypeRow.status,
+        rejectionMessage: prototypeRow.rejection_message,
+        reviewedAt: prototypeRow.reviewed_at,
+        approvedAt: prototypeRow.approved_at,
+        rejectedAt: prototypeRow.rejected_at,
+        createdAt: prototypeRow.created_at,
+        eventName: prototypeRow.program_details?.programActivityName || "",
+        majorReason: prototypeRow.program_details?.aboutEvent || "",
+        quarter: prototypeRow.program_details?.quarter || "",
+        ownerName: prototypeRow.owner_name,
+        ownerEmail: prototypeRow.owner_email,
+        reviewerName: prototypeRow.reviewer_name,
+        programDetails: prototypeRow.program_details,
+        durationDetails: prototypeRow.duration_details,
+        overview: prototypeRow.overview,
+        speakerDetails: prototypeRow.speaker_details,
+        attachments: prototypeRow.attachments,
+        socialMedia: prototypeRow.social_media,
+        bipPortal: prototypeRow.bip_portal,
+        faculty: prototypeRow.faculty,
       },
     });
   } catch (error) {
@@ -505,14 +504,14 @@ export async function getEventById(request, response, next) {
   }
 }
 
-export async function reviewEventByAdmin(request, response, next) {
+export async function reviewPrototypeByAdmin(request, response, next) {
   try {
-    const eventId = Number(request.params?.eventId);
+    const prototypeId = Number(request.params?.prototypeId);
     const action = String(request.body?.action ?? "").trim().toLowerCase();
     const rejectionMessage = String(request.body?.rejectionMessage ?? "").trim();
 
-    if (!Number.isFinite(eventId) || eventId <= 0) {
-      response.status(400).json({ message: "Invalid event id." });
+    if (!Number.isFinite(prototypeId) || prototypeId <= 0) {
+      response.status(400).json({ message: "Invalid prototype id." });
       return;
     }
 
@@ -521,67 +520,58 @@ export async function reviewEventByAdmin(request, response, next) {
       return;
     }
 
-    const eventRows = await db.unsafe(
+    const prototypeRows = await db.unsafe(
       `
       SELECT
-        ed.id,
-        ed.user_id,
-        COALESCE(ed.program_details->>'programActivityName', '') AS event_name,
+        id.id,
+        id.user_id,
+        COALESCE(id.program_details->>'programActivityName', '') AS event_name,
         owner.email AS owner_email,
         owner.name AS owner_name
-      FROM event_details ed
+      FROM prototype_details id
       LEFT JOIN users owner
         ON owner.id = CASE
-          WHEN ed.user_id ~ '^[0-9]+$' THEN ed.user_id::bigint
+          WHEN id.user_id ~ '^[0-9]+$' THEN id.user_id::bigint
           ELSE NULL
         END
-      WHERE ed.id = $1
+      WHERE id.id = $1
       LIMIT 1
       `,
-      [eventId]
+      [prototypeId]
     );
 
-    const eventRow = eventRows[0];
-    if (!eventRow) {
-      response.status(404).json({ message: "Event not found." });
+    const prototypeRow = prototypeRows[0];
+    if (!prototypeRow) {
+      response.status(404).json({ message: "Prototype not found." });
       return;
     }
 
     const nextStatus = action === "approve" ? "approved" : "rejected";
     const adminUserId = getNumericUserId(request.user?.id);
 
-    const nextIqacStatus = nextStatus === "approved" ? "Approved" : "Rejected";
     const updatedRows = await db.unsafe(
       `
-      UPDATE event_details
+      UPDATE prototype_details
       SET
         status = $1,
         rejection_message = $2,
         reviewed_by = $3,
         reviewed_at = NOW(),
         approved_at = CASE WHEN $1 = 'approved' THEN NOW() ELSE NULL END,
-        rejected_at = CASE WHEN $1 = 'rejected' THEN NOW() ELSE NULL END,
-        bip_portal = jsonb_set(COALESCE(bip_portal, '{}'::jsonb), '{iqacVerification}', to_jsonb($5::text), true)
+        rejected_at = CASE WHEN $1 = 'rejected' THEN NOW() ELSE NULL END
       WHERE id = $4
       RETURNING id, status, rejection_message, reviewed_at, approved_at, rejected_at
       `,
-      [
-        nextStatus,
-        nextStatus === "rejected" ? rejectionMessage || null : null,
-        adminUserId,
-        eventId,
-        nextIqacStatus,
-      ]
+      [nextStatus, nextStatus === "rejected" ? rejectionMessage || null : null, adminUserId, prototypeId]
     );
 
-    const updatedEvent = updatedRows[0];
-    const emailQueued = triggerReviewNotification({ eventRow, nextStatus, rejectionMessage });
+    const updatedPrototype = updatedRows[0];
+    const emailQueued = triggerReviewNotification({ prototypeRow, nextStatus, rejectionMessage });
 
     response.status(200).json({
-      message: `Event ${nextStatus} successfully.`,
+      message: `Prototype ${nextStatus} successfully.`,
       data: {
-        ...updatedEvent,
-        iqacVerification: nextIqacStatus,
+        ...updatedPrototype,
         emailQueued,
       },
     });
@@ -589,3 +579,4 @@ export async function reviewEventByAdmin(request, response, next) {
     next(error);
   }
 }
+

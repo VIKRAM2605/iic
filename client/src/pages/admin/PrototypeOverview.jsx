@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { getEventById, reviewEventByAdmin } from "../../../config/api";
+import { getPrototypeById, reviewPrototypeByAdmin } from "../../../config/api";
 import Alert from "../../components/Alert";
 import { getAuthToken, getAuthUser } from "../../utils/auth";
 
@@ -124,8 +124,8 @@ const detailSteps = [
   { key: "faculty", label: "Faculty" },
 ];
 
-export default function EventOverview() {
-  const { eventId } = useParams();
+export default function PrototypeOverview() {
+  const { prototypeId } = useParams();
   const location = useLocation();
   const token = useMemo(() => getAuthToken(), []);
   const user = useMemo(() => getAuthUser(), []);
@@ -134,8 +134,8 @@ export default function EventOverview() {
     typeof location.state?.from === "string" && location.state.from.startsWith("/")
       ? location.state.from
       : isAdmin
-      ? "/admin/review"
-      : "/teacher/dashboard";
+      ? "/admin/prototype-review"
+      : "/teacher/prototypes";
 
   const [eventData, setEventData] = useState(null);
   const [activeDetailStep, setActiveDetailStep] = useState(0);
@@ -147,20 +147,20 @@ export default function EventOverview() {
     detailSteps.length > 1 ? (activeDetailStep / (detailSteps.length - 1)) * 100 : 0;
 
   const loadEvent = async () => {
-    if (!eventId) {
+    if (!prototypeId) {
       return;
     }
 
     setLoading(true);
     try {
-      const payload = await getEventById({ token, eventId });
+      const payload = await getPrototypeById({ token, prototypeId });
       setEventData(payload.data || null);
       setRejectMessage(payload.data?.rejectionMessage || "");
       setActiveDetailStep(0);
     } catch (error) {
       setAlertState({
         isOpen: true,
-        message: error.message || "Failed to fetch event details.",
+        message: error.message || "Failed to fetch prototype details.",
         severity: "error",
       });
     } finally {
@@ -170,31 +170,29 @@ export default function EventOverview() {
 
   useEffect(() => {
     loadEvent();
-  }, [eventId, token]);
+  }, [prototypeId, token]);
 
   const handleReview = async (action) => {
-    if (!isAdmin || !eventId) {
+    if (!isAdmin || !prototypeId) {
       return;
     }
 
     setProcessingReview(true);
     try {
-      const payload = await reviewEventByAdmin({
+      const payload = await reviewPrototypeByAdmin({
         token,
-        eventId,
+        prototypeId,
         action,
         rejectionMessage: action === "reject" ? rejectMessage : "",
       });
 
       setAlertState({
         isOpen: true,
-        message: payload.message || "Event updated.",
+        message: payload.message || "Prototype updated.",
         severity: "success",
       });
 
       const reviewData = payload?.data || {};
-      const nextIqacStatus =
-        reviewData.iqacVerification || (action === "approve" ? "Approved" : "Rejected");
       setEventData((previous) => {
         if (!previous) {
           return previous;
@@ -203,10 +201,6 @@ export default function EventOverview() {
         return {
           ...previous,
           status: reviewData.status || previous.status,
-          bipPortal: {
-            ...(previous.bipPortal || {}),
-            iqacVerification: nextIqacStatus,
-          },
           rejectionMessage:
             reviewData.rejection_message !== undefined
               ? reviewData.rejection_message
@@ -253,12 +247,12 @@ export default function EventOverview() {
       {!loading && eventData && (
         <div className="space-y-6">
           <div className="rounded-md border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900">{eventData.eventName || `Event #${eventData.id}`}</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{eventData.eventName || `Prototype #${eventData.id}`}</h2>
             <p className="mt-3 text-sm text-gray-700">{eventData.majorReason || "No major reason provided."}</p>
 
             <div className="mt-4 grid gap-3 text-xs text-gray-700 md:grid-cols-2 xl:grid-cols-4">
               <p><span className="font-semibold">Quarter:</span> {eventData.quarter || "-"}</p>
-              <p><span className="font-semibold">Event Date:</span> {getEventDateLabel(eventData)}</p>
+              <p><span className="font-semibold">Prototype Date:</span> {getEventDateLabel(eventData)}</p>
               <p><span className="font-semibold">Duration:</span> {getDurationLabel(eventData)}</p>
               <p><span className="font-semibold">Owner:</span> {eventData.ownerName || "-"}</p>
               <p><span className="font-semibold">Email:</span> {eventData.ownerEmail || "-"}</p>
