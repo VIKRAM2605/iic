@@ -732,11 +732,6 @@ function EventDetails() {
       return <p className="text-xs text-gray-500">Max {limit} characters (including spaces)</p>;
     }
 
-    if (field.type === "textarea" && maxWordsByKey[field.key]) {
-      const limit = maxWordsByKey[field.key];
-      return <p className="text-xs text-gray-500">Max {limit} words</p>;
-    }
-
     return null;
   };
 
@@ -778,7 +773,7 @@ function EventDetails() {
                   : "text-gray-500"
               }`}
             >
-              {countWords(formValues[field.key])} / {maxWordsByKey[field.key]} words
+              {countWords(formValues[field.key])}/{maxWordsByKey[field.key]}
             </p>
           )}
         </div>
@@ -1075,7 +1070,7 @@ function EventDetails() {
             disabled={!isLastStep || Object.values(errors).some(Boolean) || isSubmitting}
             className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
-            {isSubmitting ? "Saving..." : "Save Details"}
+            {isSubmitting ? "Saving..." : "Submit"}
           </button>
         </div>
 
@@ -1093,3 +1088,5 @@ function EventDetails() {
 }
 
 export default EventDetails;
+
+
