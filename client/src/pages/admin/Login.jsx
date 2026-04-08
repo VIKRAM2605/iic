@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { googleLoginUser, loginUser } from "../../../config/api";
 import { setAuthSession } from "../../utils/auth";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -16,6 +17,16 @@ function Login() {
     }
 
     setAuthSession({ token, user });
+
+    const fromPath =
+      typeof location.state?.from === "string" && location.state.from.startsWith("/")
+        ? location.state.from
+        : "";
+
+    if (fromPath && fromPath !== "/login") {
+      navigate(fromPath, { replace: true });
+      return;
+    }
 
     if (user.roleName === "admin") {
       navigate("/admin/dashboard", { replace: true });

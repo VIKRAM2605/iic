@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import multer from "multer";
 
-const uploadDirectory = path.join(process.cwd(), "uploads", "event-details");
+const uploadDirectory = path.join(process.cwd(), "uploads", "idea-details");
 fs.mkdirSync(uploadDirectory, { recursive: true });
 
 const allowedExtensions = new Set([".pdf", ".jpg", ".jpeg", ".png"]);
@@ -37,7 +37,7 @@ const upload = multer({
   },
 });
 
-export const uploadEventDetails = upload.fields([
+export const uploadIdeaDetails = upload.fields([
   { name: "feedbackDescription", maxCount: 1 },
   { name: "attendanceSheet", maxCount: 1 },
   { name: "photograph1", maxCount: 1 },
