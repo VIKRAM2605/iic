@@ -193,6 +193,8 @@ export default function EventOverview() {
       });
 
       const reviewData = payload?.data || {};
+      const nextIqacStatus =
+        reviewData.iqacVerification || (action === "approve" ? "Approved" : "Rejected");
       setEventData((previous) => {
         if (!previous) {
           return previous;
@@ -201,6 +203,10 @@ export default function EventOverview() {
         return {
           ...previous,
           status: reviewData.status || previous.status,
+          bipPortal: {
+            ...(previous.bipPortal || {}),
+            iqacVerification: nextIqacStatus,
+          },
           rejectionMessage:
             reviewData.rejection_message !== undefined
               ? reviewData.rejection_message

@@ -1,10 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createEventDetails } from "../../../config/api";
-import { getAuthToken } from "../../utils/auth";
+import { getAuthToken, getAuthUser } from "../../utils/auth";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 
 const EVENT_DETAILS_STORAGE_KEY = "event-details-form-values";
+
+const buildAcademicYearOptions = () => {
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 8 }, (_, index) => {
+    const startYear = currentYear - 4 + index;
+    return `${startYear}-${startYear + 1}`;
+  });
+};
+
+const academicYearOptions = buildAcademicYearOptions();
 
 const countWords = (value) => {
   const normalizedValue = String(value ?? "").trim().replace(/\s+/g, " ");
@@ -37,20 +47,118 @@ const getDurationFromDateTime = (startDateTime, endDateTime) => {
 };
 
 const iicPortalDocFields = [
-  { key: "instituteName", label: "Institute Name", type: "text", required: true },
-  { key: "innovationTitle", label: "Title of the Innovation /Prototype", type: "text", required: true },
-  { key: "teamLeadName", label: "Team Lead Name", type: "text", required: true },
-  { key: "teamLeadEmail", label: "Team Lead Email", type: "email", required: true },
-  { key: "teamLeadGender", label: "Team Lead Gender", type: "text", required: true },
-  { key: "fyOfDevelopment", label: "FY of Development", type: "text", required: true },
-  { key: "sectorDomain", label: "Sector /Domain", type: "text", required: true },
-  { key: "developedAsPartOf", label: "Developed as part of", type: "text", required: true },
-  { key: "innovationType", label: "Innovation type", type: "text", required: true },
+  {
+    key: "currentAcademicYear",
+    label: "Current Academic Year",
+    type: "select",
+    required: true,
+    options: academicYearOptions,
+  },
+  {
+    key: "quarter",
+    label: "Quarter",
+    type: "select",
+    required: true,
+    options: ["Q-I", "Q-II", "Q-III", "Q-IV"],
+  },
+  {
+    key: "programDrivenBy",
+    label: "Program Driven By",
+    type: "select",
+    required: true,
+    options: [
+      "IIC Calendar Activity",
+      "IIC MIC Activity",
+      "IIC Celebration Activity",
+      "IIC Self Driven Activity",
+    ],
+  },
+  { key: "programActivityName", label: "Program/Activity Name", type: "text", required: true },
+  {
+    key: "programType",
+    label: "Program Type",
+    type: "select",
+    required: true,
+    options: [
+      "Level 1 - Expert Talk",
+      "Level 1 - Exposure Visit",
+      "Level 1 - Mentoring Session",
+      "Level 2 - Conference",
+      "Level 2 - Exposure Visit",
+      "Level 2 - Seminar",
+      "Level 2 - Workshop",
+      "Level 3 - Bootcamp",
+      "Level 3 - Competition/Hackathon",
+      "Level 3 - Demo Day",
+      "Level 3 - Exhibition",
+      "Level 4 - Workshop",
+      "Level 4 - Challenges",
+      "Level 4 - Competition/Hackathon",
+      "Level 4 - Tech Fest",
+    ],
+  },
+  {
+    key: "activityLedBy",
+    label: "Activity Led By",
+    type: "select",
+    required: true,
+    options: ["Institute Council", "Student Council"],
+  },
+  {
+    key: "programTheme",
+    label: "Program Theme",
+    type: "select",
+    required: true,
+    options: [
+      "IPR & Technology Transfer",
+      "Innovation & Design Thinking",
+      "Entrepreneurship & Startup",
+      "Pre-Incubation & Incubation Management",
+      "Safe and Trusted AI",
+      "Human Capital",
+      "Science",
+      "Resilience, Innovation & Efficiency",
+      "Inclusion for Social Empowerment",
+      "Democratizing AI Resources",
+      "Economic Growth & Social Good",
+    ],
+  },
+  {
+    key: "durationManual",
+    label: "Enter Duration Manually (Hours)",
+    type: "checkbox",
+    required: false,
+  },
+  { key: "fromDate", label: "Start Date & Time", type: "datetime-local", required: false },
+  { key: "toDate", label: "End Date & Time", type: "datetime-local", required: false },
+  { key: "durationHours", label: "Duration of Activity (Hrs)", type: "number", required: false },
+  { key: "studentParticipants", label: "No. of Student Participants", type: "number", required: true },
+  { key: "facultyParticipants", label: "No. of Faculty Participants", type: "number", required: true },
+  {
+    key: "externalParticipants",
+    label: "No. of External Participants (if any)",
+    type: "number",
+    required: true,
+  },
+  { key: "expenditureAmount", label: "Expenditure Amount (INR)", type: "number", required: true },
+  {
+    key: "modeOfSession",
+    label: "Mode of Session Delivery",
+    type: "select",
+    required: true,
+    options: ["Offline", "Online", "Hybrid"],
+  },
   { key: "remark", label: "Remark", type: "textarea", required: true },
   { key: "objective", label: "Objective", type: "textarea", required: true },
   {
     key: "benefitLearning",
     label: "Benefit in terms of Learning/Skill/Knowledge",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "aboutEvent",
+    label: "About the Event",
     type: "textarea",
     required: true,
   },
@@ -64,14 +172,6 @@ const iicPortalDocFields = [
     required: true,
   },
   { key: "sessionVideoUrl", label: "Video URL of Session", type: "url", required: true },
-  {
-    key: "feedbackDescription",
-    label: "Upload Feedback",
-    type: "file",
-    required: false,
-    accept: ".pdf",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
   {
     key: "attendanceSheet",
     label: "Upload Attendance Sheet",
@@ -114,6 +214,14 @@ const iicPortalDocFields = [
   { key: "linkedinUrl", label: "LinkedIn URL", type: "url", required: false },
   { key: "promoteYoutube", label: "YouTube", type: "checkbox", required: false },
   { key: "youtubeUrl", label: "YouTube URL", type: "url", required: false },
+  {
+    key: "feedbackDescription",
+    label: "Feedback Description",
+    type: "file",
+    required: false,
+    accept: ".pdf",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
 ];
 
 const bipPortalFields = [
@@ -168,6 +276,18 @@ const bipPortalFields = [
     required: false,
     options: ["External", "Internal"],
   },
+  { key: "programActivityName", label: "Name of Event", type: "text", required: false },
+  { key: "studentParticipants", label: "No. of Students Participated", type: "number", required: false },
+  { key: "facultyParticipants", label: "No. of Faculty Members Participated", type: "number", required: false },
+  { key: "externalParticipants", label: "No. of External Participants", type: "number", required: false },
+  { key: "expenditureAmount", label: "Expenditure Amount (INR)", type: "number", required: false },
+  {
+    key: "modeOfSession",
+    label: "Select Mode of Session",
+    type: "select",
+    required: false,
+    options: ["Offline", "Online", "Hybrid"],
+  },
   { key: "outcomeObtained", label: "Outcome Obtained", type: "textarea", required: false },
   {
     key: "publishedSocialMediaUrl",
@@ -192,25 +312,10 @@ const bipPortalFields = [
     maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "attendanceSheetName",
-    label: "Upload Attendance Sheet Name",
-    type: "text",
-    required: false,
-  },
-  {
-    key: "uploadedReport",
-    label: "Upload Report",
-    type: "file",
-    required: false,
-    accept: ".pdf",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
     key: "iqacVerification",
     label: "IQAC Verification",
-    type: "select",
+    type: "text",
     required: false,
-    options: ["Initiated", "Approved", "Rejected"],
   },
   { key: "remark", label: "Remarks", type: "textarea", required: false },
 ];
@@ -219,15 +324,24 @@ const displayStructure = [
   {
     section: "Program Details",
     fields: [
-      "instituteName",
-      "innovationTitle",
-      "teamLeadName",
-      "teamLeadEmail",
-      "teamLeadGender",
-      "fyOfDevelopment",
-      "sectorDomain",
-      "developedAsPartOf",
-      "innovationType",
+      "currentAcademicYear",
+      "quarter",
+      "programDrivenBy",
+      "programActivityName",
+      "programType",
+      "activityLedBy",
+      "programTheme",
+      "durationManual",
+      "fromDate",
+      "toDate",
+      "durationHours",
+      "studentParticipants",
+      "facultyParticipants",
+      "externalParticipants",
+      "expenditureAmount",
+      "modeOfSession",
+      "eventType",
+      "aboutEvent",
     ],
   },
   {
@@ -323,6 +437,8 @@ function buildUnifiedFields() {
 
 function EventDetails() {
   const fields = useMemo(() => buildUnifiedFields(), []);
+  const user = useMemo(() => getAuthUser(), []);
+  const isFaculty = user?.roleName === "faculty";
   const fieldsByKey = useMemo(
     () => fields.reduce((accumulator, field) => ({ ...accumulator, [field.key]: field }), {}),
     [fields]
@@ -393,6 +509,12 @@ function EventDetails() {
 
         if (field.type === "checkbox") {
           hydratedValues[field.key] = Boolean(parsedValues[field.key]);
+          return;
+        }
+
+        if (field.key === "iqacVerification") {
+          const storedValue = String(parsedValues[field.key] ?? "").trim();
+          hydratedValues[field.key] = storedValue || "Initiated";
           return;
         }
 
@@ -679,15 +801,6 @@ function EventDetails() {
   };
 
   const renderFieldHint = (field) => {
-    if (field.key === "offlineEventProof1" && field.maxSizeBytes) {
-      const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
-      return (
-        <p className="text-xs text-gray-500">
-          Max {maxMb}MB, photo should cover speaker, participants, stage
-        </p>
-      );
-    }
-
     if (field.key === "onlineEventProof1" && field.maxSizeBytes) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
       return (
@@ -697,17 +810,12 @@ function EventDetails() {
       );
     }
 
-    if (field.key === "offlineEventProof2" && field.maxSizeBytes) {
-      const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
-      return <p className="text-xs text-gray-500">Max {maxMb}MB, photo 2 must be different from photo 1</p>;
-    }
-
     if (field.type === "file" && field.maxSizeBytes) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
       return <p className="text-xs text-gray-500">Max {maxMb}MB</p>;
     }
 
-    if (["photograph2", "offlineEventProof2"].includes(field.key)) {
+    if (["photograph2"].includes(field.key)) {
       return <p className="text-xs text-gray-500">(Photo 2 must be different from Photo 1)</p>;
     }
 
@@ -809,6 +917,7 @@ function EventDetails() {
           options={field.options || []}
           emptyLabel="Select"
           placeholder="Select"
+          disabled={field.key === "iqacVerification" && isFaculty}
         />
       )}
 
@@ -848,7 +957,9 @@ function EventDetails() {
           value={formValues[field.key]}
           onChange={(event) => handleChange(field, event.target.value)}
           disabled={(field.key === "fromDate" || field.key === "toDate") && !!formValues.durationManual}
-          readOnly={field.key === "durationHours" && !formValues.durationManual}
+          readOnly={
+            field.key === "iqacVerification" || (field.key === "durationHours" && !formValues.durationManual)
+          }
           className={`w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500 ${
             field.key === "fromDate" || field.key === "toDate" ? "whitespace-nowrap" : ""
           }`}

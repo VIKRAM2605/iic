@@ -217,7 +217,7 @@ export async function createEventDetails(request, response, next) {
       firstFacultyInvolved: getBodyValue(body, "firstFacultyInvolved"),
       secondFacultyInvolved: getBodyValue(body, "secondFacultyInvolved"),
       thirdFacultyInvolved: getBodyValue(body, "thirdFacultyInvolved"),
-      iqacVerification: getBodyValue(body, "iqacVerification"),
+      iqacVerification: getBodyValue(body, "iqacVerification") || "Initiated",
     };
 
     const insertedRows = await db`
@@ -550,6 +550,7 @@ export async function reviewEventByAdmin(request, response, next) {
     const nextStatus = action === "approve" ? "approved" : "rejected";
     const adminUserId = getNumericUserId(request.user?.id);
 
+    const nextIqacStatus = nextStatus === "approved" ? "Approved" : "Rejected";
     const updatedRows = await db.unsafe(
       `
       UPDATE event_details
@@ -559,11 +560,18 @@ export async function reviewEventByAdmin(request, response, next) {
         reviewed_by = $3,
         reviewed_at = NOW(),
         approved_at = CASE WHEN $1 = 'approved' THEN NOW() ELSE NULL END,
-        rejected_at = CASE WHEN $1 = 'rejected' THEN NOW() ELSE NULL END
+        rejected_at = CASE WHEN $1 = 'rejected' THEN NOW() ELSE NULL END,
+        bip_portal = jsonb_set(COALESCE(bip_portal, '{}'::jsonb), '{iqacVerification}', to_jsonb($5::text), true)
       WHERE id = $4
       RETURNING id, status, rejection_message, reviewed_at, approved_at, rejected_at
       `,
-      [nextStatus, nextStatus === "rejected" ? rejectionMessage || null : null, adminUserId, eventId]
+      [
+        nextStatus,
+        nextStatus === "rejected" ? rejectionMessage || null : null,
+        adminUserId,
+        eventId,
+        nextIqacStatus,
+      ]
     );
 
     const updatedEvent = updatedRows[0];
@@ -573,6 +581,7 @@ export async function reviewEventByAdmin(request, response, next) {
       message: `Event ${nextStatus} successfully.`,
       data: {
         ...updatedEvent,
+        iqacVerification: nextIqacStatus,
         emailQueued,
       },
     });
