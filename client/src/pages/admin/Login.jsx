@@ -88,7 +88,7 @@ function Login() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-slate-100 p-6 text-slate-900"
+      className="flex min-h-screen items-center justify-center bg-gray-50 p-6 text-gray-900"
       style={{ fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' }}
     >
       <div className="w-full max-w-md rounded-md border border-gray-200 bg-white p-8 shadow-sm">
@@ -120,7 +120,7 @@ function Login() {
               type="password"
               autoComplete="current-password"
               required
-              placeholder="password"
+              placeholder="Enter your password"
               className="w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary-light"
             />
           </div>
