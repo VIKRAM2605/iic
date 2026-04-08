@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import eventDetailsRoutes from "./routes/eventDetailsRoutes.js";
+import ideaDetailsRoutes from "./routes/ideaDetailsRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import { runMigrations } from "./utils/runMigrations.js";
 
@@ -23,6 +24,7 @@ app.get("/", (_request, response) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/event-details", eventDetailsRoutes);
+app.use("/api/idea-details", ideaDetailsRoutes);
 
 app.use((error, _request, response, _next) => {
   if (error instanceof multer.MulterError) {
