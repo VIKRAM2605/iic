@@ -23,12 +23,24 @@ export default function Topbar() {
       return "Idea Review";
     }
 
+    if (location.pathname.startsWith("/admin/prototypes")) {
+      return "Prototype Dashboard";
+    }
+
+    if (location.pathname.startsWith("/admin/prototype-review")) {
+      return "Prototype Review";
+    }
+
     if (location.pathname.startsWith("/teacher/dashboard")) {
       return "Teacher Dashboard";
     }
 
     if (location.pathname.startsWith("/teacher/ideas")) {
       return "Teacher Ideas";
+    }
+
+    if (location.pathname.startsWith("/teacher/prototypes")) {
+      return "Teacher Prototypes";
     }
 
     if (location.pathname.startsWith("/eventdetails")) {
@@ -45,6 +57,14 @@ export default function Topbar() {
 
     if (location.pathname.startsWith("/idea/")) {
       return "Idea Details";
+    }
+
+    if (location.pathname.startsWith("/prototype/")) {
+      return "Prototype Details";
+    }
+
+    if (location.pathname.startsWith("/prototypedetails")) {
+      return "Prototype Form";
     }
 
     return "Dashboard";
