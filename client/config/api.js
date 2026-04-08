@@ -11,10 +11,15 @@ export const API_ROUTES = {
 	authMe: "/api/auth/me",
 	authLogout: "/api/auth/logout",
 	eventDetails: "/api/event-details",
+	ideaDetails: "/api/idea-details",
 	adminApprovedEvents: "/api/event-details/admin/approved",
 	adminApprovedFilterOptions: "/api/event-details/admin/approved/filter-options",
 	adminReviewQueue: "/api/event-details/admin/review-queue",
 	facultyMyEvents: "/api/event-details/faculty/mine",
+	adminApprovedIdeas: "/api/idea-details/admin/approved",
+	adminApprovedIdeaFilterOptions: "/api/idea-details/admin/approved/filter-options",
+	adminIdeaReviewQueue: "/api/idea-details/admin/review-queue",
+	facultyMyIdeas: "/api/idea-details/faculty/mine",
 };
 
 export const getApiUrl = (route) => {
@@ -29,10 +34,15 @@ export const API_URLS = {
 	authMe: getApiUrl(API_ROUTES.authMe),
 	authLogout: getApiUrl(API_ROUTES.authLogout),
 	eventDetails: getApiUrl(API_ROUTES.eventDetails),
+	ideaDetails: getApiUrl(API_ROUTES.ideaDetails),
 	adminApprovedEvents: getApiUrl(API_ROUTES.adminApprovedEvents),
 	adminApprovedFilterOptions: getApiUrl(API_ROUTES.adminApprovedFilterOptions),
 	adminReviewQueue: getApiUrl(API_ROUTES.adminReviewQueue),
 	facultyMyEvents: getApiUrl(API_ROUTES.facultyMyEvents),
+	adminApprovedIdeas: getApiUrl(API_ROUTES.adminApprovedIdeas),
+	adminApprovedIdeaFilterOptions: getApiUrl(API_ROUTES.adminApprovedIdeaFilterOptions),
+	adminIdeaReviewQueue: getApiUrl(API_ROUTES.adminIdeaReviewQueue),
+	facultyMyIdeas: getApiUrl(API_ROUTES.facultyMyIdeas),
 };
 
 const parseJsonResponse = async (response, fallbackMessage) => {
@@ -133,6 +143,24 @@ export const createEventDetails = async (formData, token) => {
 	return payload;
 };
 
+export const createIdeaDetails = async (formData, token) => {
+	const response = await fetch(API_URLS.ideaDetails, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		body: formData,
+	});
+
+	const payload = await response.json().catch(() => ({}));
+
+	if (!response.ok) {
+		throw new Error(payload.message || "Failed to upload idea details.");
+	}
+
+	return payload;
+};
+
 export const getAdminApprovedEvents = async ({ token, quarter, date, fromDate, toDate, facultyName }) => {
 	const params = new URLSearchParams();
 
@@ -152,6 +180,34 @@ export const getAdminApprovedEvents = async ({ token, quarter, date, fromDate, t
 	return parseJsonResponse(response, "Failed to fetch approved events.");
 };
 
+export const getAdminApprovedIdeas = async ({
+	token,
+	quarter,
+	date,
+	fromDate,
+	toDate,
+	facultyName,
+	includeRejected,
+}) => {
+	const params = new URLSearchParams();
+
+	if (quarter) params.set("quarter", quarter);
+	if (date) params.set("date", date);
+	if (fromDate) params.set("fromDate", fromDate);
+	if (toDate) params.set("toDate", toDate);
+	if (facultyName) params.set("facultyName", facultyName);
+	if (includeRejected) params.set("includeRejected", "true");
+
+	const response = await fetch(`${API_URLS.adminApprovedIdeas}?${params.toString()}`, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch approved ideas.");
+};
+
 export const getAdminReviewQueue = async (token) => {
 	const response = await fetch(API_URLS.adminReviewQueue, {
 		method: "GET",
@@ -163,6 +219,17 @@ export const getAdminReviewQueue = async (token) => {
 	return parseJsonResponse(response, "Failed to fetch review queue.");
 };
 
+export const getAdminIdeaReviewQueue = async (token) => {
+	const response = await fetch(API_URLS.adminIdeaReviewQueue, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch idea review queue.");
+};
+
 export const getAdminApprovedFilterOptions = async (token) => {
 	const response = await fetch(API_URLS.adminApprovedFilterOptions, {
 		method: "GET",
@@ -172,6 +239,23 @@ export const getAdminApprovedFilterOptions = async (token) => {
 	});
 
 	return parseJsonResponse(response, "Failed to fetch filter options.");
+};
+
+export const getAdminApprovedIdeaFilterOptions = async (token, { includeRejected } = {}) => {
+	const params = new URLSearchParams();
+	if (includeRejected) params.set("includeRejected", "true");
+
+	const response = await fetch(
+		`${API_URLS.adminApprovedIdeaFilterOptions}?${params.toString()}`,
+		{
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		}
+	);
+
+	return parseJsonResponse(response, "Failed to fetch idea filter options.");
 };
 
 export const reviewEventByAdmin = async ({ token, eventId, action, rejectionMessage }) => {
@@ -187,6 +271,19 @@ export const reviewEventByAdmin = async ({ token, eventId, action, rejectionMess
 	return parseJsonResponse(response, "Failed to update event review status.");
 };
 
+export const reviewIdeaByAdmin = async ({ token, ideaId, action, rejectionMessage }) => {
+	const response = await fetch(`${API_URLS.ideaDetails}/admin/${ideaId}/review`, {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		body: JSON.stringify({ action, rejectionMessage }),
+	});
+
+	return parseJsonResponse(response, "Failed to update idea review status.");
+};
+
 export const getFacultyMyEvents = async (token) => {
 	const response = await fetch(API_URLS.facultyMyEvents, {
 		method: "GET",
@@ -198,6 +295,17 @@ export const getFacultyMyEvents = async (token) => {
 	return parseJsonResponse(response, "Failed to fetch faculty events.");
 };
 
+export const getFacultyMyIdeas = async (token) => {
+	const response = await fetch(API_URLS.facultyMyIdeas, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch faculty ideas.");
+};
+
 export const getEventById = async ({ token, eventId }) => {
 	const response = await fetch(`${API_URLS.eventDetails}/${eventId}`, {
 		method: "GET",
@@ -207,4 +315,15 @@ export const getEventById = async ({ token, eventId }) => {
 	});
 
 	return parseJsonResponse(response, "Failed to fetch event details.");
+};
+
+export const getIdeaById = async ({ token, ideaId }) => {
+	const response = await fetch(`${API_URLS.ideaDetails}/${ideaId}`, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch idea details.");
 };

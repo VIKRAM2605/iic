@@ -15,8 +15,20 @@ export default function Topbar() {
       return "Event Review";
     }
 
+    if (location.pathname.startsWith("/admin/ideas")) {
+      return "Idea Dashboard";
+    }
+
+    if (location.pathname.startsWith("/admin/idea-review")) {
+      return "Idea Review";
+    }
+
     if (location.pathname.startsWith("/teacher/dashboard")) {
       return "Teacher Dashboard";
+    }
+
+    if (location.pathname.startsWith("/teacher/ideas")) {
+      return "Teacher Ideas";
     }
 
     if (location.pathname.startsWith("/eventdetails")) {
@@ -25,6 +37,14 @@ export default function Topbar() {
 
     if (location.pathname.startsWith("/event/")) {
       return "Event Details";
+    }
+
+    if (location.pathname.startsWith("/ideadetails")) {
+      return "Idea Form";
+    }
+
+    if (location.pathname.startsWith("/idea/")) {
+      return "Idea Details";
     }
 
     return "Dashboard";

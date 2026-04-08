@@ -17,6 +17,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const user = useMemo(() => getAuthUser(), []);
   const canAccessEventDetails = ["admin", "faculty"].includes(user?.roleName);
+  const canAccessIdeaDetails = ["admin", "faculty"].includes(user?.roleName);
   const isAdmin = user?.roleName === "admin";
   const isFaculty = user?.roleName === "faculty";
 
@@ -68,6 +69,28 @@ export default function Navbar() {
             </li>
           )}
 
+          {isAdmin && (
+            <li>
+              <NavLink to="/admin/ideas" className={linkClassName}>
+                <span className="flex items-center gap-2">
+                  <LayoutDashboard size={16} aria-hidden="true" />
+                  <span>Idea Dashboard</span>
+                </span>
+              </NavLink>
+            </li>
+          )}
+
+          {isAdmin && (
+            <li>
+              <NavLink to="/admin/idea-review" className={linkClassName}>
+                <span className="flex items-center gap-2">
+                  <CheckSquare size={16} aria-hidden="true" />
+                  <span>Idea Review</span>
+                </span>
+              </NavLink>
+            </li>
+          )}
+
           {isFaculty && (
             <li>
               <NavLink to="/teacher/dashboard" className={linkClassName}>
@@ -79,12 +102,34 @@ export default function Navbar() {
             </li>
           )}
 
+          {isFaculty && (
+            <li>
+              <NavLink to="/teacher/ideas" className={linkClassName}>
+                <span className="flex items-center gap-2">
+                  <LayoutDashboard size={16} aria-hidden="true" />
+                  <span>Teacher Ideas</span>
+                </span>
+              </NavLink>
+            </li>
+          )}
+
           {canAccessEventDetails && (
             <li>
               <NavLink to="/eventdetails" className={linkClassName}>
                 <span className="flex items-center gap-2">
                   <FileSpreadsheet size={16} aria-hidden="true" />
                   <span>Event Form</span>
+                </span>
+              </NavLink>
+            </li>
+          )}
+
+          {canAccessIdeaDetails && (
+            <li>
+              <NavLink to="/ideadetails" className={linkClassName}>
+                <span className="flex items-center gap-2">
+                  <FileSpreadsheet size={16} aria-hidden="true" />
+                  <span>Idea Form</span>
                 </span>
               </NavLink>
             </li>

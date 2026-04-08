@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { createEventDetails } from "../../../config/api";
+import { createIdeaDetails } from "../../../config/api";
 import { getAuthToken } from "../../utils/auth";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 
-const EVENT_DETAILS_STORAGE_KEY = "event-details-form-values";
+const IDEA_DETAILS_STORAGE_KEY = "idea-details-form-values";
 
 const countWords = (value) => {
   const normalizedValue = String(value ?? "").trim().replace(/\s+/g, " ");
@@ -68,7 +68,7 @@ const iicPortalDocFields = [
     key: "feedbackDescription",
     label: "Upload Feedback",
     type: "file",
-    required: true,
+    required: false,
     accept: ".pdf",
     maxSizeBytes: 2 * 1024 * 1024,
   },
@@ -117,8 +117,8 @@ const iicPortalDocFields = [
 ];
 
 const bipPortalFields = [
-  { key: "facultyApplied", label: "Faculty Applied", type: "text", required: true },
-  { key: "taskId", label: "Task ID", type: "text", required: true },
+  { key: "facultyApplied", label: "Faculty Applied", type: "text", required: false },
+  { key: "taskId", label: "Task ID", type: "text", required: false },
   {
     key: "departmentsInvolved",
     label: "Departments Involved",
@@ -163,9 +163,9 @@ const bipPortalFields = [
   { key: "faculty3", label: "Faculty 3", type: "text", required: false },
   {
     key: "eventType",
-    label: "Select Type of Event",
+    label: "Select Type of Idea",
     type: "select",
-    required: true,
+    required: false,
     options: ["External", "Internal"],
   },
   { key: "outcomeObtained", label: "Outcome Obtained", type: "textarea", required: false },
@@ -179,7 +179,7 @@ const bipPortalFields = [
     key: "sessionSchedule",
     label: "Upload Session Schedule",
     type: "file",
-    required: true,
+    required: false,
     accept: ".pdf",
     maxSizeBytes: 2 * 1024 * 1024,
   },
@@ -187,7 +187,7 @@ const bipPortalFields = [
     key: "brochureProofName",
     label: "Upload Brochure",
     type: "file",
-    required: true,
+    required: false,
     accept: ".pdf",
     maxSizeBytes: 2 * 1024 * 1024,
   },
@@ -321,7 +321,7 @@ function buildUnifiedFields() {
   return Array.from(fieldMap.values());
 }
 
-function EventDetails() {
+function IdeaDetails() {
   const fields = useMemo(() => buildUnifiedFields(), []);
   const fieldsByKey = useMemo(
     () => fields.reduce((accumulator, field) => ({ ...accumulator, [field.key]: field }), {}),
@@ -374,7 +374,7 @@ function EventDetails() {
     }
 
     try {
-      const rawStoredValues = window.localStorage.getItem(EVENT_DETAILS_STORAGE_KEY);
+      const rawStoredValues = window.localStorage.getItem(IDEA_DETAILS_STORAGE_KEY);
       if (!rawStoredValues) {
         return initialValues;
       }
@@ -443,7 +443,7 @@ function EventDetails() {
       serializableValues[field.key] = formValues[field.key];
     });
 
-    window.localStorage.setItem(EVENT_DETAILS_STORAGE_KEY, JSON.stringify(serializableValues));
+    window.localStorage.setItem(IDEA_DETAILS_STORAGE_KEY, JSON.stringify(serializableValues));
   }, [fields, formValues]);
 
   const handleChange = (field, value) => {
@@ -662,15 +662,15 @@ function EventDetails() {
         throw new Error("Please login again to continue.");
       }
 
-      await createEventDetails(formData, token);
-      window.localStorage.removeItem(EVENT_DETAILS_STORAGE_KEY);
+      await createIdeaDetails(formData, token);
+      window.localStorage.removeItem(IDEA_DETAILS_STORAGE_KEY);
       setFormValues(initialValues);
       setErrors({});
-      setAlertMessage("Event details uploaded successfully.");
+      setAlertMessage("Idea details uploaded successfully.");
       setAlertSeverity("success");
       setAlertOpen(true);
     } catch (error) {
-      setAlertMessage(error.message || "Failed to upload event details.");
+      setAlertMessage(error.message || "Failed to upload idea details.");
       setAlertSeverity("error");
       setAlertOpen(true);
     } finally {
@@ -902,7 +902,7 @@ function EventDetails() {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="text-base font-medium text-gray-900">Duration of Event in Hrs</h3>
+          <h3 className="text-base font-medium text-gray-900">Duration of Idea in Hrs</h3>
           {durationManualField && (
             <label className="flex items-center gap-2 text-sm text-gray-700" htmlFor={durationManualField.key}>
               <input
@@ -1092,4 +1092,4 @@ function EventDetails() {
   );
 }
 
-export default EventDetails;
+export default IdeaDetails;

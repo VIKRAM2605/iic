@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { googleLoginUser, loginUser } from "../../../config/api";
 import { setAuthSession } from "../../utils/auth";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -16,6 +17,16 @@ function Login() {
     }
 
     setAuthSession({ token, user });
+
+    const fromPath =
+      typeof location.state?.from === "string" && location.state.from.startsWith("/")
+        ? location.state.from
+        : "";
+
+    if (fromPath && fromPath !== "/login") {
+      navigate(fromPath, { replace: true });
+      return;
+    }
 
     if (user.roleName === "admin") {
       navigate("/admin/dashboard", { replace: true });
@@ -77,7 +88,7 @@ function Login() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-slate-100 p-6 text-slate-900"
+      className="flex min-h-screen items-center justify-center bg-gray-50 p-6 text-gray-900"
       style={{ fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' }}
     >
       <div className="w-full max-w-md rounded-md border border-gray-200 bg-white p-8 shadow-sm">
@@ -109,7 +120,7 @@ function Login() {
               type="password"
               autoComplete="current-password"
               required
-              placeholder="password"
+              placeholder="Enter your password"
               className="w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary-light"
             />
           </div>
