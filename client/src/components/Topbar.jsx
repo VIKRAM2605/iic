@@ -8,27 +8,27 @@ export default function Topbar() {
 
   const sectionTitle = useMemo(() => {
     if (location.pathname.startsWith("/admin/dashboard")) {
-      return "Admin Dashboard";
+      return "Event Management";
     }
 
     if (location.pathname.startsWith("/admin/review")) {
-      return "Event Review";
+      return "Event Evaluation";
     }
 
     if (location.pathname.startsWith("/admin/ideas")) {
-      return "Idea Dashboard";
+      return "Idea Management";
     }
 
     if (location.pathname.startsWith("/admin/idea-review")) {
-      return "Idea Review";
+      return "Idea Evaluation";
     }
 
     if (location.pathname.startsWith("/admin/prototypes")) {
-      return "Prototype Dashboard";
+      return "Prototype Management";
     }
 
     if (location.pathname.startsWith("/admin/prototype-review")) {
-      return "Prototype Review";
+      return "Prototype Evaluation";
     }
 
     if (location.pathname.startsWith("/teacher/dashboard")) {
@@ -44,7 +44,7 @@ export default function Topbar() {
     }
 
     if (location.pathname.startsWith("/eventdetails")) {
-      return "Event Form";
+      return "Event Submission";
     }
 
     if (location.pathname.startsWith("/event/")) {
@@ -52,7 +52,7 @@ export default function Topbar() {
     }
 
     if (location.pathname.startsWith("/ideadetails")) {
-      return "Idea Form";
+      return "Idea Submission";
     }
 
     if (location.pathname.startsWith("/idea/")) {
@@ -64,7 +64,7 @@ export default function Topbar() {
     }
 
     if (location.pathname.startsWith("/prototypedetails")) {
-      return "Prototype Form";
+      return "Prototype Submission";
     }
 
     return "Dashboard";

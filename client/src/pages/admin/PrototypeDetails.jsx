@@ -125,13 +125,51 @@ const iicPortalDocFields = [
   },
   {
     key: "developmentStage",
-    label: "Development stage",
+    label: "Development stage - TRL",
     type: "select",
     required: true,
     options: [
-      "TRL 1: Basic research. Principles postulated observed but no experimental proof available",
-      "TRL 2: Technology formulation. Concept and application have been formulated",
-      "TRL 3: Applied research. First laboratory tests completed; proof of concept",
+      "TRL 4: Small scale prototype built in a laboratory environment (\"ugly\" prototype)",
+      "TRL 5: Large scale prototype tested in intended environment",
+      "TRL 6: Prototype system tested in intended environment close to expected performance",
+      "TRL 7: Demonstration system operating in operational environment at pre-commercial scale",
+      "TRL 8: First of a kind commercial system. Manufacturing issues solved",
+      "TRL 9: Full commercial application, technology available for consumers",
+    ],
+  },
+  {
+    key: "developmentStageMrl",
+    label: "Development stage - MRL",
+    type: "select",
+    required: true,
+    options: [
+      "MRL 1: Basic manufacturing implications identified",
+      "MRL 2: Manufacturing concepts identified",
+      "MRL 3: Manufacturing proof of concept developed",
+      "MRL 4: Capability to produce the technology in a laboratory environment",
+      "MRL 5: Capability to produce prototype components in a production relevant environment",
+      "MRL 6: Capability to produce a prototype system or subsystem in a production relevant environment",
+      "MRL 7: Capability to produce systems, subsystems or components in a production representative environment.",
+      "MRL 8: Pilot line capability demonstrated. Ready to begin low rate production.",
+      "MRL 9: Low rate production demonstrated. Capability in place to begin Full Rate Production.",
+      "MRL 10: Full rate production demonstrated and lean production practices in place.",
+    ],
+  },
+  {
+    key: "developmentStageIrl",
+    label: "Development - IRL",
+    type: "select",
+    required: true,
+    options: [
+      "IRL 1: Basic Research (Need Identification & Peer Review Publications) & Completed First-Pass Business Model Canvas (BMC)",
+      "IRL 2: Applied Research (Market Size and Competitive Analysis) & Business Plan - Value Proposition & IP Identification",
+      "IRL 3: Validate Problem - Solution Fit (Confirmed Value Proposition & Techno-Economic Analysis) & Minimum Product Cost (Maturity of Core Technology)",
+      "IRL 4: Prototype Low-Fidelity Minimum Viable Product (MVP): Low-fidelity - A representative of the component or system that has limited ability to provide anything but initial information about the end product.",
+      "IRL 5: Validate Product-Market Fit (Integrated Validation of the Minimum Viable Process and Process Engineering). High-fidelity - A high-fidelity laboratory environment would involve testing with equipment that can simulate and validate all system specifications within a laboratory setting.",
+      "IRL 6: Validate Business/Revenue Model: Integrated Pilot Development- understanding operational nuances",
+      "IRL 7: Prototype High Fidelity MVP: Integrated Pilot Continuous Operation",
+      "IRL 8: Pre-Commercial Demonstration - Operating Conditions and quality stabilized",
+      "IRL 9: Full Commercial Development - A full time process engineering staff.....",
     ],
   },
   {
@@ -156,6 +194,34 @@ const iicPortalDocFields = [
     key: "competitorDifference",
     label:
       "How your proposed / developed (product / process / service) solution is different from similar kind of product by the competitors if any",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "utilityAnalysis",
+    label:
+      "Utility: Highlight the utility/value proposition (key benefits) aspects of the solution/innovation",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "scalabilityAnalysis",
+    label:
+      "Scalability: Highlight the market potential aspects of the solution/innovation (potential market size, segmentation and target users/customers etc.)",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "economicSustainabilityAnalysis",
+    label:
+      "Economic Sustainability: Highlight commercialisation/business application aspects of the solution (how it is going to be economically profitable and viable)",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "environmentalSustainabilityAnalysis",
+    label:
+      "Environmental Sustainability: Highlight environmental friendliness aspects and related benefit of the solution/innovation",
     type: "textarea",
     required: true,
   },
@@ -262,6 +328,8 @@ const displayStructure = [
       "developedAsPartOf",
       "innovationType",
       "developmentStage",
+      "developmentStageMrl",
+      "developmentStageIrl",
     ],
   },
   {
@@ -271,6 +339,15 @@ const displayStructure = [
       "solutionDescription",
       "uniquenessFeatures",
       "competitorDifference",
+    ],
+  },
+  {
+    section: "Analysis",
+    fields: [
+      "utilityAnalysis",
+      "scalabilityAnalysis",
+      "economicSustainabilityAnalysis",
+      "environmentalSustainabilityAnalysis",
     ],
   },
   {
@@ -418,7 +495,14 @@ function PrototypeDetails() {
     uniquenessFeatures: 100,
     competitorDifference: 100,
   };
-  const maxWordsByKey = { innovationTitle: 20, aboutEvent: 150 };
+  const maxWordsByKey = {
+    innovationTitle: 20,
+    aboutEvent: 150,
+    utilityAnalysis: 100,
+    scalabilityAnalysis: 100,
+    economicSustainabilityAnalysis: 100,
+    environmentalSustainabilityAnalysis: 100,
+  };
 
   const stepSections = useMemo(
     () =>
@@ -770,9 +854,9 @@ function PrototypeDetails() {
       return <p className="text-xs text-gray-500">Max {limit} characters (including spaces)</p>;
     }
 
-    if (maxWordsByKey[field.key]) {
+    if (field.type === "textarea" && maxWordsByKey[field.key]) {
       const limit = maxWordsByKey[field.key];
-      return <p className="text-xs text-gray-500">Max {limit} words</p>;
+      return <p className="text-xs text-gray-500">Max: {limit} words</p>;
     }
 
     return null;
@@ -816,7 +900,7 @@ function PrototypeDetails() {
                   : "text-gray-500"
               }`}
             >
-              {countWords(formValues[field.key])} / {maxWordsByKey[field.key]} words
+              {countWords(formValues[field.key])}/{maxWordsByKey[field.key]}
             </p>
           )}
         </div>
@@ -900,7 +984,7 @@ function PrototypeDetails() {
                   : "text-gray-500"
               }`}
             >
-              {countWords(formValues[field.key])} / {maxWordsByKey[field.key]} words
+              {countWords(formValues[field.key])}/{maxWordsByKey[field.key]}
             </p>
           )}
         </div>
@@ -1105,7 +1189,7 @@ function PrototypeDetails() {
             disabled={!isLastStep || Object.values(errors).some(Boolean) || isSubmitting}
             className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
-            {isSubmitting ? "Saving..." : "Save Details"}
+            {isSubmitting ? "Saving..." : "Submit"}
           </button>
         </div>
 
@@ -1123,3 +1207,7 @@ function PrototypeDetails() {
 }
 
 export default PrototypeDetails;
+
+
+
+

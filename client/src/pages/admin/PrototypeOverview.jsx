@@ -119,6 +119,7 @@ const detailSteps = [
   { key: "programDetails", label: "Program" },
   { key: "durationDetails", label: "Duration" },
   { key: "overview", label: "Overview" },
+  { key: "analysis", label: "Analysis" },
   { key: "speakerDetails", label: "Speaker" },
   { key: "bipPortal", label: "BIP Portal" },
   { key: "faculty", label: "Faculty" },

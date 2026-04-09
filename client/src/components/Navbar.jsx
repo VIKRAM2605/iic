@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Building2, CheckSquare, FileSpreadsheet, LayoutDashboard, LogOut } from "lucide-react";
 import { logoutUser } from "../../config/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "../utils/auth";
@@ -13,7 +13,17 @@ function linkClassName({ isActive }) {
   ].join(" ");
 }
 
+function groupLinkClassName(isActive) {
+  return [
+    "block w-full rounded-md px-3 py-2 text-sm font-medium transition-colors",
+    isActive
+      ? "bg-primary-light text-primary"
+      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+  ].join(" ");
+}
+
 export default function Navbar() {
+  const location = useLocation();
   const navigate = useNavigate();
   const user = useMemo(() => getAuthUser(), []);
   const canAccessEventDetails = ["admin", "faculty"].includes(user?.roleName);
@@ -21,6 +31,47 @@ export default function Navbar() {
   const canAccessPrototypeDetails = ["admin", "faculty"].includes(user?.roleName);
   const isAdmin = user?.roleName === "admin";
   const isFaculty = user?.roleName === "faculty";
+  const adminSections = [
+    {
+      label: "Event Management",
+      icon: LayoutDashboard,
+      to: "/admin/dashboard",
+      isActive:
+        location.pathname.startsWith("/admin/dashboard")
+        || location.pathname.startsWith("/admin/review")
+        || location.pathname.startsWith("/eventdetails"),
+      children: [
+        { label: "Event Submission", icon: FileSpreadsheet, to: "/eventdetails", isVisible: canAccessEventDetails },
+        { label: "Event Evaluation", icon: CheckSquare, to: "/admin/review" },
+      ],
+    },
+    {
+      label: "Idea Management",
+      icon: LayoutDashboard,
+      to: "/admin/ideas",
+      isActive:
+        location.pathname.startsWith("/admin/ideas")
+        || location.pathname.startsWith("/admin/idea-review")
+        || location.pathname.startsWith("/ideadetails"),
+      children: [
+        { label: "Idea Submission", icon: FileSpreadsheet, to: "/ideadetails", isVisible: canAccessIdeaDetails },
+        { label: "Idea Evaluation", icon: CheckSquare, to: "/admin/idea-review" },
+      ],
+    },
+    {
+      label: "Prototype Management",
+      icon: LayoutDashboard,
+      to: "/admin/prototypes",
+      isActive:
+        location.pathname.startsWith("/admin/prototypes")
+        || location.pathname.startsWith("/admin/prototype-review")
+        || location.pathname.startsWith("/prototypedetails"),
+      children: [
+        { label: "Prototype Submission", icon: FileSpreadsheet, to: "/prototypedetails", isVisible: canAccessPrototypeDetails },
+        { label: "Prototype Evaluation", icon: CheckSquare, to: "/admin/prototype-review" },
+      ],
+    },
+  ];
 
   const handleLogout = async () => {
     const token = getAuthToken();
@@ -47,72 +98,40 @@ export default function Navbar() {
 
       <nav className="flex-1 px-3 py-4">
         <p className="px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Institute</p>
-        <ul className="mt-2 space-y-1">
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/dashboard" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Admin Dashboard</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+        <ul className="mt-2 space-y-2">
+          {isAdmin && adminSections.map((section) => {
+            const SectionIcon = section.icon;
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/review" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <CheckSquare size={16} aria-hidden="true" />
-                  <span>Event Review</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+            return (
+              <li key={section.label} className="space-y-1">
+                <NavLink to={section.to} className={() => groupLinkClassName(section.isActive)}>
+                  <span className="flex items-center gap-2">
+                    <SectionIcon size={16} aria-hidden="true" />
+                    <span>{section.label}</span>
+                  </span>
+                </NavLink>
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/ideas" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Idea Dashboard</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+                <ul className="space-y-1 pl-6">
+                  {section.children
+                    .filter((item) => item.isVisible ?? true)
+                    .map((item) => {
+                      const ItemIcon = item.icon;
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/idea-review" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <CheckSquare size={16} aria-hidden="true" />
-                  <span>Idea Review</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/prototypes" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Prototype Dashboard</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/prototype-review" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <CheckSquare size={16} aria-hidden="true" />
-                  <span>Prototype Review</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+                      return (
+                        <li key={item.label}>
+                          <NavLink to={item.to} className={linkClassName}>
+                            <span className="flex items-center gap-2">
+                              <ItemIcon size={16} aria-hidden="true" />
+                              <span>{item.label}</span>
+                            </span>
+                          </NavLink>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </li>
+            );
+          })}
 
           {isFaculty && (
             <li>
@@ -147,7 +166,7 @@ export default function Navbar() {
             </li>
           )}
 
-          {canAccessEventDetails && (
+          {isFaculty && canAccessEventDetails && (
             <li>
               <NavLink to="/eventdetails" className={linkClassName}>
                 <span className="flex items-center gap-2">
@@ -158,7 +177,7 @@ export default function Navbar() {
             </li>
           )}
 
-          {canAccessIdeaDetails && (
+          {isFaculty && canAccessIdeaDetails && (
             <li>
               <NavLink to="/ideadetails" className={linkClassName}>
                 <span className="flex items-center gap-2">
@@ -169,7 +188,7 @@ export default function Navbar() {
             </li>
           )}
 
-          {canAccessPrototypeDetails && (
+          {isFaculty && canAccessPrototypeDetails && (
             <li>
               <NavLink to="/prototypedetails" className={linkClassName}>
                 <span className="flex items-center gap-2">
@@ -189,7 +208,7 @@ export default function Navbar() {
           className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
         >
           <LogOut size={16} aria-hidden="true" />
-          <span>Logout</span>
+          <span>Sign out</span>
         </button>
       </div>
     </aside>
