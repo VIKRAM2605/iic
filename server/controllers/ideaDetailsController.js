@@ -1,5 +1,7 @@
 import db from "../config/db.js";
 import { randomUUID } from "crypto";
+import fs from "fs/promises";
+import path from "path";
 import { sendEmail } from "../utils/mail.js";
 
 const getBodyValue = (body, key) => String(body?.[key] ?? "").trim();
@@ -30,6 +32,41 @@ const getQueryValue = (query, key) => String(query?.[key] ?? "").trim();
 const getNumericUserId = (requestUserId) => {
   const parsed = Number(requestUserId);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const ideaUploadDirectory = path.join(process.cwd(), "uploads", "idea-details");
+
+const getIdeaAttachmentPaths = (attachments) => {
+  const attachmentValues = [
+    attachments?.ipPatentDocument,
+    attachments?.innovationGrantDocument,
+    attachments?.latestAchievementDocument,
+    attachments?.startupRegistrationDocument,
+    attachments?.innovationPhotograph,
+  ];
+
+  return attachmentValues.filter((value) => typeof value === "string" && value.startsWith("/uploads/idea-details/"));
+};
+
+const deleteIdeaAttachmentFiles = async (attachmentPaths = []) => {
+  await Promise.all(
+    attachmentPaths.map(async (attachmentPath) => {
+      const fileName = path.basename(attachmentPath);
+      const resolvedPath = path.resolve(ideaUploadDirectory, fileName);
+
+      if (!resolvedPath.startsWith(ideaUploadDirectory)) {
+        return;
+      }
+
+      try {
+        await fs.unlink(resolvedPath);
+      } catch (error) {
+        if (error?.code !== "ENOENT") {
+          throw error;
+        }
+      }
+    })
+  );
 };
 
 const triggerReviewNotification = ({ ideaRow, nextStatus, rejectionMessage }) => {
@@ -573,6 +610,60 @@ export async function reviewIdeaByAdmin(request, response, next) {
       data: {
         ...updatedIdea,
         emailQueued,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteIdeaByAdmin(request, response, next) {
+  try {
+    const ideaId = Number(request.params?.ideaId);
+
+    if (!Number.isFinite(ideaId) || ideaId <= 0) {
+      response.status(400).json({ message: "Invalid idea id." });
+      return;
+    }
+
+    const ideaRows = await db.unsafe(
+      `
+      SELECT
+        id.id,
+        id.attachments,
+        COALESCE(id.program_details->>'programActivityName', '') AS event_name,
+        COALESCE(owner.name, '') AS owner_name
+      FROM idea_details id
+      LEFT JOIN users owner
+        ON owner.id = CASE
+          WHEN id.user_id ~ '^[0-9]+$' THEN id.user_id::bigint
+          ELSE NULL
+        END
+      WHERE id.id = $1
+      LIMIT 1
+      `,
+      [ideaId]
+    );
+
+    const ideaRow = ideaRows[0];
+    if (!ideaRow) {
+      response.status(404).json({ message: "Idea not found." });
+      return;
+    }
+
+    await db`
+      DELETE FROM idea_details
+      WHERE id = ${ideaId}
+    `;
+
+    await deleteIdeaAttachmentFiles(getIdeaAttachmentPaths(ideaRow.attachments));
+
+    response.status(200).json({
+      message: "Idea deleted successfully.",
+      data: {
+        id: ideaRow.id,
+        eventName: ideaRow.event_name,
+        ownerName: ideaRow.owner_name,
       },
     });
   } catch (error) {

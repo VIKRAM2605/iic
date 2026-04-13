@@ -380,7 +380,7 @@ const displayStructure = [
     ],
   },
   {
-    section: "Promotion in Social Media",
+    section: "Promotion",
     fields: [
       "promoteTwitter",
       "twitterUrl",
@@ -540,8 +540,14 @@ function EventDetails() {
   const [alertSeverity, setAlertSeverity] = useState("success");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const maxLengthByKey = { objective: 100, benefitLearning: 150, outcomeObtained: 150, remark: 150 };
-  const maxWordsByKey = { aboutEvent: 150, aboutSpeaker: 150 };
+  const maxWordsByKey = {
+    objective: 100,
+    benefitLearning: 150,
+    outcomeObtained: 150,
+    remark: 150,
+    aboutEvent: 150,
+    aboutSpeaker: 150,
+  };
 
   const stepSections = useMemo(
     () =>
@@ -606,15 +612,6 @@ function EventDetails() {
       alert(`${field.label} must be ${maxMb}MB or less.`);
       setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${maxMb}MB.` }));
       return;
-    }
-
-    if (field.type === "textarea" && maxLengthByKey[field.key]) {
-      const limit = maxLengthByKey[field.key];
-      if (String(value ?? "").length > limit) {
-        alert(`${field.label} must be ${limit} characters or less (including spaces).`);
-        setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${limit} characters.` }));
-        return;
-      }
     }
 
     if (field.type === "textarea" && maxWordsByKey[field.key]) {
@@ -717,16 +714,7 @@ function EventDetails() {
           nextErrors[field.key] = `Invalid file type. Allowed: ${field.accept}`;
           return;
         }
-      }
-
-      if (field.type === "textarea" && maxLengthByKey[field.key]) {
-        const limit = maxLengthByKey[field.key];
-        if (String(value ?? "").length > limit) {
-          nextErrors[field.key] = `${field.label} must be ${limit} characters or less.`;
-        }
-      }
-
-      if (field.type === "textarea" && maxWordsByKey[field.key]) {
+      }if (field.type === "textarea" && maxWordsByKey[field.key]) {
         const limit = maxWordsByKey[field.key];
         if (countWords(value) > limit) {
           nextErrors[field.key] = `${field.label} must be ${limit} words or less.`;
@@ -842,12 +830,10 @@ function EventDetails() {
     if ((field.key === "fromDate" || field.key === "toDate") && formValues.durationManual) {
       return <p className="text-xs text-gray-500">Disabled while manual duration mode is enabled</p>;
     }
-
-    if (field.type === "textarea" && maxLengthByKey[field.key]) {
-      const limit = maxLengthByKey[field.key];
-      return <p className="text-xs text-gray-500">Max {limit} characters (including spaces)</p>;
+    if (field.type === "textarea" && maxWordsByKey[field.key]) {
+      const limit = maxWordsByKey[field.key];
+      return <p className="text-xs text-gray-500">Max: {limit} words</p>;
     }
-
     return null;
   };
 
@@ -870,17 +856,6 @@ function EventDetails() {
             className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
             rows={4}
           />
-          {maxLengthByKey[field.key] && (
-            <p
-              className={`text-xs ${
-                String(formValues[field.key] ?? "").length / maxLengthByKey[field.key] >= 0.8
-                  ? "text-red-600"
-                  : "text-gray-500"
-              }`}
-            >
-              {String(formValues[field.key] ?? "").length} / {maxLengthByKey[field.key]}
-            </p>
-          )}
           {maxWordsByKey[field.key] && (
             <p
               className={`text-xs ${
@@ -1097,7 +1072,21 @@ function EventDetails() {
   const stepProgress = stepSections.length > 1 ? (currentStepIndex / (stepSections.length - 1)) * 100 : 0;
 
   return (
-    <div className="mx-auto w-full p-2">
+    <div className="mx-auto w-full max-w-7xl p-2">
+      <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-white via-[#faf8ff] to-white px-5 py-6 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">Event Submission</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#7a80a6]">
+              Fill in the event details carefully and submit all required documents in one responsive workflow.
+            </p>
+          </div>
+          <div className="rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
+            {stepSections.length} steps
+          </div>
+        </div>
+      </div>
+
       <form className="mt-4 space-y-4" onSubmit={handleSubmit} noValidate>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
 
@@ -1207,5 +1196,8 @@ function EventDetails() {
 }
 
 export default EventDetails;
+
+
+
 
 

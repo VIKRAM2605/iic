@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { CirclePlus } from "lucide-react";
 import { getFacultyMyIdeas } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
@@ -85,6 +86,23 @@ export default function TeacherIdeasDashboard() {
 
   return (
     <section className="-m-6 min-h-[calc(100vh-4rem)] bg-white">
+      <div className="border-b border-gray-200 px-6 py-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[28px]">Ideas Dashboard</h1>
+            <p className="text-sm text-[#7a80a6] sm:text-base">Track and manage your ideas submissions</p>
+          </div>
+
+          <Link
+            to="/ideadetails"
+            className="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 text-base font-semibold text-white transition-all duration-200 hover:opacity-90"
+            style={{ boxShadow: "0 10px 20px -10px rgba(125, 83, 246, 0.6)" }}
+          >
+            <CirclePlus size={18} strokeWidth={2.25} />
+            <span>New Ideas</span>
+          </Link>
+        </div>
+      </div>
       <div className="grid gap-4 border-b border-gray-200 px-6 py-5 md:grid-cols-2 xl:grid-cols-4">
         <SearchableSelect
           label="Quarter"
@@ -164,3 +182,5 @@ export default function TeacherIdeasDashboard() {
     </section>
   );
 }
+
+

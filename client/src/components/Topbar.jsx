@@ -8,11 +8,11 @@ export default function Topbar() {
 
   const sectionTitle = useMemo(() => {
     if (location.pathname.startsWith("/admin/dashboard")) {
-      return "Event Management";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/admin/review")) {
-      return "Event Evaluation";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/admin/ideas")) {
@@ -32,7 +32,7 @@ export default function Topbar() {
     }
 
     if (location.pathname.startsWith("/teacher/dashboard")) {
-      return "Teacher Dashboard";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/teacher/ideas")) {
@@ -44,11 +44,11 @@ export default function Topbar() {
     }
 
     if (location.pathname.startsWith("/eventdetails")) {
-      return "Event Submission";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/event/")) {
-      return "Event Details";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/ideadetails")) {
@@ -93,3 +93,4 @@ export default function Topbar() {
     </header>
   );
 }
+

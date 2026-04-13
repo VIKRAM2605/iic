@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Building2, CheckSquare, FileSpreadsheet, LayoutDashboard, LogOut } from "lucide-react";
+import { Building2, CheckSquare, LayoutDashboard, LogOut } from "lucide-react";
 import { logoutUser } from "../../config/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "../utils/auth";
 
@@ -13,27 +13,16 @@ function linkClassName({ isActive }) {
   ].join(" ");
 }
 
-function groupLinkClassName(isActive) {
-  return [
-    "block w-full rounded-md px-3 py-2 text-sm font-medium transition-colors",
-    isActive
-      ? "bg-primary-light text-primary"
-      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-  ].join(" ");
-}
-
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = useMemo(() => getAuthUser(), []);
-  const canAccessEventDetails = ["admin", "faculty"].includes(user?.roleName);
-  const canAccessIdeaDetails = ["admin", "faculty"].includes(user?.roleName);
-  const canAccessPrototypeDetails = ["admin", "faculty"].includes(user?.roleName);
   const isAdmin = user?.roleName === "admin";
   const isFaculty = user?.roleName === "faculty";
+
   const adminSections = [
     {
-      label: "Event Management",
+      label: "Activities & Events",
       icon: LayoutDashboard,
       to: "/admin/dashboard",
       isActive:
@@ -41,7 +30,6 @@ export default function Navbar() {
         || location.pathname.startsWith("/admin/review")
         || location.pathname.startsWith("/eventdetails"),
       children: [
-        { label: "Event Submission", icon: FileSpreadsheet, to: "/eventdetails", isVisible: canAccessEventDetails },
         { label: "Event Evaluation", icon: CheckSquare, to: "/admin/review" },
       ],
     },
@@ -54,7 +42,6 @@ export default function Navbar() {
         || location.pathname.startsWith("/admin/idea-review")
         || location.pathname.startsWith("/ideadetails"),
       children: [
-        { label: "Idea Submission", icon: FileSpreadsheet, to: "/ideadetails", isVisible: canAccessIdeaDetails },
         { label: "Idea Evaluation", icon: CheckSquare, to: "/admin/idea-review" },
       ],
     },
@@ -67,7 +54,6 @@ export default function Navbar() {
         || location.pathname.startsWith("/admin/prototype-review")
         || location.pathname.startsWith("/prototypedetails"),
       children: [
-        { label: "Prototype Submission", icon: FileSpreadsheet, to: "/prototypedetails", isVisible: canAccessPrototypeDetails },
         { label: "Prototype Evaluation", icon: CheckSquare, to: "/admin/prototype-review" },
       ],
     },
@@ -104,7 +90,7 @@ export default function Navbar() {
 
             return (
               <li key={section.label} className="space-y-1">
-                <NavLink to={section.to} className={() => groupLinkClassName(section.isActive)}>
+                <NavLink to={section.to} className={() => linkClassName({ isActive: section.isActive })}>
                   <span className="flex items-center gap-2">
                     <SectionIcon size={16} aria-hidden="true" />
                     <span>{section.label}</span>
@@ -112,22 +98,20 @@ export default function Navbar() {
                 </NavLink>
 
                 <ul className="space-y-1 pl-6">
-                  {section.children
-                    .filter((item) => item.isVisible ?? true)
-                    .map((item) => {
-                      const ItemIcon = item.icon;
+                  {section.children.map((item) => {
+                    const ItemIcon = item.icon;
 
-                      return (
-                        <li key={item.label}>
-                          <NavLink to={item.to} className={linkClassName}>
-                            <span className="flex items-center gap-2">
-                              <ItemIcon size={16} aria-hidden="true" />
-                              <span>{item.label}</span>
-                            </span>
-                          </NavLink>
-                        </li>
-                      );
-                    })}
+                    return (
+                      <li key={item.label}>
+                        <NavLink to={item.to} className={linkClassName}>
+                          <span className="flex items-center gap-2">
+                            <ItemIcon size={16} aria-hidden="true" />
+                            <span>{item.label}</span>
+                          </span>
+                        </NavLink>
+                      </li>
+                    );
+                  })}
                 </ul>
               </li>
             );
@@ -138,7 +122,7 @@ export default function Navbar() {
               <NavLink to="/teacher/dashboard" className={linkClassName}>
                 <span className="flex items-center gap-2">
                   <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Teacher Dashboard</span>
+                  <span>Activities & Events</span>
                 </span>
               </NavLink>
             </li>
@@ -161,39 +145,6 @@ export default function Navbar() {
                 <span className="flex items-center gap-2">
                   <LayoutDashboard size={16} aria-hidden="true" />
                   <span>Teacher Prototypes</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {isFaculty && canAccessEventDetails && (
-            <li>
-              <NavLink to="/eventdetails" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} aria-hidden="true" />
-                  <span>Event Form</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {isFaculty && canAccessIdeaDetails && (
-            <li>
-              <NavLink to="/ideadetails" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} aria-hidden="true" />
-                  <span>Idea Form</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {isFaculty && canAccessPrototypeDetails && (
-            <li>
-              <NavLink to="/prototypedetails" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} aria-hidden="true" />
-                  <span>Prototype Form</span>
                 </span>
               </NavLink>
             </li>
