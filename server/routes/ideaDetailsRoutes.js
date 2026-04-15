@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createIdeaDetails,
+  deleteIdeaByAdmin,
   getApprovedIdeaFilterOptionsForAdmin,
   getApprovedIdeasForAdmin,
   getIdeaById,
@@ -38,6 +39,12 @@ router.patch(
   authenticateToken,
   requireRole(["admin"]),
   reviewIdeaByAdmin
+);
+router.delete(
+  "/admin/:ideaId",
+  authenticateToken,
+  requireRole(["admin"]),
+  deleteIdeaByAdmin
 );
 router.get("/:ideaId", authenticateToken, requireRole(["admin", "faculty"]), getIdeaById);
 

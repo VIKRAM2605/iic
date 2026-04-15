@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getAdminApprovedEvents, getAdminApprovedFilterOptions } from "../../../config/api";
+import { CirclePlus } from "lucide-react";
+import {
+  getAdminApprovedEvents,
+  getAdminApprovedFilterOptions,
+} from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
@@ -52,11 +56,15 @@ const getDurationLabel = (eventItem) => {
 
   const fromDateTime = new Date(fromDateRaw);
   const toDateTime = new Date(toDateRaw);
-  if (Number.isNaN(fromDateTime.getTime()) || Number.isNaN(toDateTime.getTime())) {
+  if (
+    Number.isNaN(fromDateTime.getTime()) ||
+    Number.isNaN(toDateTime.getTime())
+  ) {
     return "-";
   }
 
-  const hours = (toDateTime.getTime() - fromDateTime.getTime()) / (1000 * 60 * 60);
+  const hours =
+    (toDateTime.getTime() - fromDateTime.getTime()) / (1000 * 60 * 60);
   if (!Number.isFinite(hours) || hours < 0) {
     return "-";
   }
@@ -81,7 +89,11 @@ export default function AdminApprovedDashboard() {
   const [options, setOptions] = useState({ quarters: [], faculties: [] });
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
-  const [alertState, setAlertState] = useState({ isOpen: false, message: "", severity: "info" });
+  const [alertState, setAlertState] = useState({
+    isOpen: false,
+    message: "",
+    severity: "info",
+  });
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -138,7 +150,11 @@ export default function AdminApprovedDashboard() {
           .filter(Boolean)
           .map((value) => String(value).toLowerCase());
 
-        if (!facultyFields.some((value) => value.includes(facultyName.toLowerCase()))) {
+        if (
+          !facultyFields.some((value) =>
+            value.includes(facultyName.toLowerCase()),
+          )
+        ) {
           return false;
         }
       }
@@ -148,7 +164,13 @@ export default function AdminApprovedDashboard() {
 
       if (useSingleDate && date) {
         const targetDate = normalizeDate(date);
-        if (!targetDate || !eventFrom || !eventTo || targetDate < eventFrom || targetDate > eventTo) {
+        if (
+          !targetDate ||
+          !eventFrom ||
+          !eventTo ||
+          targetDate < eventFrom ||
+          targetDate > eventTo
+        ) {
           return false;
         }
       }
@@ -183,109 +205,164 @@ export default function AdminApprovedDashboard() {
   const fromPath = `${location.pathname}${location.search}`;
 
   return (
-    <section className="-m-6 min-h-[calc(100vh-4rem)] bg-white">
-      <div className="grid gap-4 border-b border-gray-200 px-6 py-5 md:grid-cols-2 xl:grid-cols-5">
-        <SearchableSelect
-          label="Quarter"
-          value={quarter}
-          onChange={setQuarter}
-          options={options.quarters}
-          emptyLabel="All Quarters"
-        />
+    <section className="min-h-[calc(100vh-4rem)] bg-gray-50">
+      <div className="border-b border-gray-200 bg-white px-8 py-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="heading-xl">My Events</h1>
+            <p className="text-muted">
+              Record a new IIC activity or event you participated in
+            </p>
+          </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Event Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(event) => setDate(event.target.value)}
-            disabled={!useSingleDate}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
+          <Link
+            to="/eventdetails"
+            className="btn-primary-custom inline-flex items-center gap-2 whitespace-nowrap"
+          >
+            <CirclePlus size={18} strokeWidth={2.25} />
+            <span>New Events</span>
+          </Link>
+        </div>
+      </div>
+
+      <div className="border-b border-gray-200 bg-white px-8 py-6">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <SearchableSelect
+            label="Quarter"
+            value={quarter}
+            onChange={setQuarter}
+            options={options.quarters}
+            emptyLabel="All Quarters"
+          />
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-900">
+              Event Date
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              disabled={!useSingleDate}
+              className="input-custom"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-900">
+              From Date
+            </label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(event) => setFromDate(event.target.value)}
+              disabled={useSingleDate}
+              className="input-custom"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-900">
+              To Date
+            </label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(event) => setToDate(event.target.value)}
+              disabled={useSingleDate}
+              className="input-custom"
+            />
+          </div>
+
+          <SearchableSelect
+            label="Faculty Name"
+            value={facultyName}
+            onChange={setFacultyName}
+            options={options.faculties}
+            emptyLabel="All Faculty"
           />
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Event From Date</label>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(event) => setFromDate(event.target.value)}
-            disabled={useSingleDate}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Event To Date</label>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(event) => setToDate(event.target.value)}
-            disabled={useSingleDate}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
-          />
-        </div>
-
-        <SearchableSelect
-          label="Faculty Name"
-          value={facultyName}
-          onChange={setFacultyName}
-          options={options.faculties}
-          emptyLabel="All Faculty"
-        />
-
-        <div className="flex items-end justify-between gap-2 md:col-span-2 xl:col-span-5">
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+        <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="checkbox"
               checked={useSingleDate}
               onChange={(event) => setUseSingleDate(event.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary-light cursor-pointer"
             />
-            Use exact Event date search (turns off From/To range)
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+              Use exact date search (turns off From/To range)
+            </span>
           </label>
           <button
             type="button"
             onClick={handleResetFilters}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            className="btn-secondary-custom"
             disabled={loading}
           >
-            Reset
+            Reset Filters
           </button>
         </div>
       </div>
 
-      <div className="px-6 py-5">
-        <div className="mb-4 flex items-center justify-end">
-          <span className="rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
-            {filteredEvents.length} events
+      <div className="px-8 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <span className="badge-primary text-base">
+            {filteredEvents.length} event
+            {filteredEvents.length !== 1 ? "s" : ""}
           </span>
         </div>
 
         {!loading && filteredEvents.length === 0 && (
-          <div className="rounded-md border border-gray-200 p-6 text-center text-sm text-gray-500">No approved events found.</div>
+          <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
+            <p className="text-base text-gray-600 font-medium">
+              No approved events found.
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              Try adjusting your filters.
+            </p>
+          </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filteredEvents.map((eventItem) => (
             <Link
               to={`/event/${eventItem.id}`}
               state={{ from: fromPath }}
               key={eventItem.id}
-              className="rounded-md border border-gray-200 bg-white p-4 transition-colors hover:border-primary"
+              className="card-custom group"
             >
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="line-clamp-1 text-base font-semibold text-gray-900">{eventItem.eventName || `Event #${eventItem.id}`}</h3>
-                <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">approved</span>
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-base font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
+                  {eventItem.eventName || `Event #${eventItem.id}`}
+                </h3>
+                <span className="badge-success flex-shrink-0">approved</span>
               </div>
 
-              <p className="mt-3 line-clamp-3 text-sm text-gray-700">{eventItem.majorReason || "No major reason provided."}</p>
+              <p className="mt-3 text-sm text-gray-700 line-clamp-2">
+                {eventItem.majorReason || "No major reason provided."}
+              </p>
 
-              <div className="mt-4 space-y-1 text-xs text-gray-600">
-                <p><span className="font-semibold">Quarter:</span> {eventItem.quarter || "-"}</p>
-                <p><span className="font-semibold">Date:</span> {getEventDateLabel(eventItem)}</p>
-                <p><span className="font-semibold">Duration:</span> {getDurationLabel(eventItem)}</p>
-                <p><span className="font-semibold">Owner:</span> {eventItem.ownerName || "-"}</p>
+              <div className="mt-5 space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-4">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Quarter:</span>
+                  <span className="text-gray-700">
+                    {eventItem.quarter || "-"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Date:</span>
+                  <span className="text-gray-700">
+                    {getEventDateLabel(eventItem)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Duration:</span>
+                  <span className="text-gray-700">
+                    {getDurationLabel(eventItem)}
+                  </span>
+                </div>
               </div>
             </Link>
           ))}
@@ -294,7 +371,9 @@ export default function AdminApprovedDashboard() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />

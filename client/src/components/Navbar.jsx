@@ -1,26 +1,107 @@
-import { useMemo } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Building2, CheckSquare, FileSpreadsheet, LayoutDashboard, LogOut } from "lucide-react";
+import { useState, useMemo } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  Building2,
+  CheckSquare,
+  ChevronDown,
+  LayoutDashboard,
+  LogOut,
+} from "lucide-react";
 import { logoutUser } from "../../config/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "../utils/auth";
 
 function linkClassName({ isActive }) {
   return [
-    "block w-full rounded-md px-3 py-2 text-sm font-medium transition-colors",
+    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
     isActive
-      ? "bg-primary-light text-primary"
-      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+      ? "bg-primary text-white shadow-md"
+      : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900",
   ].join(" ");
 }
 
 export default function Navbar() {
+  const location = useLocation();
   const navigate = useNavigate();
   const user = useMemo(() => getAuthUser(), []);
-  const canAccessEventDetails = ["admin", "faculty"].includes(user?.roleName);
-  const canAccessIdeaDetails = ["admin", "faculty"].includes(user?.roleName);
-  const canAccessPrototypeDetails = ["admin", "faculty"].includes(user?.roleName);
   const isAdmin = user?.roleName === "admin";
   const isFaculty = user?.roleName === "faculty";
+  const [expandedSection, setExpandedSection] = useState("Review Panel");
+
+  const adminSections = [
+    {
+      label: "Activities & Events",
+      icon: LayoutDashboard,
+      to: "/admin/dashboard",
+      isActive:
+        location.pathname.startsWith("/admin/dashboard") ||
+        location.pathname.startsWith("/eventdetails"),
+      children: [],
+    },
+    {
+      label: "Idea / PoC Repository",
+      icon: LayoutDashboard,
+      to: "/admin/ideas",
+      isActive:
+        location.pathname.startsWith("/admin/ideas") ||
+        location.pathname.startsWith("/ideadetails"),
+      children: [],
+    },
+    {
+      label: "Innovation / Prototype Repository",
+      icon: LayoutDashboard,
+      to: "/admin/prototypes",
+      isActive:
+        location.pathname.startsWith("/admin/prototypes") ||
+        location.pathname.startsWith("/prototypedetails"),
+      children: [],
+    },
+    {
+      label: "Review Panel",
+      icon: CheckSquare,
+      to: null,
+      isActive:
+        location.pathname.startsWith("/admin/review") ||
+        location.pathname.startsWith("/admin/idea-review") ||
+        location.pathname.startsWith("/admin/prototype-review"),
+      children: [
+        { label: "Event Reviews", icon: CheckSquare, to: "/admin/review" },
+        {
+          label: "Idea & PoC Reviews",
+          icon: CheckSquare,
+          to: "/admin/idea-review",
+        },
+        {
+          label: "Prototype Reviews",
+          icon: CheckSquare,
+          to: "/admin/prototype-review",
+        },
+      ],
+    },
+  ];
+
+  const facultySections = [
+    {
+      label: "Activities & Events",
+      icon: LayoutDashboard,
+      to: "/teacher/dashboard",
+      isActive: location.pathname.startsWith("/teacher/dashboard"),
+      children: [],
+    },
+    {
+      label: "Idea / PoC Repository",
+      icon: LayoutDashboard,
+      to: "/teacher/ideas",
+      isActive: location.pathname.startsWith("/teacher/ideas"),
+      children: [],
+    },
+    {
+      label: "Innovation / Prototype Repository",
+      icon: LayoutDashboard,
+      to: "/teacher/prototypes",
+      isActive: location.pathname.startsWith("/teacher/prototypes"),
+      children: [],
+    },
+  ];
 
   const handleLogout = async () => {
     const token = getAuthToken();
@@ -37,148 +118,140 @@ export default function Navbar() {
   };
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-gray-200 bg-gray-50">
-      <div className="flex h-16 items-center border-b border-gray-200 px-4">
-        <h1 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-          <Building2 size={18} className="text-gray-700" aria-hidden="true" />
+    <aside className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
+      <div className="flex h-16 items-center border-b border-gray-200 px-6">
+        <h1 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+          <Building2 size={20} className="text-primary" aria-hidden="true" />
           <span>BIT IIC</span>
         </h1>
       </div>
 
-      <nav className="flex-1 px-3 py-4">
-        <p className="px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Institute</p>
-        <ul className="mt-2 space-y-1">
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/dashboard" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Admin Dashboard</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+      <nav className="flex-1 overflow-y-auto px-3 py-5">
+        <p className="px-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
+          Navigation
+        </p>
+        <ul className="mt-3 space-y-1">
+          {isAdmin &&
+            adminSections.map((section) => {
+              const SectionIcon = section.icon;
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/review" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <CheckSquare size={16} aria-hidden="true" />
-                  <span>Event Review</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+              return (
+                <li key={section.label} className="space-y-1">
+                  {section.to ? (
+                    <NavLink
+                      to={section.to}
+                      className={() =>
+                        linkClassName({ isActive: section.isActive })
+                      }
+                    >
+                      <SectionIcon
+                        size={18}
+                        aria-hidden="true"
+                        className="flex-shrink-0"
+                      />
+                      <span>{section.label}</span>
+                    </NavLink>
+                  ) : (
+                    <button
+                      type="button"
+                      className={linkClassName({
+                        isActive:
+                          section.isActive || expandedSection === section.label,
+                      })}
+                      onClick={() =>
+                        setExpandedSection(
+                          expandedSection === section.label
+                            ? ""
+                            : section.label,
+                        )
+                      }
+                    >
+                      <SectionIcon
+                        size={18}
+                        aria-hidden="true"
+                        className="flex-shrink-0"
+                      />
+                      <span className="flex-1 text-left">{section.label}</span>
+                      {section.children.length > 0 && (
+                        <ChevronDown
+                          size={16}
+                          aria-hidden="true"
+                          className={`flex-shrink-0 transition-transform duration-200 ${
+                            expandedSection === section.label
+                              ? "rotate-180"
+                              : ""
+                          }`}
+                        />
+                      )}
+                    </button>
+                  )}
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/ideas" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Idea Dashboard</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+                  {(section.children.length === 0 ||
+                    expandedSection === section.label) && (
+                    <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
+                      {section.children.map((item) => {
+                        const ItemIcon = item.icon;
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/idea-review" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <CheckSquare size={16} aria-hidden="true" />
-                  <span>Idea Review</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+                        return (
+                          <li key={item.label}>
+                            <NavLink to={item.to} className={linkClassName}>
+                              <ItemIcon
+                                size={16}
+                                aria-hidden="true"
+                                className="flex-shrink-0 text-primary"
+                              />
+                              <span>{item.label}</span>
+                            </NavLink>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/prototypes" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Prototype Dashboard</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+          {isFaculty &&
+            facultySections.map((section) => {
+              const SectionIcon = section.icon;
 
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin/prototype-review" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <CheckSquare size={16} aria-hidden="true" />
-                  <span>Prototype Review</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+              return (
+                <li key={section.label} className="space-y-1">
+                  <NavLink
+                    to={section.to}
+                    className={() =>
+                      linkClassName({ isActive: section.isActive })
+                    }
+                  >
+                    <SectionIcon
+                      size={18}
+                      aria-hidden="true"
+                      className="flex-shrink-0"
+                    />
+                    <span>{section.label}</span>
+                  </NavLink>
 
-          {isFaculty && (
-            <li>
-              <NavLink to="/teacher/dashboard" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Teacher Dashboard</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+                  <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
+                    {section.children.map((item) => {
+                      const ItemIcon = item.icon;
 
-          {isFaculty && (
-            <li>
-              <NavLink to="/teacher/ideas" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Teacher Ideas</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {isFaculty && (
-            <li>
-              <NavLink to="/teacher/prototypes" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>Teacher Prototypes</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {canAccessEventDetails && (
-            <li>
-              <NavLink to="/eventdetails" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} aria-hidden="true" />
-                  <span>Event Form</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {canAccessIdeaDetails && (
-            <li>
-              <NavLink to="/ideadetails" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} aria-hidden="true" />
-                  <span>Idea Form</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
-
-          {canAccessPrototypeDetails && (
-            <li>
-              <NavLink to="/prototypedetails" className={linkClassName}>
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} aria-hidden="true" />
-                  <span>Prototype Form</span>
-                </span>
-              </NavLink>
-            </li>
-          )}
+                      return (
+                        <li key={item.label}>
+                          <NavLink to={item.to} className={linkClassName}>
+                            <ItemIcon
+                              size={16}
+                              aria-hidden="true"
+                              className="flex-shrink-0 text-primary"
+                            />
+                            <span>{item.label}</span>
+                          </NavLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </li>
+              );
+            })}
         </ul>
       </nav>
 
@@ -186,10 +259,10 @@ export default function Navbar() {
         <button
           type="button"
           onClick={handleLogout}
-          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700 active:scale-95"
         >
           <LogOut size={16} aria-hidden="true" />
-          <span>Logout</span>
+          <span>Sign out</span>
         </button>
       </div>
     </aside>

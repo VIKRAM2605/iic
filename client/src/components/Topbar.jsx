@@ -8,51 +8,51 @@ export default function Topbar() {
 
   const sectionTitle = useMemo(() => {
     if (location.pathname.startsWith("/admin/dashboard")) {
-      return "Admin Dashboard";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/admin/review")) {
-      return "Event Review";
+      return "Event Reviews";
     }
 
     if (location.pathname.startsWith("/admin/ideas")) {
-      return "Idea Dashboard";
+      return "Idea / PoC Repository";
     }
 
     if (location.pathname.startsWith("/admin/idea-review")) {
-      return "Idea Review";
+      return "Idea & PoC Reviews";
     }
 
     if (location.pathname.startsWith("/admin/prototypes")) {
-      return "Prototype Dashboard";
+      return "Innovation / Prototype Repository";
     }
 
     if (location.pathname.startsWith("/admin/prototype-review")) {
-      return "Prototype Review";
+      return "Prototype Reviews";
     }
 
     if (location.pathname.startsWith("/teacher/dashboard")) {
-      return "Teacher Dashboard";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/teacher/ideas")) {
-      return "Teacher Ideas";
+      return "Idea / PoC Repository";
     }
 
     if (location.pathname.startsWith("/teacher/prototypes")) {
-      return "Teacher Prototypes";
+      return "Innovation / Prototype Repository";
     }
 
     if (location.pathname.startsWith("/eventdetails")) {
-      return "Event Form";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/event/")) {
-      return "Event Details";
+      return "Activities & Events";
     }
 
     if (location.pathname.startsWith("/ideadetails")) {
-      return "Idea Form";
+      return "Idea Submission";
     }
 
     if (location.pathname.startsWith("/idea/")) {
@@ -64,30 +64,56 @@ export default function Topbar() {
     }
 
     if (location.pathname.startsWith("/prototypedetails")) {
-      return "Prototype Form";
+      return "Prototype Submission";
     }
 
     return "Dashboard";
   }, [location.pathname]);
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6" style={{boxShadow: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)'}}>
-      <div className="flex items-center gap-3 text-sm text-gray-600">
-        <span className="text-primary font-semibold">{user?.roleName || "User"}</span>
-        <span className="text-gray-300">/</span>
-        <span className="font-semibold text-gray-800">{sectionTitle}</span>
+    <header
+      className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-8 sticky top-0 z-10"
+      style={{ boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)" }}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-primary bg-primary-light px-3 py-1 rounded-full">
+          {user?.roleName?.toUpperCase() || "USER"}
+        </span>
+        <svg
+          className="w-1 h-1 text-gray-300"
+          fill="currentColor"
+          viewBox="0 0 4 4"
+        >
+          <circle cx="2" cy="2" r="2" />
+        </svg>
+        <span className="text-base font-semibold text-slate-900">
+          {sectionTitle}
+        </span>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center">
-            <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-sm">
+            <svg
+              className="w-5 h-5 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
-          <span className="text-sm text-gray-600">
-            <span className="font-semibold text-gray-800">{user?.name || "User"}</span>
-          </span>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-slate-900">
+              {user?.name || "User"}
+            </span>
+            <span className="text-xs text-gray-500">
+              {user?.roleName || "Role"}
+            </span>
+          </div>
         </div>
       </div>
     </header>

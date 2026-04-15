@@ -162,6 +162,13 @@ export async function createPrototypeDetails(request, response, next) {
       competitorDifference: getBodyValue(body, "competitorDifference"),
     };
 
+    const analysis = {
+      utilityAnalysis: getBodyValue(body, "utilityAnalysis"),
+      scalabilityAnalysis: getBodyValue(body, "scalabilityAnalysis"),
+      economicSustainabilityAnalysis: getBodyValue(body, "economicSustainabilityAnalysis"),
+      environmentalSustainabilityAnalysis: getBodyValue(body, "environmentalSustainabilityAnalysis"),
+    };
+
     const speakerDetails = {
       speakerName: getBodyValue(body, "speakerName"),
       speakerDesignation: getBodyValue(body, "speakerDesignation"),
@@ -218,6 +225,7 @@ export async function createPrototypeDetails(request, response, next) {
         program_details,
         duration_details,
         overview,
+        analysis,
         speaker_details,
         attachments,
         social_media,
@@ -229,6 +237,7 @@ export async function createPrototypeDetails(request, response, next) {
         ${db.json(programDetails)},
         ${db.json(durationDetails)},
         ${db.json(overview)},
+        ${db.json(analysis)},
         ${db.json(speakerDetails)},
         ${db.json(attachments)},
         ${db.json(socialMedia)},
@@ -438,6 +447,7 @@ export async function getPrototypeById(request, response, next) {
         id.program_details,
         id.duration_details,
         id.overview,
+        id.analysis,
         id.speaker_details,
         id.attachments,
         id.social_media,
@@ -492,6 +502,7 @@ export async function getPrototypeById(request, response, next) {
         programDetails: prototypeRow.program_details,
         durationDetails: prototypeRow.duration_details,
         overview: prototypeRow.overview,
+        analysis: prototypeRow.analysis,
         speakerDetails: prototypeRow.speaker_details,
         attachments: prototypeRow.attachments,
         socialMedia: prototypeRow.social_media,

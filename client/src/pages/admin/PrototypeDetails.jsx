@@ -7,12 +7,17 @@ import SearchableSelect from "../../components/SearchableSelect";
 const PROTOTYPE_DETAILS_STORAGE_KEY = "prototype-details-form-values";
 
 const countWords = (value) => {
-  const normalizedValue = String(value ?? "").trim().replace(/\s+/g, " ");
+  const normalizedValue = String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
   return normalizedValue ? normalizedValue.split(" ").length : 0;
 };
 
 const getDurationFromDateTime = (startDateTime, endDateTime) => {
-  if (!String(startDateTime ?? "").trim() || !String(endDateTime ?? "").trim()) {
+  if (
+    !String(startDateTime ?? "").trim() ||
+    !String(endDateTime ?? "").trim()
+  ) {
     return { durationHours: "", error: "" };
   }
 
@@ -25,7 +30,10 @@ const getDurationFromDateTime = (startDateTime, endDateTime) => {
 
   const diffMs = endDate.getTime() - startDate.getTime();
   if (diffMs < 0) {
-    return { durationHours: "", error: "End Date & Time must be after Start Date & Time" };
+    return {
+      durationHours: "",
+      error: "End Date & Time must be after Start Date & Time",
+    };
   }
 
   if (diffMs === 0) {
@@ -37,10 +45,30 @@ const getDurationFromDateTime = (startDateTime, endDateTime) => {
 };
 
 const iicPortalDocFields = [
-  { key: "instituteName", label: "Institute Name", type: "text", required: true },
-  { key: "innovationTitle", label: "Title of the Innovation", type: "text", required: true },
-  { key: "teamLeadName", label: "Team Lead Name", type: "text", required: true },
-  { key: "teamLeadEmail", label: "Team Lead Email", type: "email", required: true },
+  {
+    key: "instituteName",
+    label: "Institute Name",
+    type: "text",
+    required: true,
+  },
+  {
+    key: "innovationTitle",
+    label: "Title of the Innovation",
+    type: "text",
+    required: true,
+  },
+  {
+    key: "teamLeadName",
+    label: "Team Lead Name",
+    type: "text",
+    required: true,
+  },
+  {
+    key: "teamLeadEmail",
+    label: "Team Lead Email",
+    type: "email",
+    required: true,
+  },
   {
     key: "teamLeadGender",
     label: "Team Lead Gender",
@@ -125,18 +153,57 @@ const iicPortalDocFields = [
   },
   {
     key: "developmentStage",
-    label: "Development stage",
+    label: "Development stage - TRL",
     type: "select",
     required: true,
     options: [
-      "TRL 1: Basic research. Principles postulated observed but no experimental proof available",
-      "TRL 2: Technology formulation. Concept and application have been formulated",
-      "TRL 3: Applied research. First laboratory tests completed; proof of concept",
+      'TRL 4: Small scale prototype built in a laboratory environment ("ugly" prototype)',
+      "TRL 5: Large scale prototype tested in intended environment",
+      "TRL 6: Prototype system tested in intended environment close to expected performance",
+      "TRL 7: Demonstration system operating in operational environment at pre-commercial scale",
+      "TRL 8: First of a kind commercial system. Manufacturing issues solved",
+      "TRL 9: Full commercial application, technology available for consumers",
+    ],
+  },
+  {
+    key: "developmentStageMrl",
+    label: "Development stage - MRL",
+    type: "select",
+    required: true,
+    options: [
+      "MRL 1: Basic manufacturing implications identified",
+      "MRL 2: Manufacturing concepts identified",
+      "MRL 3: Manufacturing proof of concept developed",
+      "MRL 4: Capability to produce the technology in a laboratory environment",
+      "MRL 5: Capability to produce prototype components in a production relevant environment",
+      "MRL 6: Capability to produce a prototype system or subsystem in a production relevant environment",
+      "MRL 7: Capability to produce systems, subsystems or components in a production representative environment.",
+      "MRL 8: Pilot line capability demonstrated. Ready to begin low rate production.",
+      "MRL 9: Low rate production demonstrated. Capability in place to begin Full Rate Production.",
+      "MRL 10: Full rate production demonstrated and lean production practices in place.",
+    ],
+  },
+  {
+    key: "developmentStageIrl",
+    label: "Development - IRL",
+    type: "select",
+    required: true,
+    options: [
+      "IRL 1: Basic Research (Need Identification & Peer Review Publications) & Completed First-Pass Business Model Canvas (BMC)",
+      "IRL 2: Applied Research (Market Size and Competitive Analysis) & Business Plan - Value Proposition & IP Identification",
+      "IRL 3: Validate Problem - Solution Fit (Confirmed Value Proposition & Techno-Economic Analysis) & Minimum Product Cost (Maturity of Core Technology)",
+      "IRL 4: Prototype Low-Fidelity Minimum Viable Product (MVP): Low-fidelity - A representative of the component or system that has limited ability to provide anything but initial information about the end product.",
+      "IRL 5: Validate Product-Market Fit (Integrated Validation of the Minimum Viable Process and Process Engineering). High-fidelity - A high-fidelity laboratory environment would involve testing with equipment that can simulate and validate all system specifications within a laboratory setting.",
+      "IRL 6: Validate Business/Revenue Model: Integrated Pilot Development- understanding operational nuances",
+      "IRL 7: Prototype High Fidelity MVP: Integrated Pilot Continuous Operation",
+      "IRL 8: Pre-Commercial Demonstration - Operating Conditions and quality stabilized",
+      "IRL 9: Full Commercial Development - A full time process engineering staff.....",
     ],
   },
   {
     key: "problemRelevance",
-    label: "Define the problem and its relevance to today's market / society / industry need",
+    label:
+      "Define the problem and its relevance to today's market / society / industry need",
     type: "textarea",
     required: true,
   },
@@ -148,7 +215,8 @@ const iicPortalDocFields = [
   },
   {
     key: "uniquenessFeatures",
-    label: "Explain the uniqueness and distinctive features of the (product / process / service) solution",
+    label:
+      "Explain the uniqueness and distinctive features of the (product / process / service) solution",
     type: "textarea",
     required: true,
   },
@@ -160,8 +228,37 @@ const iicPortalDocFields = [
     required: true,
   },
   {
+    key: "utilityAnalysis",
+    label:
+      "Utility: Highlight the utility/value proposition (key benefits) aspects of the solution/innovation",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "scalabilityAnalysis",
+    label:
+      "Scalability: Highlight the market potential aspects of the solution/innovation (potential market size, segmentation and target users/customers etc.)",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "economicSustainabilityAnalysis",
+    label:
+      "Economic Sustainability: Highlight commercialisation/business application aspects of the solution (how it is going to be economically profitable and viable)",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "environmentalSustainabilityAnalysis",
+    label:
+      "Environmental Sustainability: Highlight environmental friendliness aspects and related benefit of the solution/innovation",
+    type: "textarea",
+    required: true,
+  },
+  {
     key: "ipPatentAssociated",
-    label: "Is there any IP or Patentable Component associated with the Solution?",
+    label:
+      "Is there any IP or Patentable Component associated with the Solution?",
     type: "select",
     required: true,
     options: ["Yes", "No"],
@@ -191,7 +288,8 @@ const iicPortalDocFields = [
   },
   {
     key: "recognitionsObtained",
-    label: "Are there any Recognitions (National/International) Obtained by the Solution?",
+    label:
+      "Are there any Recognitions (National/International) Obtained by the Solution?",
     type: "select",
     required: true,
     options: ["Yes", "No"],
@@ -206,7 +304,8 @@ const iicPortalDocFields = [
   },
   {
     key: "commercializedSolution",
-    label: "Is the Solution Commercialized either through Technology Transfer or Enterprise Development/Startup?",
+    label:
+      "Is the Solution Commercialized either through Technology Transfer or Enterprise Development/Startup?",
     type: "select",
     required: true,
     options: ["Yes", "No"],
@@ -262,6 +361,8 @@ const displayStructure = [
       "developedAsPartOf",
       "innovationType",
       "developmentStage",
+      "developmentStageMrl",
+      "developmentStageIrl",
     ],
   },
   {
@@ -271,6 +372,15 @@ const displayStructure = [
       "solutionDescription",
       "uniquenessFeatures",
       "competitorDifference",
+    ],
+  },
+  {
+    section: "Analysis",
+    fields: [
+      "utilityAnalysis",
+      "scalabilityAnalysis",
+      "economicSustainabilityAnalysis",
+      "environmentalSustainabilityAnalysis",
     ],
   },
   {
@@ -328,8 +438,12 @@ const attachmentConditionalFields = {
 function PrototypeDetails() {
   const fields = useMemo(() => buildUnifiedFields(), []);
   const fieldsByKey = useMemo(
-    () => fields.reduce((accumulator, field) => ({ ...accumulator, [field.key]: field }), {}),
-    [fields]
+    () =>
+      fields.reduce(
+        (accumulator, field) => ({ ...accumulator, [field.key]: field }),
+        {},
+      ),
+    [fields],
   );
   const structuredSections = useMemo(() => {
     const renderedKeys = new Set();
@@ -367,7 +481,7 @@ function PrototypeDetails() {
 
         return accumulator;
       }, {}),
-    [fields]
+    [fields],
   );
 
   const [formValues, setFormValues] = useState(() => {
@@ -376,7 +490,9 @@ function PrototypeDetails() {
     }
 
     try {
-      const rawStoredValues = window.localStorage.getItem(PROTOTYPE_DETAILS_STORAGE_KEY);
+      const rawStoredValues = window.localStorage.getItem(
+        PROTOTYPE_DETAILS_STORAGE_KEY,
+      );
       if (!rawStoredValues) {
         return initialValues;
       }
@@ -412,21 +528,31 @@ function PrototypeDetails() {
   const [alertSeverity, setAlertSeverity] = useState("success");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const maxLengthByKey = {
+  const maxWordsByKey = {
     problemRelevance: 100,
     solutionDescription: 100,
     uniquenessFeatures: 100,
     competitorDifference: 100,
+    innovationTitle: 20,
+    aboutEvent: 150,
+    utilityAnalysis: 100,
+    scalabilityAnalysis: 100,
+    economicSustainabilityAnalysis: 100,
+    environmentalSustainabilityAnalysis: 100,
   };
-  const maxWordsByKey = { innovationTitle: 20, aboutEvent: 150 };
 
   const stepSections = useMemo(
     () =>
       structuredSections.map((group) => ({
         ...group,
-        fields: group.fields.filter((field) => !["durationManual", "fromDate", "toDate", "durationHours"].includes(field.key)),
+        fields: group.fields.filter(
+          (field) =>
+            !["durationManual", "fromDate", "toDate", "durationHours"].includes(
+              field.key,
+            ),
+        ),
       })),
-    [structuredSections]
+    [structuredSections],
   );
 
   useEffect(() => {
@@ -450,7 +576,10 @@ function PrototypeDetails() {
       serializableValues[field.key] = formValues[field.key];
     });
 
-    window.localStorage.setItem(PROTOTYPE_DETAILS_STORAGE_KEY, JSON.stringify(serializableValues));
+    window.localStorage.setItem(
+      PROTOTYPE_DETAILS_STORAGE_KEY,
+      JSON.stringify(serializableValues),
+    );
   }, [fields, formValues]);
 
   const handleChange = (field, value) => {
@@ -478,27 +607,29 @@ function PrototypeDetails() {
       }
     }
 
-    if (field.type === "file" && value && field.maxSizeBytes && value.size > field.maxSizeBytes) {
+    if (
+      field.type === "file" &&
+      value &&
+      field.maxSizeBytes &&
+      value.size > field.maxSizeBytes
+    ) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
       alert(`${field.label} must be ${maxMb}MB or less.`);
-      setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${maxMb}MB.` }));
+      setErrors((previous) => ({
+        ...previous,
+        [field.key]: `${field.label} exceeds ${maxMb}MB.`,
+      }));
       return;
-    }
-
-    if (field.type === "textarea" && maxLengthByKey[field.key]) {
-      const limit = maxLengthByKey[field.key];
-      if (String(value ?? "").length > limit) {
-        alert(`${field.label} must be ${limit} characters or less (including spaces).`);
-        setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${limit} characters.` }));
-        return;
-      }
     }
 
     if (maxWordsByKey[field.key]) {
       const limit = maxWordsByKey[field.key];
       if (countWords(value) > limit) {
         alert(`${field.label} must be ${limit} words or less.`);
-        setErrors((previous) => ({ ...previous, [field.key]: `${field.label} exceeds ${limit} words.` }));
+        setErrors((previous) => ({
+          ...previous,
+          [field.key]: `${field.label} exceeds ${limit} words.`,
+        }));
         return;
       }
     }
@@ -511,14 +642,27 @@ function PrototypeDetails() {
           nextValues.fromDate = "";
           nextValues.toDate = "";
         } else {
-          const calculatedDuration = getDurationFromDateTime(nextValues.fromDate, nextValues.toDate);
-          nextValues.durationHours = calculatedDuration.error ? "" : calculatedDuration.durationHours;
+          const calculatedDuration = getDurationFromDateTime(
+            nextValues.fromDate,
+            nextValues.toDate,
+          );
+          nextValues.durationHours = calculatedDuration.error
+            ? ""
+            : calculatedDuration.durationHours;
         }
       }
 
-      if ((field.key === "fromDate" || field.key === "toDate") && !nextValues.durationManual) {
-        const calculatedDuration = getDurationFromDateTime(nextValues.fromDate, nextValues.toDate);
-        nextValues.durationHours = calculatedDuration.error ? "" : calculatedDuration.durationHours;
+      if (
+        (field.key === "fromDate" || field.key === "toDate") &&
+        !nextValues.durationManual
+      ) {
+        const calculatedDuration = getDurationFromDateTime(
+          nextValues.fromDate,
+          nextValues.toDate,
+        );
+        nextValues.durationHours = calculatedDuration.error
+          ? ""
+          : calculatedDuration.durationHours;
       }
 
       if (field.key === "ipPatentAssociated" && value !== "Yes") {
@@ -561,7 +705,6 @@ function PrototypeDetails() {
 
       return nextErrors;
     });
-
   };
 
   const validate = () => {
@@ -576,7 +719,9 @@ function PrototypeDetails() {
       const isFileMissing = field.type === "file" && !value;
       const isCheckboxMissing = field.type === "checkbox" && !value;
       const isTextMissing =
-        field.type !== "file" && field.type !== "checkbox" && !String(value ?? "").trim();
+        field.type !== "file" &&
+        field.type !== "checkbox" &&
+        !String(value ?? "").trim();
 
       if (isFileMissing || isCheckboxMissing || isTextMissing) {
         nextErrors[field.key] = `${field.label} is mandatory`;
@@ -590,7 +735,11 @@ function PrototypeDetails() {
         }
       }
 
-      if (field.type === "file" && field.maxSizeBytes && value?.size > field.maxSizeBytes) {
+      if (
+        field.type === "file" &&
+        field.maxSizeBytes &&
+        value?.size > field.maxSizeBytes
+      ) {
         const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
         nextErrors[field.key] = `${field.label} must be ${maxMb}MB or less.`;
         return;
@@ -616,37 +765,35 @@ function PrototypeDetails() {
         }
       }
 
-      if (field.type === "textarea" && maxLengthByKey[field.key]) {
-        const limit = maxLengthByKey[field.key];
-        if (String(value ?? "").length > limit) {
-          nextErrors[field.key] = `${field.label} must be ${limit} characters or less.`;
-        }
-      }
-
       if (maxWordsByKey[field.key]) {
         const limit = maxWordsByKey[field.key];
         if (countWords(value) > limit) {
-          nextErrors[field.key] = `${field.label} must be ${limit} words or less.`;
+          nextErrors[field.key] =
+            `${field.label} must be ${limit} words or less.`;
         }
       }
     });
 
-    Object.entries(attachmentConditionalFields).forEach(([fieldKey, dependencyKey]) => {
-      if (String(formValues[dependencyKey] ?? "") !== "Yes") {
-        return;
-      }
+    Object.entries(attachmentConditionalFields).forEach(
+      ([fieldKey, dependencyKey]) => {
+        if (String(formValues[dependencyKey] ?? "") !== "Yes") {
+          return;
+        }
 
-      const field = fieldsByKey[fieldKey];
-      if (!field) {
-        return;
-      }
+        const field = fieldsByKey[fieldKey];
+        if (!field) {
+          return;
+        }
 
-      const value = formValues[fieldKey];
-      const isMissing = field.type === "file" ? !value : !String(value ?? "").trim();
-      if (isMissing) {
-        nextErrors[fieldKey] = `${field.label} is mandatory when ${fieldsByKey[dependencyKey]?.label || dependencyKey} is Yes`;
-      }
-    });
+        const value = formValues[fieldKey];
+        const isMissing =
+          field.type === "file" ? !value : !String(value ?? "").trim();
+        if (isMissing) {
+          nextErrors[fieldKey] =
+            `${field.label} is mandatory when ${fieldsByKey[dependencyKey]?.label || dependencyKey} is Yes`;
+        }
+      },
+    );
 
     setErrors(nextErrors);
     return nextErrors;
@@ -657,7 +804,9 @@ function PrototypeDetails() {
 
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
-      const firstErrorMessage = Object.values(validationErrors)[0] || "Please fill all mandatory fields.";
+      const firstErrorMessage =
+        Object.values(validationErrors)[0] ||
+        "Please fill all mandatory fields.";
       setAlertMessage(firstErrorMessage);
       setAlertSeverity("error");
       setAlertOpen(true);
@@ -729,18 +878,27 @@ function PrototypeDetails() {
 
     if (field.key === "offlineEventProof2" && field.maxSizeBytes) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
-      return <p className="text-xs text-gray-500">Max {maxMb}MB, photo 2 must be different from photo 1</p>;
+      return (
+        <p className="text-xs text-gray-500">
+          Max {maxMb}MB, photo 2 must be different from photo 1
+        </p>
+      );
     }
 
     if (field.type === "file" && field.maxSizeBytes) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
-      return <p className="text-xs text-gray-500">(JPG, PNG max {maxMb}MB) Provide link</p>;
+      return (
+        <p className="text-xs text-gray-500">
+          (JPG, PNG max {maxMb}MB) Provide link
+        </p>
+      );
     }
 
     if (field.key === "innovationVideoUrl") {
       return (
         <p className="text-xs text-gray-500">
-          Specify the Video URL of your innovation. Give necessary permission to view the file to the following email id: iic.mhrd@aicte-india.org
+          Specify the Video URL of your innovation. Give necessary permission to
+          view the file to the following email id: iic.mhrd@aicte-india.org
         </p>
       );
     }
@@ -748,31 +906,41 @@ function PrototypeDetails() {
     if (field.key === "innovationPhotograph") {
       return (
         <p className="text-xs text-gray-500">
-          Upload the photograph of your innovation if any. (JPG / PNG : max 2 MB)
+          Upload the photograph of your innovation if any. (JPG / PNG : max 2
+          MB)
         </p>
       );
     }
 
     if (field.key === "durationManual") {
-      return <p className="text-xs text-gray-500">Uncheck to auto-calculate using Start and End Date & Time</p>;
+      return (
+        <p className="text-xs text-gray-500">
+          Uncheck to auto-calculate using Start and End Date & Time
+        </p>
+      );
     }
 
     if (field.key === "durationHours" && !formValues.durationManual) {
-      return <p className="text-xs text-gray-500">Auto-calculated from Start and End Date & Time</p>;
+      return (
+        <p className="text-xs text-gray-500">
+          Auto-calculated from Start and End Date & Time
+        </p>
+      );
     }
 
-    if ((field.key === "fromDate" || field.key === "toDate") && formValues.durationManual) {
-      return <p className="text-xs text-gray-500">Disabled while manual duration mode is enabled</p>;
+    if (
+      (field.key === "fromDate" || field.key === "toDate") &&
+      formValues.durationManual
+    ) {
+      return (
+        <p className="text-xs text-gray-500">
+          Disabled while manual duration mode is enabled
+        </p>
+      );
     }
-
-    if (field.type === "textarea" && maxLengthByKey[field.key]) {
-      const limit = maxLengthByKey[field.key];
-      return <p className="text-xs text-gray-500">Max {limit} characters (including spaces)</p>;
-    }
-
-    if (maxWordsByKey[field.key]) {
+    if (field.type === "textarea" && maxWordsByKey[field.key]) {
       const limit = maxWordsByKey[field.key];
-      return <p className="text-xs text-gray-500">Max {limit} words</p>;
+      return <p className="text-xs text-gray-500">Max: {limit} words</p>;
     }
 
     return null;
@@ -783,8 +951,12 @@ function PrototypeDetails() {
       key={field.key}
       className={`space-y-1 ${field.key === "fromDate" || field.key === "toDate" ? "md:col-span-2" : ""}`}
     >
-      <label className="block text-sm font-medium text-gray-800" htmlFor={field.key}>
-        {field.label} {field.required && <span className="text-red-600">*</span>}
+      <label
+        className="block text-sm font-medium text-gray-800"
+        htmlFor={field.key}
+      >
+        {field.label}{" "}
+        {field.required && <span className="text-red-600">*</span>}
       </label>
 
       {field.type === "textarea" && (
@@ -797,26 +969,16 @@ function PrototypeDetails() {
             className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
             rows={4}
           />
-          {maxLengthByKey[field.key] && (
-            <p
-              className={`text-xs ${
-                String(formValues[field.key] ?? "").length / maxLengthByKey[field.key] >= 0.8
-                  ? "text-red-600"
-                  : "text-gray-500"
-              }`}
-            >
-              {String(formValues[field.key] ?? "").length} / {maxLengthByKey[field.key]}
-            </p>
-          )}
           {maxWordsByKey[field.key] && (
             <p
               className={`text-xs ${
-                countWords(formValues[field.key]) / maxWordsByKey[field.key] >= 0.8
+                countWords(formValues[field.key]) / maxWordsByKey[field.key] >=
+                0.8
                   ? "text-red-600"
                   : "text-gray-500"
               }`}
             >
-              {countWords(formValues[field.key])} / {maxWordsByKey[field.key]} words
+              {countWords(formValues[field.key])}/{maxWordsByKey[field.key]}
             </p>
           )}
         </div>
@@ -829,7 +991,9 @@ function PrototypeDetails() {
             name={field.key}
             type="file"
             accept={field.accept}
-            onChange={(event) => handleChange(field, event.target.files?.[0] ?? null)}
+            onChange={(event) =>
+              handleChange(field, event.target.files?.[0] ?? null)
+            }
             className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
           />
           {formValues[field.key] instanceof File && (
@@ -864,51 +1028,65 @@ function PrototypeDetails() {
         </div>
       )}
 
-      {field.type !== "textarea" && field.type !== "file" && field.type !== "select" && field.type !== "checkbox" && (
-        <div className="space-y-1">
-          <input
-            id={field.key}
-            name={field.key}
-            type={field.type}
-            step={
-              field.key === "fromDate" || field.key === "toDate"
-                ? "60"
-                : field.key === "durationHours"
-                  ? "0.1"
-                  : undefined
-            }
-            min={
-              field.type === "number"
-                ? "0"
-                : field.key === "toDate"
-                  ? formValues.fromDate || undefined
-                  : undefined
-            }
-            value={formValues[field.key]}
-            onChange={(event) => handleChange(field, event.target.value)}
-            disabled={(field.key === "fromDate" || field.key === "toDate") && !!formValues.durationManual}
-            readOnly={field.key === "durationHours" && !formValues.durationManual}
-            className={`w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500 ${
-              field.key === "fromDate" || field.key === "toDate" ? "whitespace-nowrap" : ""
-            }`}
-          />
-          {maxWordsByKey[field.key] && (
-            <p
-              className={`text-xs ${
-                countWords(formValues[field.key]) / maxWordsByKey[field.key] >= 0.8
-                  ? "text-red-600"
-                  : "text-gray-500"
+      {field.type !== "textarea" &&
+        field.type !== "file" &&
+        field.type !== "select" &&
+        field.type !== "checkbox" && (
+          <div className="space-y-1">
+            <input
+              id={field.key}
+              name={field.key}
+              type={field.type}
+              step={
+                field.key === "fromDate" || field.key === "toDate"
+                  ? "60"
+                  : field.key === "durationHours"
+                    ? "0.1"
+                    : undefined
+              }
+              min={
+                field.type === "number"
+                  ? "0"
+                  : field.key === "toDate"
+                    ? formValues.fromDate || undefined
+                    : undefined
+              }
+              value={formValues[field.key]}
+              onChange={(event) => handleChange(field, event.target.value)}
+              disabled={
+                (field.key === "fromDate" || field.key === "toDate") &&
+                !!formValues.durationManual
+              }
+              readOnly={
+                field.key === "durationHours" && !formValues.durationManual
+              }
+              className={`w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500 ${
+                field.key === "fromDate" || field.key === "toDate"
+                  ? "whitespace-nowrap"
+                  : ""
               }`}
-            >
-              {countWords(formValues[field.key])} / {maxWordsByKey[field.key]} words
-            </p>
-          )}
-        </div>
-      )}
+            />
+            {maxWordsByKey[field.key] && (
+              <p
+                className={`text-xs ${
+                  countWords(formValues[field.key]) /
+                    maxWordsByKey[field.key] >=
+                  0.8
+                    ? "text-red-600"
+                    : "text-gray-500"
+                }`}
+              >
+                {countWords(formValues[field.key])}/{maxWordsByKey[field.key]}
+              </p>
+            )}
+          </div>
+        )}
 
       {renderFieldHint(field)}
 
-      {errors[field.key] && <p className="text-sm text-red-600">{errors[field.key]}</p>}
+      {errors[field.key] && (
+        <p className="text-sm text-red-600">{errors[field.key]}</p>
+      )}
     </div>
   );
 
@@ -934,15 +1112,22 @@ function PrototypeDetails() {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="text-base font-medium text-gray-900">Duration of Prototype in Hrs</h3>
+          <h3 className="text-base font-medium text-gray-900">
+            Duration of Prototype in Hrs
+          </h3>
           {durationManualField && (
-            <label className="flex items-center gap-2 text-sm text-gray-700" htmlFor={durationManualField.key}>
+            <label
+              className="flex items-center gap-2 text-sm text-gray-700"
+              htmlFor={durationManualField.key}
+            >
               <input
                 id={durationManualField.key}
                 name={durationManualField.key}
                 type="checkbox"
                 checked={!!formValues[durationManualField.key]}
-                onChange={(event) => handleChange(durationManualField, event.target.checked)}
+                onChange={(event) =>
+                  handleChange(durationManualField, event.target.checked)
+                }
                 className="h-4 w-4"
               />
               Enter manually
@@ -952,7 +1137,10 @@ function PrototypeDetails() {
 
         <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-800" htmlFor={fromDateField.key}>
+            <label
+              className="block text-sm font-medium text-gray-800"
+              htmlFor={fromDateField.key}
+            >
               {fromDateField.label}
             </label>
             <input
@@ -961,16 +1149,25 @@ function PrototypeDetails() {
               type={fromDateField.type}
               step="60"
               value={formValues[fromDateField.key]}
-              onChange={(event) => handleChange(fromDateField, event.target.value)}
+              onChange={(event) =>
+                handleChange(fromDateField, event.target.value)
+              }
               disabled={!!formValues.durationManual}
               className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
             />
             {renderFieldHint(fromDateField)}
-            {errors[fromDateField.key] && <p className="text-sm text-red-600">{errors[fromDateField.key]}</p>}
+            {errors[fromDateField.key] && (
+              <p className="text-sm text-red-600">
+                {errors[fromDateField.key]}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-800" htmlFor={toDateField.key}>
+            <label
+              className="block text-sm font-medium text-gray-800"
+              htmlFor={toDateField.key}
+            >
               {toDateField.label}
             </label>
             <input
@@ -980,16 +1177,23 @@ function PrototypeDetails() {
               step="60"
               min={formValues.fromDate || undefined}
               value={formValues[toDateField.key]}
-              onChange={(event) => handleChange(toDateField, event.target.value)}
+              onChange={(event) =>
+                handleChange(toDateField, event.target.value)
+              }
               disabled={!!formValues.durationManual}
               className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
             />
             {renderFieldHint(toDateField)}
-            {errors[toDateField.key] && <p className="text-sm text-red-600">{errors[toDateField.key]}</p>}
+            {errors[toDateField.key] && (
+              <p className="text-sm text-red-600">{errors[toDateField.key]}</p>
+            )}
           </div>
 
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-800" htmlFor={durationHoursField.key}>
+            <label
+              className="block text-sm font-medium text-gray-800"
+              htmlFor={durationHoursField.key}
+            >
               {durationHoursField.label}
             </label>
             <input
@@ -999,12 +1203,18 @@ function PrototypeDetails() {
               step="0.1"
               min="0"
               value={formValues[durationHoursField.key]}
-              onChange={(event) => handleChange(durationHoursField, event.target.value)}
+              onChange={(event) =>
+                handleChange(durationHoursField, event.target.value)
+              }
               readOnly={!formValues.durationManual}
               className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
             />
             {renderFieldHint(durationHoursField)}
-            {errors[durationHoursField.key] && <p className="text-sm text-red-600">{errors[durationHoursField.key]}</p>}
+            {errors[durationHoursField.key] && (
+              <p className="text-sm text-red-600">
+                {errors[durationHoursField.key]}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -1012,13 +1222,31 @@ function PrototypeDetails() {
   };
 
   const isLastStep = currentStepIndex === stepSections.length - 1;
-  const stepProgress = stepSections.length > 1 ? (currentStepIndex / (stepSections.length - 1)) * 100 : 0;
+  const stepProgress =
+    stepSections.length > 1
+      ? (currentStepIndex / (stepSections.length - 1)) * 100
+      : 0;
 
   return (
-    <div className="mx-auto w-full p-2">
+    <div className="mx-auto w-full max-w-7xl p-2">
+      <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-white via-[#faf8ff] to-white px-5 py-6 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+              Showcase a Prototype
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#7a80a6]">
+              Fill in the prototype details carefully and submit all required
+              documents in one responsive workflow.
+            </p>
+          </div>
+          <div className="rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
+            {stepSections.length} steps
+          </div>
+        </div>
+      </div>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit} noValidate>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-
           <div className="mt-4 overflow-x-auto">
             <div className="relative min-w-190 px-2 pb-1">
               <div className="absolute left-8 right-8 top-4 h-0.5 bg-gray-300" />
@@ -1049,7 +1277,9 @@ function PrototypeDetails() {
                       </span>
                       <span
                         className={`mt-2 text-xs ${
-                          isActiveStep ? "font-semibold text-primary" : "text-gray-600"
+                          isActiveStep
+                            ? "font-semibold text-primary"
+                            : "text-gray-600"
                         }`}
                       >
                         {group.section}
@@ -1070,12 +1300,18 @@ function PrototypeDetails() {
               key={step.section}
               className={`rounded-lg border border-gray-200 bg-white p-4 ${isActiveStep ? "block" : "hidden"}`}
             >
-              <h2 className="text-lg font-medium text-gray-900">{step.section}</h2>
+              <h2 className="text-lg font-medium text-gray-900">
+                {step.section}
+              </h2>
 
-              {step.section === "Prototype Details" && <div className="mt-4">{renderDurationGroup()}</div>}
+              {step.section === "Prototype Details" && (
+                <div className="mt-4">{renderDurationGroup()}</div>
+              )}
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                {step.fields.filter((field) => shouldShowField(field.key)).map((field) => renderField(field))}
+                {step.fields
+                  .filter((field) => shouldShowField(field.key))
+                  .map((field) => renderField(field))}
               </div>
             </section>
           );
@@ -1085,7 +1321,9 @@ function PrototypeDetails() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setCurrentStepIndex((previous) => Math.max(0, previous - 1))}
+              onClick={() =>
+                setCurrentStepIndex((previous) => Math.max(0, previous - 1))
+              }
               disabled={currentStepIndex === 0}
               className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 disabled:opacity-50"
             >
@@ -1093,7 +1331,11 @@ function PrototypeDetails() {
             </button>
             <button
               type="button"
-              onClick={() => setCurrentStepIndex((previous) => Math.min(stepSections.length - 1, previous + 1))}
+              onClick={() =>
+                setCurrentStepIndex((previous) =>
+                  Math.min(stepSections.length - 1, previous + 1),
+                )
+              }
               disabled={isLastStep}
               className="rounded bg-primary px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
             >
@@ -1102,10 +1344,12 @@ function PrototypeDetails() {
           </div>
           <button
             type="submit"
-            disabled={!isLastStep || Object.values(errors).some(Boolean) || isSubmitting}
+            disabled={
+              !isLastStep || Object.values(errors).some(Boolean) || isSubmitting
+            }
             className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
-            {isSubmitting ? "Saving..." : "Save Details"}
+            {isSubmitting ? "Saving..." : "Submit"}
           </button>
         </div>
 
