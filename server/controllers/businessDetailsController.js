@@ -28,6 +28,8 @@ const getBusinessAttachmentPaths = (attachments) => {
   const attachmentValues = [
     attachments?.ipPatentDocument,
     attachments?.innovationGrantDocument,
+    attachments?.recognitionAwardDocument,
+    attachments?.annualTurnoverDocument,
     attachments?.innovationPhotograph,
   ];
 
@@ -156,21 +158,32 @@ export async function createBusinessDetails(request, response, next) {
       solutionDescription: getBodyValue(body, "solutionDescription"),
       uniquenessFeatures: getBodyValue(body, "uniquenessFeatures"),
       competitorDifference: getBodyValue(body, "competitorDifference"),
+      competitiveAdvantages: getBodyValue(body, "competitiveAdvantages"),
     };
 
     const analysis = {
       ipPatentAssociated: getBodyValue(body, "ipPatentAssociated"),
-      innovationGrantSupport: getBodyValue(body, "innovationGrantSupport"),
-      incubationSupportReceived: getBodyValue(body, "incubationSupportReceived"),
+      instituteInnovationGrantReceived: getBodyValue(
+        body,
+        "instituteInnovationGrantReceived",
+      ),
       incubationUnitName: getBodyValue(body, "incubationUnitName"),
       instituteGrantAmount: getBodyValue(body, "instituteGrantAmount"),
+      externalInnovationGrantReceived: getBodyValue(
+        body,
+        "externalInnovationGrantReceived",
+      ),
+      externalGrantAmount: getBodyValue(body, "externalGrantAmount"),
       angelInvestment: getBodyValue(body, "angelInvestment"),
       investmentAmount: getBodyValue(body, "investmentAmount"),
+      recognitionAwardReceived: getBodyValue(body, "recognitionAwardReceived"),
+      annualTurnover50Lakhs: getBodyValue(body, "annualTurnover50Lakhs"),
     };
 
     const attachments = {
       ipPatentDocument: getUploadedFilePath(files, "ipPatentDocument"),
-      innovationGrantDocument: getUploadedFilePath(files, "innovationGrantDocument"),
+      recognitionAwardDocument: getUploadedFilePath(files, "recognitionAwardDocument"),
+      annualTurnoverDocument: getUploadedFilePath(files, "annualTurnoverDocument"),
       innovationVideoUrl: getBodyValue(body, "innovationVideoUrl"),
       innovationPhotograph: getUploadedFilePath(files, "innovationPhotograph"),
     };

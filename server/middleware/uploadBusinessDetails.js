@@ -39,6 +39,7 @@ const upload = multer({
 
 export const uploadBusinessDetails = upload.fields([
   { name: "ipPatentDocument", maxCount: 1 },
-  { name: "innovationGrantDocument", maxCount: 1 },
+  { name: "recognitionAwardDocument", maxCount: 1 },
+  { name: "annualTurnoverDocument", maxCount: 1 },
   { name: "innovationPhotograph", maxCount: 1 },
 ]);
