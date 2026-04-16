@@ -1,7 +1,7 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CirclePlus } from "lucide-react";
-import { getFacultyMyIdeas } from "../../../config/api";
+import { getFacultyMyBusinesses } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
@@ -12,22 +12,10 @@ const statusBadgeClass = {
   rejected: "bg-red-100 text-red-700",
 };
 
-const getEventDateLabel = (eventItem) => {
-  if (eventItem.fromDate && eventItem.toDate) {
-    return `${eventItem.fromDate} to ${eventItem.toDate}`;
-  }
-
-  if (eventItem.fromDate) {
-    return eventItem.fromDate;
-  }
-
-  return "-";
-};
-
-export default function TeacherIdeasDashboard() {
+export default function TeacherBusinessDashboard() {
   const token = useMemo(() => getAuthToken(), []);
   const location = useLocation();
-  const [events, setEvents] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
   const [quarterFilter, setQuarterFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,12 +29,12 @@ export default function TeacherIdeasDashboard() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const payload = await getFacultyMyIdeas(token);
-        setEvents(payload.data || []);
+        const payload = await getFacultyMyBusinesses(token);
+        setBusinesses(payload.data || []);
       } catch (error) {
         setAlertState({
           isOpen: true,
-          message: error.message || "Failed to fetch your ideas.",
+          message: error.message || "Failed to fetch your businesses.",
           severity: "error",
         });
       } finally {
@@ -57,36 +45,34 @@ export default function TeacherIdeasDashboard() {
     loadData();
   }, [token]);
 
-  const quarterOptions = useMemo(() => {
-    return Array.from(
-      new Set(events.map((eventItem) => eventItem.quarter).filter(Boolean)),
-    ).sort((left, right) => String(left).localeCompare(String(right)));
-  }, [events]);
+  const quarterOptions = useMemo(
+    () =>
+      Array.from(new Set(businesses.map((item) => item.quarter).filter(Boolean))).sort(
+        (left, right) => String(left).localeCompare(String(right)),
+      ),
+    [businesses],
+  );
 
-  const statusOptions = useMemo(() => {
-    return Array.from(
-      new Set(events.map((eventItem) => eventItem.status).filter(Boolean)),
-    );
-  }, [events]);
+  const statusOptions = useMemo(
+    () => Array.from(new Set(businesses.map((item) => item.status).filter(Boolean))),
+    [businesses],
+  );
 
-  const filteredEvents = useMemo(() => {
-    return events.filter((eventItem) => {
-      if (quarterFilter && eventItem.quarter !== quarterFilter) {
-        return false;
-      }
+  const filteredBusinesses = useMemo(
+    () =>
+      businesses.filter((item) => {
+        if (quarterFilter && item.quarter !== quarterFilter) {
+          return false;
+        }
 
-      if (statusFilter && eventItem.status !== statusFilter) {
-        return false;
-      }
+        if (statusFilter && item.status !== statusFilter) {
+          return false;
+        }
 
-      return true;
-    });
-  }, [events, quarterFilter, statusFilter]);
-
-  const handleReset = () => {
-    setQuarterFilter("");
-    setStatusFilter("");
-  };
+        return true;
+      }),
+    [businesses, quarterFilter, statusFilter],
+  );
 
   const fromPath = `${location.pathname}${location.search}`;
 
@@ -95,18 +81,18 @@ export default function TeacherIdeasDashboard() {
       <div className="border-b border-gray-200 bg-white px-8 py-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <h1 className="heading-xl">My Ideas & PoCs</h1>
+            <h1 className="heading-xl">My Businesses</h1>
             <p className="text-muted">
-              View and manage your filed ideas & PoC entries
+              View and manage your filed business entries
             </p>
           </div>
 
           <Link
-            to="/ideadetails"
+            to="/businessdetails"
             className="btn-primary-custom inline-flex items-center gap-2 whitespace-nowrap"
           >
             <CirclePlus size={18} strokeWidth={2.25} />
-            <span>New Ideas</span>
+            <span>New Business</span>
           </Link>
         </div>
       </div>
@@ -114,11 +100,11 @@ export default function TeacherIdeasDashboard() {
       <div className="border-b border-gray-200 bg-white px-8 py-6">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <SearchableSelect
-            label="Quarter"
+            label="Financial Year"
             value={quarterFilter}
             onChange={setQuarterFilter}
             options={quarterOptions}
-            emptyLabel="All Quarters"
+            emptyLabel="All Financial Years"
           />
 
           <SearchableSelect
@@ -130,12 +116,13 @@ export default function TeacherIdeasDashboard() {
           />
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">
-              Actions
-            </label>
+            <label className="text-sm font-semibold text-slate-900">Actions</label>
             <button
               type="button"
-              onClick={handleReset}
+              onClick={() => {
+                setQuarterFilter("");
+                setStatusFilter("");
+              }}
               className="btn-secondary-custom"
             >
               Reset Filters
@@ -143,73 +130,66 @@ export default function TeacherIdeasDashboard() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">
-              Results
-            </label>
+            <label className="text-sm font-semibold text-slate-900">Results</label>
             <span className="badge-primary mt-0.5">
-              {filteredEvents.length} idea
-              {filteredEvents.length !== 1 ? "s" : ""}
+              {filteredBusinesses.length} business
+              {filteredBusinesses.length !== 1 ? "es" : ""}
             </span>
           </div>
         </div>
       </div>
 
       <div className="px-8 py-8">
-        {!loading && filteredEvents.length === 0 && (
+        {!loading && filteredBusinesses.length === 0 && (
           <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
-            <p className="text-base text-gray-600 font-medium">
-              No ideas found.
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Try adjusting your filters or create a new idea.
+            <p className="text-base font-medium text-gray-600">No businesses found.</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Try adjusting your filters or create a new business.
             </p>
           </div>
         )}
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filteredEvents.map((eventItem) => (
+          {filteredBusinesses.map((item) => (
             <Link
-              to={`/idea/${eventItem.id}`}
+              to={`/business/${item.id}`}
               state={{ from: fromPath }}
-              key={eventItem.id}
+              key={item.id}
               className="card-custom group"
             >
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-base font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
-                  {eventItem.eventName || `Idea #${eventItem.id}`}
+                <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition-colors group-hover:text-primary">
+                  {item.eventName || `Business #${item.id}`}
                 </h3>
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize flex-shrink-0 ${
-                    statusBadgeClass[eventItem.status] ||
-                    "bg-gray-100 text-gray-700"
+                    statusBadgeClass[item.status] || "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  {eventItem.status || "pending"}
+                  {item.status || "pending"}
                 </span>
               </div>
 
-              <p className="mt-3 text-sm text-gray-700 line-clamp-2">
-                {eventItem.majorReason || "No major reason provided."}
+              <p className="mt-3 line-clamp-2 text-sm text-gray-700">
+                {item.majorReason || "No major reason provided."}
               </p>
 
-              <div className="mt-5 space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-4">
+              <div className="mt-5 space-y-2 border-t border-gray-100 pt-4 text-xs text-gray-600">
                 <div className="flex justify-between">
-                  <span className="font-semibold">Quarter:</span>
-                  <span className="text-gray-700">
-                    {eventItem.quarter || "-"}
-                  </span>
+                  <span className="font-semibold">Financial Year:</span>
+                  <span className="text-gray-700">{item.quarter || "-"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-semibold">Date:</span>
+                  <span className="font-semibold">Submitted:</span>
                   <span className="text-gray-700">
-                    {getEventDateLabel(eventItem)}
+                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "-"}
                   </span>
                 </div>
-                {eventItem.rejectionMessage && (
-                  <div className="flex justify-between">
+                {item.rejectionMessage && (
+                  <div className="flex justify-between gap-3">
                     <span className="font-semibold">Rejection:</span>
-                    <span className="text-gray-700">
-                      {eventItem.rejectionMessage}
+                    <span className="text-right text-gray-700">
+                      {item.rejectionMessage}
                     </span>
                   </div>
                 )}
@@ -221,14 +201,10 @@ export default function TeacherIdeasDashboard() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() =>
-          setAlertState((previous) => ({ ...previous, isOpen: false }))
-        }
+        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
         severity={alertState.severity}
         message={alertState.message}
       />
     </section>
   );
 }
-
-

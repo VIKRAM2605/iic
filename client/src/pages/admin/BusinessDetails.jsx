@@ -1,6 +1,6 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { getPrototypeById, reviewPrototypeByAdmin } from "../../../config/api";
+import { getBusinessById, reviewBusinessByAdmin } from "../../../config/api";
 import Alert from "../../components/Alert";
 import { getAuthToken, getAuthUser } from "../../utils/auth";
 
@@ -8,28 +8,6 @@ const statusBadgeClass = {
   pending: "bg-yellow-100 text-yellow-700",
   approved: "bg-green-100 text-green-700",
   rejected: "bg-red-100 text-red-700",
-};
-
-const normalizeDate = (rawValue) => {
-  const value = String(rawValue || "").trim();
-  if (!value) {
-    return "";
-  }
-
-  const maybeDate = value.slice(0, 10);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(maybeDate)) {
-    return maybeDate;
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
-  }
-
-  const year = parsed.getFullYear();
-  const month = String(parsed.getMonth() + 1).padStart(2, "0");
-  const day = String(parsed.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 };
 
 const prettifyKey = (key) =>
@@ -40,93 +18,55 @@ const prettifyKey = (key) =>
     .trim()
     .replace(/^./, (char) => char.toUpperCase());
 
-const renderDetails = (details = {}) => {
-  return Object.entries(details)
-    .map(([key, value]) => (
-      <div key={key} className="rounded-md border border-gray-200 p-3">
-        <p className="text-xs font-semibold uppercase text-gray-500">{prettifyKey(key)}</p>
-        <p className="mt-1 wrap-break-word text-sm text-gray-800">
-          {(() => {
-            if (key === "fromDate" || key === "toDate") {
-              const dateValue = normalizeDate(value);
-              return dateValue || "-";
-            }
+const renderDetails = (details = {}) =>
+  Object.entries(details).map(([key, value]) => (
+    <div key={key} className="rounded-md border border-gray-200 p-3">
+      <p className="text-xs font-semibold uppercase text-gray-500">
+        {prettifyKey(key)}
+      </p>
+      <div className="mt-1 break-words text-sm text-gray-800">
+        {(() => {
+          if (value === null || value === undefined) {
+            return "-";
+          }
 
-            if (value === null || value === undefined) {
-              return "-";
-            }
+          const textValue = String(value).trim();
+          if (!textValue) {
+            return "-";
+          }
 
-            if (typeof value === "object") {
-              const objectValue = JSON.stringify(value);
-              return objectValue && objectValue !== "{}" ? objectValue : "-";
-            }
+          if (
+            textValue.startsWith("http://") ||
+            textValue.startsWith("https://") ||
+            textValue.startsWith("/uploads/")
+          ) {
+            return (
+              <a
+                href={textValue}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                {textValue}
+              </a>
+            );
+          }
 
-            const textValue = String(value).trim();
-            return textValue || "-";
-          })()}
-        </p>
+          return textValue;
+        })()}
       </div>
-    ));
-};
-
-const getEventDateLabel = (eventData) => {
-  const fromDate = normalizeDate(eventData?.durationDetails?.fromDate);
-  const toDate = normalizeDate(eventData?.durationDetails?.toDate);
-
-  if (fromDate && toDate) {
-    return `${fromDate} to ${toDate}`;
-  }
-
-  if (fromDate) {
-    return fromDate;
-  }
-
-  return "-";
-};
-
-const getDurationLabel = (eventData) => {
-  const durationFromForm = String(eventData?.durationDetails?.durationHours ?? "").trim();
-  if (durationFromForm) {
-    return `${durationFromForm} hrs`;
-  }
-
-  const fromDateRaw = String(eventData?.durationDetails?.fromDate ?? "").trim();
-  const toDateRaw = String(eventData?.durationDetails?.toDate ?? "").trim();
-  if (!fromDateRaw || !toDateRaw) {
-    return "-";
-  }
-
-  const fromDateTime = new Date(fromDateRaw);
-  const toDateTime = new Date(toDateRaw);
-
-  if (Number.isNaN(fromDateTime.getTime()) || Number.isNaN(toDateTime.getTime())) {
-    return "-";
-  }
-
-  const hours = (toDateTime.getTime() - fromDateTime.getTime()) / (1000 * 60 * 60);
-  if (!Number.isFinite(hours) || hours < 0) {
-    return "-";
-  }
-
-  if (hours === 0) {
-    return "0 hr";
-  }
-
-  return `${hours.toFixed(1)} hrs`;
-};
+    </div>
+  ));
 
 const detailSteps = [
-  { key: "programDetails", label: "Program" },
-  { key: "durationDetails", label: "Duration" },
+  { key: "businessDetails", label: "Business" },
   { key: "overview", label: "Overview" },
   { key: "analysis", label: "Analysis" },
-  { key: "speakerDetails", label: "Speaker" },
-  { key: "bipPortal", label: "BIP Portal" },
-  { key: "faculty", label: "Faculty" },
+  { key: "attachments", label: "Attachments" },
 ];
 
-export default function PrototypeOverview() {
-  const { prototypeId } = useParams();
+export default function BusinessDetails() {
+  const { businessId } = useParams();
   const location = useLocation();
   const token = useMemo(() => getAuthToken(), []);
   const user = useMemo(() => getAuthUser(), []);
@@ -135,66 +75,71 @@ export default function PrototypeOverview() {
     typeof location.state?.from === "string" && location.state.from.startsWith("/")
       ? location.state.from
       : isAdmin
-      ? "/admin/prototype-review"
-      : "/teacher/prototypes";
+        ? "/admin/business-review"
+        : "/teacher/businesses";
 
-  const [eventData, setEventData] = useState(null);
+  const [businessData, setBusinessData] = useState(null);
   const [activeDetailStep, setActiveDetailStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [rejectMessage, setRejectMessage] = useState("");
   const [processingReview, setProcessingReview] = useState(false);
-  const [alertState, setAlertState] = useState({ isOpen: false, message: "", severity: "info" });
+  const [alertState, setAlertState] = useState({
+    isOpen: false,
+    message: "",
+    severity: "info",
+  });
+
   const detailStepProgress =
     detailSteps.length > 1 ? (activeDetailStep / (detailSteps.length - 1)) * 100 : 0;
 
-  const loadEvent = async () => {
-    if (!prototypeId) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const payload = await getPrototypeById({ token, prototypeId });
-      setEventData(payload.data || null);
-      setRejectMessage(payload.data?.rejectionMessage || "");
-      setActiveDetailStep(0);
-    } catch (error) {
-      setAlertState({
-        isOpen: true,
-        message: error.message || "Failed to fetch prototype details.",
-        severity: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadEvent();
-  }, [prototypeId, token]);
+    const loadBusiness = async () => {
+      if (!businessId) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const payload = await getBusinessById({ token, businessId });
+        setBusinessData(payload.data || null);
+        setRejectMessage(payload.data?.rejectionMessage || "");
+        setActiveDetailStep(0);
+      } catch (error) {
+        setAlertState({
+          isOpen: true,
+          message: error.message || "Failed to fetch business details.",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBusiness();
+  }, [businessId, token]);
 
   const handleReview = async (action) => {
-    if (!isAdmin || !prototypeId) {
+    if (!isAdmin || !businessId) {
       return;
     }
 
     setProcessingReview(true);
     try {
-      const payload = await reviewPrototypeByAdmin({
+      const payload = await reviewBusinessByAdmin({
         token,
-        prototypeId,
+        businessId,
         action,
         rejectionMessage: action === "reject" ? rejectMessage : "",
       });
 
       setAlertState({
         isOpen: true,
-        message: payload.message || "Prototype updated.",
+        message: payload.message || "Business updated.",
         severity: "success",
       });
 
       const reviewData = payload?.data || {};
-      setEventData((previous) => {
+      setBusinessData((previous) => {
         if (!previous) {
           return previous;
         }
@@ -232,32 +177,36 @@ export default function PrototypeOverview() {
         <Link to={backTo} className="text-sm font-medium text-primary hover:underline">
           Back
         </Link>
-        {eventData?.status && (
+        {businessData?.status && (
           <span
             className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-              statusBadgeClass[eventData.status] || "bg-gray-100 text-gray-700"
+              statusBadgeClass[businessData.status] || "bg-gray-100 text-gray-700"
             }`}
           >
-            {eventData.status}
+            {businessData.status}
           </span>
         )}
       </div>
 
       {loading && <div className="text-sm text-gray-500">Loading...</div>}
 
-      {!loading && eventData && (
+      {!loading && businessData && (
         <div className="space-y-6">
           <div className="rounded-md border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900">{eventData.eventName || `Prototype #${eventData.id}`}</h2>
-            <p className="mt-3 text-sm text-gray-700">{eventData.majorReason || "No major reason provided."}</p>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {businessData.eventName || `Business #${businessData.id}`}
+            </h2>
+            <p className="mt-3 text-sm text-gray-700">
+              {businessData.majorReason || "No major reason provided."}
+            </p>
 
             <div className="mt-4 grid gap-3 text-xs text-gray-700 md:grid-cols-2 xl:grid-cols-4">
-              <p><span className="font-semibold">Quarter:</span> {eventData.quarter || "-"}</p>
-              <p><span className="font-semibold">Prototype Date:</span> {getEventDateLabel(eventData)}</p>
-              <p><span className="font-semibold">Duration:</span> {getDurationLabel(eventData)}</p>
-              <p><span className="font-semibold">Owner:</span> {eventData.ownerName || "-"}</p>
-              <p><span className="font-semibold">Email:</span> {eventData.ownerEmail || "-"}</p>
-              <p><span className="font-semibold">Rejection Msg:</span> {eventData.rejectionMessage || "-"}</p>
+              <p><span className="font-semibold">Financial Year:</span> {businessData.quarter || "-"}</p>
+              <p><span className="font-semibold">Owner:</span> {businessData.ownerName || "-"}</p>
+              <p><span className="font-semibold">Email:</span> {businessData.ownerEmail || "-"}</p>
+              <p><span className="font-semibold">Submitted:</span> {businessData.createdAt ? new Date(businessData.createdAt).toLocaleString() : "-"}</p>
+              <p><span className="font-semibold">Reviewed By:</span> {businessData.reviewerName || "-"}</p>
+              <p><span className="font-semibold">Rejection Msg:</span> {businessData.rejectionMessage || "-"}</p>
             </div>
           </div>
 
@@ -338,7 +287,7 @@ export default function PrototypeOverview() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              {renderDetails(eventData[detailSteps[activeDetailStep]?.key] || {})}
+              {renderDetails(businessData[detailSteps[activeDetailStep]?.key] || {})}
             </div>
 
             <div className="mt-4 flex items-center justify-between">
@@ -375,5 +324,3 @@ export default function PrototypeOverview() {
     </section>
   );
 }
-
-

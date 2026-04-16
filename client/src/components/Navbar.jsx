@@ -56,13 +56,24 @@ export default function Navbar() {
       children: [],
     },
     {
+      label: "Business Repository",
+      icon: LayoutDashboard,
+      to: "/admin/businesses",
+      isActive:
+        location.pathname.startsWith("/admin/businesses") ||
+        location.pathname.startsWith("/businessdetails") ||
+        location.pathname.startsWith("/business/"),
+      children: [],
+    },
+    {
       label: "Review Panel",
       icon: CheckSquare,
       to: null,
       isActive:
         location.pathname.startsWith("/admin/review") ||
         location.pathname.startsWith("/admin/idea-review") ||
-        location.pathname.startsWith("/admin/prototype-review"),
+        location.pathname.startsWith("/admin/prototype-review") ||
+        location.pathname.startsWith("/admin/business-review"),
       children: [
         { label: "Event Reviews", icon: CheckSquare, to: "/admin/review" },
         {
@@ -74,6 +85,11 @@ export default function Navbar() {
           label: "Prototype Reviews",
           icon: CheckSquare,
           to: "/admin/prototype-review",
+        },
+        {
+          label: "Business Reviews",
+          icon: CheckSquare,
+          to: "/admin/business-review",
         },
       ],
     },
@@ -101,6 +117,17 @@ export default function Navbar() {
       isActive: location.pathname.startsWith("/teacher/prototypes"),
       children: [],
     },
+    {
+      label: "Business Repository",
+      icon: LayoutDashboard,
+      to: "/teacher/businesses",
+      isActive:
+        location.pathname.startsWith("/teacher/businesses") ||
+        location.pathname.startsWith("/teacher/businessdetails") ||
+        location.pathname.startsWith("/businessdetails") ||
+        location.pathname.startsWith("/business/"),
+      children: [],
+    },
   ];
 
   const handleLogout = async () => {
@@ -111,6 +138,7 @@ export default function Navbar() {
         await logoutUser(token);
       }
     } catch {
+      // Local sign-out should still proceed even if the API call fails.
     } finally {
       clearAuthSession();
       navigate("/login", { replace: true });

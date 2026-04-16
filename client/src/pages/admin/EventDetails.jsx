@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { createEventDetails } from "../../../config/api";
 import { getAuthToken, getAuthUser } from "../../utils/auth";
 import Alert from "../../components/Alert";
@@ -1104,7 +1104,7 @@ function EventDetails() {
           />
           {formValues[field.key] instanceof File && (
             <p className="text-sm font-medium text-green-600">
-              ✓ {formValues[field.key].name}
+              âœ“ {formValues[field.key].name}
             </p>
           )}
         </div>
@@ -1498,3 +1498,5 @@ function EventDetails() {
 }
 
 export default EventDetails;
+
+

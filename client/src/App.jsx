@@ -8,6 +8,11 @@ import AdminIdeaApprovedDashboard from "./pages/admin/AdminIdeaApprovedDashboard
 import AdminIdeaReview from "./pages/admin/AdminIdeaReview";
 import AdminPrototypeApprovedDashboard from "./pages/admin/AdminPrototypeApprovedDashboard";
 import AdminPrototypeReview from "./pages/admin/AdminPrototypeReview";
+import AdminBusinessApprovedDashboard from "./pages/admin/AdminBusinessApprovedDashboard";
+import AdminBusinessReview from "./pages/admin/AdminBusinessReview";
+import BusinessOverview from "./pages/admin/BusinessDetails";
+import BusinessDetailsForm from "./pages/teacher/BusinessDetails";
+import TeacherBusinessDashboard from "./pages/admin/TeacherBusinessDashboard";
 import EventDetails from "./pages/admin/EventDetails";
 import EventOverview from "./pages/admin/EventOverview";
 import IdeaDetails from "./pages/admin/IdeaDetails";
@@ -36,6 +41,9 @@ function App() {
             <Route path="/idea/:ideaId" element={<IdeaOverview />} />
             <Route path="/prototypedetails" element={<PrototypeDetails />} />
             <Route path="/prototype/:prototypeId" element={<PrototypeOverview />} />
+            <Route path="/businessdetails" element={<BusinessDetailsForm />} />
+            <Route path="/teacher/businessdetails" element={<BusinessDetailsForm />} />
+            <Route path="/business/:businessId" element={<BusinessOverview />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
@@ -45,12 +53,15 @@ function App() {
             <Route path="/admin/idea-review" element={<AdminIdeaReview />} />
             <Route path="/admin/prototypes" element={<AdminPrototypeApprovedDashboard />} />
             <Route path="/admin/prototype-review" element={<AdminPrototypeReview />} />
+            <Route path="/admin/businesses" element={<AdminBusinessApprovedDashboard />} />
+            <Route path="/admin/business-review" element={<AdminBusinessReview />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={["faculty"]} />}>
             <Route path="/teacher/dashboard" element={<TeacherEventsDashboard />} />
             <Route path="/teacher/ideas" element={<TeacherIdeasDashboard />} />
             <Route path="/teacher/prototypes" element={<TeacherPrototypesDashboard />} />
+            <Route path="/teacher/businesses" element={<TeacherBusinessDashboard />} />
           </Route>
         </Route>
       </Route>
@@ -61,3 +72,4 @@ function App() {
 }
 
 export default App;
+
