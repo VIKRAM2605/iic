@@ -25,6 +25,11 @@ export const API_ROUTES = {
 	adminApprovedPrototypeFilterOptions: "/api/prototype-details/admin/approved/filter-options",
 	adminPrototypeReviewQueue: "/api/prototype-details/admin/review-queue",
 	facultyMyPrototypes: "/api/prototype-details/faculty/mine",
+	businessDetails: "/api/business-details",
+	adminApprovedBusinesses: "/api/business-details/admin/approved",
+	adminApprovedBusinessFilterOptions: "/api/business-details/admin/approved/filter-options",
+	adminBusinessReviewQueue: "/api/business-details/admin/review-queue",
+	facultyMyBusinesses: "/api/business-details/faculty/mine",
 };
 
 export const getApiUrl = (route) => {
@@ -53,6 +58,11 @@ export const API_URLS = {
 	adminApprovedPrototypeFilterOptions: getApiUrl(API_ROUTES.adminApprovedPrototypeFilterOptions),
 	adminPrototypeReviewQueue: getApiUrl(API_ROUTES.adminPrototypeReviewQueue),
 	facultyMyPrototypes: getApiUrl(API_ROUTES.facultyMyPrototypes),
+	businessDetails: getApiUrl(API_ROUTES.businessDetails),
+	adminApprovedBusinesses: getApiUrl(API_ROUTES.adminApprovedBusinesses),
+	adminApprovedBusinessFilterOptions: getApiUrl(API_ROUTES.adminApprovedBusinessFilterOptions),
+	adminBusinessReviewQueue: getApiUrl(API_ROUTES.adminBusinessReviewQueue),
+	facultyMyBusinesses: getApiUrl(API_ROUTES.facultyMyBusinesses),
 };
 
 const parseJsonResponse = async (response, fallbackMessage) => {
@@ -446,3 +456,113 @@ export const getPrototypeById = async ({ token, prototypeId }) => {
 
 	return parseJsonResponse(response, "Failed to fetch prototype details.");
 };
+
+export const createBusinessDetails = async (formData, token) => {
+	const response = await fetch(API_URLS.businessDetails, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		body: formData,
+	});
+
+	const payload = await response.json().catch(() => ({}));
+
+	if (!response.ok) {
+		throw new Error(payload.message || "Failed to upload business details.");
+	}
+
+	return payload;
+};
+
+export const getAdminApprovedBusinesses = async ({
+	token,
+	quarter,
+	date,
+	fromDate,
+	toDate,
+	facultyName,
+	includeRejected,
+}) => {
+	const params = new URLSearchParams();
+
+	if (quarter) params.set("quarter", quarter);
+	if (date) params.set("date", date);
+	if (fromDate) params.set("fromDate", fromDate);
+	if (toDate) params.set("toDate", toDate);
+	if (facultyName) params.set("facultyName", facultyName);
+	if (includeRejected) params.set("includeRejected", "true");
+
+	const response = await fetch(`${API_URLS.adminApprovedBusinesses}?${params.toString()}`, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch approved businesses.");
+};
+
+export const getAdminBusinessReviewQueue = async (token) => {
+	const response = await fetch(API_URLS.adminBusinessReviewQueue, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch business review queue.");
+};
+
+export const getAdminApprovedBusinessFilterOptions = async (token, { includeRejected } = {}) => {
+	const params = new URLSearchParams();
+	if (includeRejected) params.set("includeRejected", "true");
+
+	const response = await fetch(
+		`${API_URLS.adminApprovedBusinessFilterOptions}?${params.toString()}`,
+		{
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		}
+	);
+
+	return parseJsonResponse(response, "Failed to fetch business filter options.");
+};
+
+export const reviewBusinessByAdmin = async ({ token, businessId, action, rejectionMessage }) => {
+	const response = await fetch(`${API_URLS.businessDetails}/admin/${businessId}/review`, {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		body: JSON.stringify({ action, rejectionMessage }),
+	});
+
+	return parseJsonResponse(response, "Failed to update business review status.");
+};
+
+export const getFacultyMyBusinesses = async (token) => {
+	const response = await fetch(API_URLS.facultyMyBusinesses, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch faculty businesses.");
+};
+
+export const getBusinessById = async ({ token, businessId }) => {
+	const response = await fetch(`${API_URLS.businessDetails}/${businessId}`, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	return parseJsonResponse(response, "Failed to fetch business details.");
+};
+

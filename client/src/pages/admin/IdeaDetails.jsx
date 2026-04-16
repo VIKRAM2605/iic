@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { createIdeaDetails } from "../../../config/api";
 import { getAuthToken } from "../../utils/auth";
 import Alert from "../../components/Alert";
@@ -1285,3 +1285,5 @@ function IdeaDetails() {
 }
 
 export default IdeaDetails;
+
+

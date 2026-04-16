@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 export default function Unauthorized() {
   return (
@@ -25,3 +25,5 @@ export default function Unauthorized() {
     </div>
   );
 }
+
+
