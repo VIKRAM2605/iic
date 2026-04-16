@@ -56,7 +56,9 @@ export default function AdminBusinessApprovedDashboard() {
       try {
         const [businessesPayload, optionsPayload] = await Promise.all([
           getAdminApprovedBusinesses({ token, includeRejected: true }),
-          getAdminApprovedBusinessFilterOptions(token, { includeRejected: true }),
+          getAdminApprovedBusinessFilterOptions(token, {
+            includeRejected: true,
+          }),
         ]);
 
         setBusinesses(businessesPayload.data || []);
@@ -97,7 +99,9 @@ export default function AdminBusinessApprovedDashboard() {
 
         if (
           facultyName &&
-          !String(item.ownerName || "").toLowerCase().includes(facultyName.toLowerCase())
+          !String(item.ownerName || "")
+            .toLowerCase()
+            .includes(facultyName.toLowerCase())
         ) {
           return false;
         }
@@ -108,7 +112,11 @@ export default function AdminBusinessApprovedDashboard() {
           return submittedDate === normalizeDate(date);
         }
 
-        if (!useSingleDate && fromDate && submittedDate < normalizeDate(fromDate)) {
+        if (
+          !useSingleDate &&
+          fromDate &&
+          submittedDate < normalizeDate(fromDate)
+        ) {
           return false;
         }
 
@@ -128,9 +136,9 @@ export default function AdminBusinessApprovedDashboard() {
       <div className="border-b border-gray-200 bg-white px-8 py-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <h1 className="heading-xl">Business Repository</h1>
+            <h1 className="heading-xl">My Startups</h1>
             <p className="text-muted">
-              View and manage your business submissions
+              All your registered ventures and their status in both users
             </p>
           </div>
 
@@ -242,7 +250,9 @@ export default function AdminBusinessApprovedDashboard() {
 
         {!loading && filteredBusinesses.length === 0 && (
           <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
-            <p className="text-base font-medium text-gray-600">No businesses found.</p>
+            <p className="text-base font-medium text-gray-600">
+              No businesses found.
+            </p>
             <p className="mt-1 text-sm text-gray-500">
               Try adjusting your filters.
             </p>
@@ -284,7 +294,9 @@ export default function AdminBusinessApprovedDashboard() {
                 <div className="flex justify-between">
                   <span className="font-semibold">Submitted:</span>
                   <span className="text-gray-700">
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "-"}
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleDateString()
+                      : "-"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -299,7 +311,9 @@ export default function AdminBusinessApprovedDashboard() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />

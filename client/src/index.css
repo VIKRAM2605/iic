@@ -81,7 +81,7 @@
   }
 
   .heading-xl {
-    @apply text-2xl font-semibold text-slate-900 leading-tight;
+    @apply text-2xl font-bold text-slate-900 leading-tight;
   }
 
   .heading-lg {

@@ -44,15 +44,15 @@ export default function Topbar() {
     }
 
     if (location.pathname.startsWith("/admin/businesses")) {
-      return "Business Repository";
+      return "Business Model / Startup";
     }
 
     if (location.pathname.startsWith("/admin/business-review")) {
-      return "Business Reviews";
+      return "Startup Reviews";
     }
 
     if (location.pathname.startsWith("/teacher/businesses")) {
-      return "Business Repository";
+      return "Business Model / Startup";
     }
 
     if (location.pathname.startsWith("/teacher/businessdetails")) {

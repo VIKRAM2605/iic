@@ -226,8 +226,7 @@ const businessFields = [
   },
   {
     key: "instituteGrantAmount",
-    label:
-      "Mention Total Grant Amount Received in past three Financial Years",
+    label: "Mention Total Grant Amount Received in past three Financial Years",
     type: "text",
     required: false,
   },
@@ -506,7 +505,10 @@ function BusinessDetails() {
       return;
     }
 
-    if (maxWordsByKey[field.key] && countWords(value) > maxWordsByKey[field.key]) {
+    if (
+      maxWordsByKey[field.key] &&
+      countWords(value) > maxWordsByKey[field.key]
+    ) {
       setErrors((previous) => ({
         ...previous,
         [field.key]: `${field.label} must be ${maxWordsByKey[field.key]} words or less.`,
@@ -594,7 +596,10 @@ function BusinessDetails() {
         return;
       }
 
-      if (maxWordsByKey[field.key] && countWords(value) > maxWordsByKey[field.key]) {
+      if (
+        maxWordsByKey[field.key] &&
+        countWords(value) > maxWordsByKey[field.key]
+      ) {
         nextErrors[field.key] =
           `${field.label} must be ${maxWordsByKey[field.key]} words or less.`;
       }
@@ -632,7 +637,8 @@ function BusinessDetails() {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setAlertMessage(
-        Object.values(validationErrors)[0] || "Please complete all required fields.",
+        Object.values(validationErrors)[0] ||
+          "Please complete all required fields.",
       );
       setAlertSeverity("error");
       setAlertOpen(true);
@@ -673,7 +679,9 @@ function BusinessDetails() {
 
       window.setTimeout(() => {
         navigate(
-          user?.roleName === "admin" ? "/admin/businesses" : "/teacher/businesses",
+          user?.roleName === "admin"
+            ? "/admin/businesses"
+            : "/teacher/businesses",
           { replace: true },
         );
       }, 700);
@@ -690,9 +698,7 @@ function BusinessDetails() {
     if (field.type === "file" && field.maxSizeBytes) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
       return (
-        <p className="text-xs text-gray-500">
-          JPG / PNG only, max {maxMb}MB
-        </p>
+        <p className="text-xs text-gray-500">JPG / PNG only, max {maxMb}MB</p>
       );
     }
 
@@ -709,8 +715,12 @@ function BusinessDetails() {
 
   const renderField = (field) => (
     <div key={field.key} className="space-y-1">
-      <label className="block text-sm font-medium text-gray-800" htmlFor={field.key}>
-        {field.label} {field.required && <span className="text-red-600">*</span>}
+      <label
+        className="block text-sm font-medium text-gray-800"
+        htmlFor={field.key}
+      >
+        {field.label}{" "}
+        {field.required && <span className="text-red-600">*</span>}
       </label>
 
       {field.type === "textarea" && (
@@ -726,7 +736,8 @@ function BusinessDetails() {
           {maxWordsByKey[field.key] && (
             <p
               className={`text-xs ${
-                countWords(formValues[field.key]) / maxWordsByKey[field.key] >= 0.8
+                countWords(formValues[field.key]) / maxWordsByKey[field.key] >=
+                0.8
                   ? "text-red-600"
                   : "text-gray-500"
               }`}
@@ -744,7 +755,9 @@ function BusinessDetails() {
             name={field.key}
             type="file"
             accept={field.accept}
-            onChange={(event) => handleChange(field, event.target.files?.[0] ?? null)}
+            onChange={(event) =>
+              handleChange(field, event.target.files?.[0] ?? null)
+            }
             className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
           />
           {formValues[field.key] instanceof File && (
@@ -805,7 +818,7 @@ function BusinessDetails() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-              Submit a Business
+              Register a Startup
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[#7a80a6]">
               Fill in the business details carefully and submit all required
@@ -850,7 +863,9 @@ function BusinessDetails() {
                       </span>
                       <span
                         className={`mt-2 text-xs ${
-                          isActiveStep ? "font-semibold text-primary" : "text-gray-600"
+                          isActiveStep
+                            ? "font-semibold text-primary"
+                            : "text-gray-600"
                         }`}
                       >
                         {group.section}
@@ -870,7 +885,9 @@ function BusinessDetails() {
               index === currentStepIndex ? "block" : "hidden"
             }`}
           >
-            <h2 className="text-lg font-medium text-gray-900">{step.section}</h2>
+            <h2 className="text-lg font-medium text-gray-900">
+              {step.section}
+            </h2>
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {step.fields
                 .filter((field) => shouldShowField(field.key))
