@@ -160,99 +160,136 @@ const businessFields = [
   },
   {
     key: "problemRelevance",
-    label: "Problem - Solution Fit",
+    label:
+      "Define the Problem - Solution fit achieved/to be achieved by the Startup: Briefly explain the relevance of the innovative solutions are being offered by the startup and what/whose problem (Industry/Society/Market) these are solving.",
     type: "textarea",
     required: true,
   },
   {
     key: "solutionDescription",
-    label: "Product - Market Fit",
+    label:
+      "Define the Product-Market fit achieved/ to be achieved by the Startup: Briefly explain the readiness levels (Technology Readiness Level and Manufacturing Readiness Level) of innovations/solutions offered by the startup to meet the customer need/requirement.",
     type: "textarea",
     required: true,
   },
   {
     key: "uniquenessFeatures",
-    label: "Market Size and Target Segment",
+    label:
+      "Detail the potential market size and target customers/segment (Total Available Market - TAM, Serviceable Available Market - SAM, Serviceable Obtainable Market - SOM).",
     type: "textarea",
     required: true,
   },
   {
     key: "competitorDifference",
-    label: "Business Fit and Traction",
+    label:
+      "Detail the Business fit achieved/ to be achieved by the Startup: Briefly explain the business model readiness level of innovations to be commercialized. Business Tractions Achieved for the innovation if any, briefly explain the customer tractions achieved for the innovations or solutions offered by the Startup as an attempt to commercialization.",
+    type: "textarea",
+    required: true,
+  },
+  {
+    key: "competitiveAdvantages",
+    label:
+      "Highlight any competitive advantages such as Intellectual property (IP) or any Unique Selling Proposition (USP) etc. associate with the product/service/business model/startup.",
     type: "textarea",
     required: true,
   },
   {
     key: "ipPatentAssociated",
-    label: "Is any IP / Patent associated with the Startup?",
+    label:
+      "Is there any Intellectual Property (IP) associated with the Solution being offered by the Startup/Venture?",
     type: "select",
     required: true,
-    options: ["Yes", "No"],
+    options: ["YES", "NO"],
   },
   {
     key: "ipPatentDocument",
-    label: "Upload IP / Patent Document",
+    label:
+      "If YES, Intellectual Property (IP) Copy Image (Max 2 MB and in jpg, png format)",
     type: "file",
     required: false,
     accept: ".jpg,.jpeg,.png",
     maxSizeBytes: 2 * 1024 * 1024,
   },
   {
-    key: "innovationGrantSupport",
-    label: "Any recognitions / awards received?",
+    key: "instituteInnovationGrantReceived",
+    label:
+      "Did the venture/start-up receive any innovation grant from the Institute?",
     type: "select",
     required: true,
-    options: ["Yes", "No"],
-  },
-  {
-    key: "innovationGrantDocument",
-    label: "Upload Recognition / Award Document",
-    type: "file",
-    required: false,
-    accept: ".jpg,.jpeg,.png",
-    maxSizeBytes: 2 * 1024 * 1024,
-  },
-  {
-    key: "incubationSupportReceived",
-    label: "Received innovation grant from external sources?",
-    type: "select",
-    required: true,
-    options: ["Yes", "No"],
+    options: ["YES", "NO"],
   },
   {
     key: "incubationUnitName",
-    label: "Pre-Incubation / Incubation Unit Name",
+    label: "If YES, Mention the Pre-Incubation / Incubation Unit Name",
     type: "text",
     required: false,
   },
   {
     key: "instituteGrantAmount",
-    label: "Total Grant Amount Received",
+    label:
+      "Mention Total Grant Amount Received in past three Financial Years",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "externalInnovationGrantReceived",
+    label:
+      "Did the venture/start-up receive any innovation grant from any external sources, so far?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "externalGrantAmount",
+    label:
+      "If YES, Mention Total Grant Amount Received in past three Financial Years",
     type: "text",
     required: false,
   },
   {
     key: "angelInvestment",
-    label: "Raised Angel / Venture Capital Investment?",
+    label:
+      "Did the venture/start-up raise any Angel/Venture Capital Investment so far?",
     type: "select",
     required: true,
-    options: ["Yes", "No"],
+    options: ["YES", "NO"],
   },
   {
     key: "investmentAmount",
-    label: "Total Investment Amount Received",
+    label:
+      "If YES, Mention Total Grant Amount Received in past three Financial Years",
     type: "text",
     required: false,
   },
   {
-    key: "innovationVideoUrl",
-    label: "Video URL",
-    type: "url",
-    required: false,
+    key: "recognitionAwardReceived",
+    label:
+      "Are there any recognitions/awards received by the venture/start-up for the innovation in National/International Competitions?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
   },
   {
-    key: "innovationPhotograph",
-    label: "Upload Photograph",
+    key: "recognitionAwardDocument",
+    label:
+      "If YES, Upload the Certificate copy of Recent Recognition/award Received (Max 2 MB and in jpg, png format)",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "annualTurnover50Lakhs",
+    label:
+      "Has the startup grown to an annual business turnover of Rs. 50 Lakhs during any last three FYs?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "annualTurnoverDocument",
+    label:
+      "If YES, Upload the Audited copy of the financial Statement clearly indicating the FY and Annual turnover amount of Rs. 50 Lakhs or above (Max 2 MB and in jpg, png format)",
     type: "file",
     required: false,
     accept: ".jpg,.jpeg,.png",
@@ -283,6 +320,7 @@ const displayStructure = [
       "solutionDescription",
       "uniquenessFeatures",
       "competitorDifference",
+      "competitiveAdvantages",
     ],
   },
   {
@@ -290,25 +328,29 @@ const displayStructure = [
     fields: [
       "ipPatentAssociated",
       "ipPatentDocument",
-      "innovationGrantSupport",
-      "innovationGrantDocument",
-      "incubationSupportReceived",
+      "instituteInnovationGrantReceived",
       "incubationUnitName",
       "instituteGrantAmount",
+      "externalInnovationGrantReceived",
+      "externalGrantAmount",
       "angelInvestment",
       "investmentAmount",
-      "innovationPhotograph",
-      "innovationVideoUrl",
+      "recognitionAwardReceived",
+      "recognitionAwardDocument",
+      "annualTurnover50Lakhs",
+      "annualTurnoverDocument",
     ],
   },
 ];
 
 const attachmentConditionalFields = {
   ipPatentDocument: "ipPatentAssociated",
-  innovationGrantDocument: "innovationGrantSupport",
-  incubationUnitName: "incubationSupportReceived",
-  instituteGrantAmount: "incubationSupportReceived",
+  incubationUnitName: "instituteInnovationGrantReceived",
+  instituteGrantAmount: "instituteInnovationGrantReceived",
+  externalGrantAmount: "externalInnovationGrantReceived",
   investmentAmount: "angelInvestment",
+  recognitionAwardDocument: "recognitionAwardReceived",
+  annualTurnoverDocument: "annualTurnover50Lakhs",
 };
 
 function BusinessDetails() {
@@ -399,6 +441,7 @@ function BusinessDetails() {
     solutionDescription: 100,
     uniquenessFeatures: 100,
     competitorDifference: 100,
+    competitiveAdvantages: 100,
   };
 
   useEffect(() => {
@@ -474,21 +517,29 @@ function BusinessDetails() {
     setFormValues((previous) => {
       const nextValues = { ...previous, [field.key]: value };
 
-      if (field.key === "ipPatentAssociated" && value !== "Yes") {
+      if (field.key === "ipPatentAssociated" && value !== "YES") {
         nextValues.ipPatentDocument = null;
       }
 
-      if (field.key === "innovationGrantSupport" && value !== "Yes") {
-        nextValues.innovationGrantDocument = null;
-      }
-
-      if (field.key === "incubationSupportReceived" && value !== "Yes") {
+      if (field.key === "instituteInnovationGrantReceived" && value !== "YES") {
         nextValues.incubationUnitName = "";
         nextValues.instituteGrantAmount = "";
       }
 
-      if (field.key === "angelInvestment" && value !== "Yes") {
+      if (field.key === "externalInnovationGrantReceived" && value !== "YES") {
+        nextValues.externalGrantAmount = "";
+      }
+
+      if (field.key === "angelInvestment" && value !== "YES") {
         nextValues.investmentAmount = "";
+      }
+
+      if (field.key === "recognitionAwardReceived" && value !== "YES") {
+        nextValues.recognitionAwardDocument = null;
+      }
+
+      if (field.key === "annualTurnover50Lakhs" && value !== "YES") {
+        nextValues.annualTurnoverDocument = null;
       }
 
       return nextValues;
@@ -497,21 +548,29 @@ function BusinessDetails() {
     setErrors((previous) => {
       const nextErrors = { ...previous, [field.key]: "" };
 
-      if (field.key === "ipPatentAssociated" && value !== "Yes") {
+      if (field.key === "ipPatentAssociated" && value !== "YES") {
         nextErrors.ipPatentDocument = "";
       }
 
-      if (field.key === "innovationGrantSupport" && value !== "Yes") {
-        nextErrors.innovationGrantDocument = "";
-      }
-
-      if (field.key === "incubationSupportReceived" && value !== "Yes") {
+      if (field.key === "instituteInnovationGrantReceived" && value !== "YES") {
         nextErrors.incubationUnitName = "";
         nextErrors.instituteGrantAmount = "";
       }
 
-      if (field.key === "angelInvestment" && value !== "Yes") {
+      if (field.key === "externalInnovationGrantReceived" && value !== "YES") {
+        nextErrors.externalGrantAmount = "";
+      }
+
+      if (field.key === "angelInvestment" && value !== "YES") {
         nextErrors.investmentAmount = "";
+      }
+
+      if (field.key === "recognitionAwardReceived" && value !== "YES") {
+        nextErrors.recognitionAwardDocument = "";
+      }
+
+      if (field.key === "annualTurnover50Lakhs" && value !== "YES") {
+        nextErrors.annualTurnoverDocument = "";
       }
 
       return nextErrors;
@@ -543,7 +602,7 @@ function BusinessDetails() {
 
     Object.entries(attachmentConditionalFields).forEach(
       ([fieldKey, dependencyKey]) => {
-        if (String(formValues[dependencyKey] ?? "") !== "Yes") {
+        if (String(formValues[dependencyKey] ?? "") !== "YES") {
           return;
         }
 
@@ -558,7 +617,7 @@ function BusinessDetails() {
 
         if (isMissing) {
           nextErrors[fieldKey] =
-            `${field.label} is mandatory when ${fieldsByKey[dependencyKey]?.label || dependencyKey} is Yes`;
+            `${field.label} is mandatory when ${fieldsByKey[dependencyKey]?.label || dependencyKey} is YES`;
         }
       },
     );
@@ -731,7 +790,7 @@ function BusinessDetails() {
       return true;
     }
 
-    return String(formValues[dependencyKey] ?? "") === "Yes";
+    return String(formValues[dependencyKey] ?? "") === "YES";
   };
 
   const isLastStep = currentStepIndex === structuredSections.length - 1;
