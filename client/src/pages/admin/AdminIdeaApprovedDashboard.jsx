@@ -298,10 +298,10 @@ export default function AdminIdeaApprovedDashboard() {
           <button
             type="button"
             onClick={handleResetFilters}
-            className="btn-secondary-custom"
+            className="btn-reset-custom"
             disabled={loading}
           >
-            Reset Filters
+            Reset
           </button>
         </div>
       </div>
@@ -314,11 +314,9 @@ export default function AdminIdeaApprovedDashboard() {
         </div>
 
         {!loading && filteredEvents.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
-            <p className="text-base text-gray-600 font-medium">
-              No ideas found.
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
+          <div className="empty-state">
+            <p className="empty-state-title">No Ideas Found</p>
+            <p className="empty-state-description">
               Try adjusting your filters.
             </p>
           </div>
@@ -337,10 +335,10 @@ export default function AdminIdeaApprovedDashboard() {
                   {eventItem.eventName || `Idea #${eventItem.id}`}
                 </h3>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize flex-shrink-0 ${
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize flex-shrink-0 border inline-flex items-center justify-center transition-all duration-200 ${
                     eventItem.status === "rejected"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-green-100 text-green-700"
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : "bg-green-50 text-green-700 border-green-200"
                   }`}
                 >
                   {eventItem.status || "approved"}
@@ -393,5 +391,3 @@ export default function AdminIdeaApprovedDashboard() {
     </section>
   );
 }
-
-

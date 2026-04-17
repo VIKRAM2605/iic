@@ -6,9 +6,9 @@ import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
 const statusBadgeClass = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  approved: "bg-green-50 text-green-700 border-green-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
 export default function AdminEventReview() {
@@ -18,7 +18,11 @@ export default function AdminEventReview() {
   const [statusFilter, setStatusFilter] = useState("");
   const [facultyFilter, setFacultyFilter] = useState("");
   const [loading, setLoading] = useState(false);
-  const [alertState, setAlertState] = useState({ isOpen: false, message: "", severity: "info" });
+  const [alertState, setAlertState] = useState({
+    isOpen: false,
+    message: "",
+    severity: "info",
+  });
 
   const loadQueue = async () => {
     setLoading(true);
@@ -41,19 +45,29 @@ export default function AdminEventReview() {
   }, [token]);
 
   const statusOptions = useMemo(() => {
-    return Array.from(new Set(events.map((eventItem) => eventItem.status).filter(Boolean)));
+    return Array.from(
+      new Set(events.map((eventItem) => eventItem.status).filter(Boolean)),
+    );
   }, [events]);
 
   const facultyOptions = useMemo(() => {
     const collected = new Set();
 
     events.forEach((eventItem) => {
-      [eventItem.ownerName, eventItem.faculty1, eventItem.faculty2, eventItem.faculty3, eventItem.facultyApplied]
+      [
+        eventItem.ownerName,
+        eventItem.faculty1,
+        eventItem.faculty2,
+        eventItem.faculty3,
+        eventItem.facultyApplied,
+      ]
         .filter(Boolean)
         .forEach((value) => collected.add(value));
     });
 
-    return Array.from(collected).sort((left, right) => left.localeCompare(right));
+    return Array.from(collected).sort((left, right) =>
+      left.localeCompare(right),
+    );
   }, [events]);
 
   const filteredEvents = useMemo(() => {
@@ -119,15 +133,36 @@ export default function AdminEventReview() {
         </div>
 
         <div className="flex items-end justify-end">
-          <span className="rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
-            {filteredEvents.length} events
+          <span className="badge-primary">
+            {filteredEvents.length} event
+            {filteredEvents.length !== 1 ? "s" : ""}
           </span>
         </div>
       </div>
 
       <div className="px-6 py-5">
         {!loading && filteredEvents.length === 0 && (
-          <div className="rounded-md border border-gray-200 p-6 text-center text-sm text-gray-500">No events in review queue.</div>
+          <div className="empty-state mx-auto max-w-md py-8">
+            <div className="empty-state-icon">
+              <svg
+                className="mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+            </div>
+            <p className="empty-state-title">No Events in Review Queue</p>
+            <p className="empty-state-description">
+              All pending events have been reviewed.
+            </p>
+          </div>
         )}
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -136,25 +171,39 @@ export default function AdminEventReview() {
               to={`/event/${eventItem.id}`}
               state={{ from: fromPath }}
               key={eventItem.id}
-              className="rounded-md border border-gray-200 bg-white p-4 transition-colors hover:border-primary"
+              className="card-custom group"
             >
               <div className="flex items-center justify-between gap-2">
-                <h3 className="line-clamp-1 text-base font-semibold text-gray-900">{eventItem.eventName || `Event #${eventItem.id}`}</h3>
+                <h3 className="line-clamp-1 text-base font-semibold text-slate-900 group-hover:text-primary transition-colors">
+                  {eventItem.eventName || `Event #${eventItem.id}`}
+                </h3>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                    statusBadgeClass[eventItem.status] || "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`${
+                    statusBadgeClass[eventItem.status] ||
+                    "bg-gray-100 text-gray-700 border-gray-200"
+                  } rounded-lg px-3 py-1.5 text-xs font-semibold capitalize border inline-flex items-center justify-center transition-all duration-200`}
                 >
                   {eventItem.status || "pending"}
                 </span>
               </div>
 
-              <p className="mt-3 line-clamp-3 text-sm text-gray-700">{eventItem.majorReason || "No major reason provided."}</p>
+              <p className="mt-3 line-clamp-3 text-sm text-gray-700">
+                {eventItem.majorReason || "No major reason provided."}
+              </p>
 
               <div className="mt-4 space-y-1 text-xs text-gray-600">
-                <p><span className="font-semibold">Owner:</span> {eventItem.ownerName || "-"}</p>
-                <p><span className="font-semibold">Quarter:</span> {eventItem.quarter || "-"}</p>
-                <p><span className="font-semibold">Rejection Msg:</span> {eventItem.rejectionMessage || "-"}</p>
+                <p>
+                  <span className="font-semibold">Owner:</span>{" "}
+                  {eventItem.ownerName || "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Quarter:</span>{" "}
+                  {eventItem.quarter || "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Rejection Msg:</span>{" "}
+                  {eventItem.rejectionMessage || "-"}
+                </p>
               </div>
             </Link>
           ))}
@@ -163,12 +212,12 @@ export default function AdminEventReview() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />
     </section>
   );
 }
-
-

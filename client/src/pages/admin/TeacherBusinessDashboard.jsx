@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CirclePlus } from "lucide-react";
+import { CirclePlus, RotateCcw } from "lucide-react";
 import { getFacultyMyBusinesses } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
@@ -47,14 +47,17 @@ export default function TeacherBusinessDashboard() {
 
   const quarterOptions = useMemo(
     () =>
-      Array.from(new Set(businesses.map((item) => item.quarter).filter(Boolean))).sort(
-        (left, right) => String(left).localeCompare(String(right)),
-      ),
+      Array.from(
+        new Set(businesses.map((item) => item.quarter).filter(Boolean)),
+      ).sort((left, right) => String(left).localeCompare(String(right))),
     [businesses],
   );
 
   const statusOptions = useMemo(
-    () => Array.from(new Set(businesses.map((item) => item.status).filter(Boolean))),
+    () =>
+      Array.from(
+        new Set(businesses.map((item) => item.status).filter(Boolean)),
+      ),
     [businesses],
   );
 
@@ -98,7 +101,7 @@ export default function TeacherBusinessDashboard() {
       </div>
 
       <div className="border-b border-gray-200 bg-white px-8 py-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <SearchableSelect
             label="Financial Year"
             value={quarterFilter}
@@ -115,36 +118,34 @@ export default function TeacherBusinessDashboard() {
             emptyLabel="All Statuses"
           />
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">Actions</label>
-            <button
-              type="button"
-              onClick={() => {
-                setQuarterFilter("");
-                setStatusFilter("");
-              }}
-              className="btn-secondary-custom"
-            >
-              Reset Filters
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">Results</label>
-            <span className="badge-primary mt-0.5">
-              {filteredBusinesses.length} business
-              {filteredBusinesses.length !== 1 ? "es" : ""}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setQuarterFilter("");
+              setStatusFilter("");
+            }}
+            className="btn-reset-custom self-end"
+            title="Reset filters"
+          >
+            <RotateCcw size={14} strokeWidth={2} />
+            <span>Reset</span>
+          </button>
         </div>
       </div>
 
       <div className="px-8 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <span className="badge-primary text-base">
+            {filteredBusinesses.length} business
+            {filteredBusinesses.length !== 1 ? "es" : ""}
+          </span>
+        </div>
+
         {!loading && filteredBusinesses.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
-            <p className="text-base font-medium text-gray-600">No businesses found.</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Try adjusting your filters or create a new business.
+          <div className="empty-state">
+            <p className="empty-state-title">No Businesses Found</p>
+            <p className="empty-state-description">
+              Try adjusting your filters.
             </p>
           </div>
         )}
@@ -182,7 +183,9 @@ export default function TeacherBusinessDashboard() {
                 <div className="flex justify-between">
                   <span className="font-semibold">Submitted:</span>
                   <span className="text-gray-700">
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "-"}
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleDateString()
+                      : "-"}
                   </span>
                 </div>
                 {item.rejectionMessage && (
@@ -201,7 +204,9 @@ export default function TeacherBusinessDashboard() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />
