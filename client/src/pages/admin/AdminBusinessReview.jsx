@@ -6,9 +6,9 @@ import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
 const statusBadgeClass = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  approved: "bg-green-50 text-green-700 border-green-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
 export default function AdminBusinessReview() {
@@ -45,15 +45,18 @@ export default function AdminBusinessReview() {
   }, [token]);
 
   const statusOptions = useMemo(
-    () => Array.from(new Set(businesses.map((item) => item.status).filter(Boolean))),
+    () =>
+      Array.from(
+        new Set(businesses.map((item) => item.status).filter(Boolean)),
+      ),
     [businesses],
   );
 
   const facultyOptions = useMemo(
     () =>
-      Array.from(new Set(businesses.map((item) => item.ownerName).filter(Boolean))).sort(
-        (left, right) => left.localeCompare(right),
-      ),
+      Array.from(
+        new Set(businesses.map((item) => item.ownerName).filter(Boolean)),
+      ).sort((left, right) => left.localeCompare(right)),
     [businesses],
   );
 
@@ -108,16 +111,35 @@ export default function AdminBusinessReview() {
         </div>
 
         <div className="flex items-end justify-end">
-          <span className="rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
-            {filteredBusinesses.length} businesses
+          <span className="badge-primary">
+            {filteredBusinesses.length} business
+            {filteredBusinesses.length !== 1 ? "es" : ""}
           </span>
         </div>
       </div>
 
       <div className="px-6 py-5">
         {!loading && filteredBusinesses.length === 0 && (
-          <div className="rounded-md border border-gray-200 p-6 text-center text-sm text-gray-500">
-            No businesses in review queue.
+          <div className="empty-state mx-auto max-w-md py-8">
+            <div className="empty-state-icon">
+              <svg
+                className="mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4 0h1m-1-4h1"
+                />
+              </svg>
+            </div>
+            <p className="empty-state-title">No Businesses in Review Queue</p>
+            <p className="empty-state-description">
+              All pending businesses have been reviewed.
+            </p>
           </div>
         )}
 
@@ -127,16 +149,17 @@ export default function AdminBusinessReview() {
               to={`/business/${item.id}`}
               state={{ from: fromPath }}
               key={item.id}
-              className="rounded-md border border-gray-200 bg-white p-4 transition-colors hover:border-primary"
+              className="card-custom group"
             >
               <div className="flex items-center justify-between gap-2">
-                <h3 className="line-clamp-1 text-base font-semibold text-gray-900">
+                <h3 className="line-clamp-1 text-base font-semibold text-slate-900 group-hover:text-primary transition-colors">
                   {item.eventName || `Business #${item.id}`}
                 </h3>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                    statusBadgeClass[item.status] || "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`${
+                    statusBadgeClass[item.status] ||
+                    "bg-gray-100 text-gray-700 border-gray-200"
+                  } rounded-lg px-3 py-1.5 text-xs font-semibold capitalize border inline-flex items-center justify-center transition-all duration-200`}
                 >
                   {item.status || "pending"}
                 </span>
@@ -147,9 +170,18 @@ export default function AdminBusinessReview() {
               </p>
 
               <div className="mt-4 space-y-1 text-xs text-gray-600">
-                <p><span className="font-semibold">Owner:</span> {item.ownerName || "-"}</p>
-                <p><span className="font-semibold">Financial Year:</span> {item.quarter || "-"}</p>
-                <p><span className="font-semibold">Rejection Msg:</span> {item.rejectionMessage || "-"}</p>
+                <p>
+                  <span className="font-semibold">Owner:</span>{" "}
+                  {item.ownerName || "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Financial Year:</span>{" "}
+                  {item.quarter || "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Rejection Msg:</span>{" "}
+                  {item.rejectionMessage || "-"}
+                </p>
               </div>
             </Link>
           ))}
@@ -158,7 +190,9 @@ export default function AdminBusinessReview() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />

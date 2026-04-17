@@ -6,9 +6,9 @@ import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
 const statusBadgeClass = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  approved: "bg-green-50 text-green-700 border-green-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
 export default function AdminPrototypeReview() {
@@ -119,15 +119,26 @@ export default function AdminPrototypeReview() {
         </div>
 
         <div className="flex items-end justify-end">
-          <span className="rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
-            {filteredEvents.length} prototypes
+          <span className="badge-primary">
+            {filteredEvents.length} prototype{filteredEvents.length !== 1 ? 's' : ''}
           </span>
         </div>
       </div>
 
       <div className="px-6 py-5">
         {!loading && filteredEvents.length === 0 && (
-          <div className="rounded-md border border-gray-200 p-6 text-center text-sm text-gray-500">No prototypes in review queue.</div>
+          <div className="empty-state mx-auto max-w-md py-8">
+            <div className="empty-state-icon">
+              <svg className="mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="empty-state-title">No Prototypes in Review Queue</p>
+            <p className="empty-state-description">
+              All pending prototypes have been reviewed.
+            </p>
+          </div>
+        )}
         )}
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -136,14 +147,14 @@ export default function AdminPrototypeReview() {
               to={`/prototype/${eventItem.id}`}
               state={{ from: fromPath }}
               key={eventItem.id}
-              className="rounded-md border border-gray-200 bg-white p-4 transition-colors hover:border-primary"
+              className="card-custom group"
             >
               <div className="flex items-center justify-between gap-2">
-                <h3 className="line-clamp-1 text-base font-semibold text-gray-900">{eventItem.eventName || `Prototype #${eventItem.id}`}</h3>
+                <h3 className="line-clamp-1 text-base font-semibold text-slate-900 group-hover:text-primary transition-colors">{eventItem.eventName || `Prototype #${eventItem.id}`}</h3>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                    statusBadgeClass[eventItem.status] || "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`${
+                    statusBadgeClass[eventItem.status] || "bg-gray-100 text-gray-700 border-gray-200"
+                  } rounded-lg px-3 py-1.5 text-xs font-semibold capitalize border inline-flex items-center justify-center transition-all duration-200`}
                 >
                   {eventItem.status || "pending"}
                 </span>

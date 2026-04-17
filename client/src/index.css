@@ -29,51 +29,99 @@
     @apply rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:border-gray-300 active:scale-95 active:bg-gray-100;
   }
 
+  .btn-reset-custom {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-primary-light hover:border-primary hover:text-primary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-light active:bg-primary-dim active:border-primary active:text-primary disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-reset-custom svg {
+    @apply text-gray-500 transition-colors duration-200;
+  }
+
+  .btn-reset-custom:hover svg {
+    @apply text-primary;
+  }
+
+  .btn-reset-custom:active svg {
+    @apply text-primary;
+  }
+
   .btn-ghost-custom {
     @apply rounded-lg px-4 py-2 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 active:bg-gray-200;
   }
 
   .card-custom {
-    @apply rounded-xl border border-gray-200 bg-white p-5;
-    box-shadow:
-      0 1px 3px 0 rgba(0, 0, 0, 0.1),
-      0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    @apply rounded-xl border border-gray-200 bg-white p-6;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+    transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(4px);
   }
 
   .card-custom:hover {
+    @apply border-primary/30;
     box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    border-color: rgb(125 83 246 / 20%);
+      0 8px 16px -2px rgba(125, 83, 246, 0.12),
+      0 4px 8px -1px rgba(0, 0, 0, 0.05);
+    transform: translateY(-4px);
   }
 
   .input-custom {
-    @apply w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary-light;
+    @apply w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary-light focus:shadow-md;
   }
 
   .input-custom:disabled {
-    @apply cursor-not-allowed bg-gray-50 text-gray-500 placeholder:text-gray-300;
+    @apply cursor-not-allowed bg-gray-50 text-gray-500 placeholder:text-gray-300 border-gray-200;
   }
 
   .select-custom {
-    @apply w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary-light appearance-none cursor-pointer;
+    @apply w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary-light focus:shadow-md appearance-none cursor-pointer;
   }
 
   .badge-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary;
+    @apply inline-flex items-center justify-center rounded-lg bg-gradient-to-br from-primary-light to-primary-light px-4 py-2 text-xs font-semibold text-primary border border-primary/20 backdrop-blur-sm;
+    box-shadow: 0 2px 8px rgba(125, 83, 246, 0.12);
+    transition: all 200ms ease-out;
+  }
+
+  .badge-primary:hover {
+    @apply border-primary/40;
+    box-shadow: 0 4px 12px rgba(125, 83, 246, 0.18);
+    transform: translateY(-1px);
   }
 
   .badge-success {
-    @apply inline-flex items-center justify-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700;
+    @apply inline-flex items-center justify-center rounded-lg bg-gradient-to-br from-green-50 to-green-50 px-4 py-2 text-xs font-semibold text-green-700 border border-green-200 backdrop-blur-sm;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+    transition: all 200ms ease-out;
+  }
+
+  .badge-success:hover {
+    @apply border-green-300;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.18);
+    transform: translateY(-1px);
   }
 
   .badge-error {
-    @apply inline-flex items-center justify-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700;
+    @apply inline-flex items-center justify-center rounded-lg bg-gradient-to-br from-red-50 to-red-50 px-4 py-2 text-xs font-semibold text-red-700 border border-red-200 backdrop-blur-sm;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.12);
+    transition: all 200ms ease-out;
+  }
+
+  .badge-error:hover {
+    @apply border-red-300;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.18);
+    transform: translateY(-1px);
   }
 
   .badge-warning {
-    @apply inline-flex items-center justify-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-600;
+    @apply inline-flex items-center justify-center rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-50 px-4 py-2 text-xs font-semibold text-yellow-700 border border-yellow-200 backdrop-blur-sm;
+    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.12);
+    transition: all 200ms ease-out;
+  }
+
+  .badge-warning:hover {
+    @apply border-yellow-300;
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.18);
+    transform: translateY(-1px);
   }
 
   .heading-2xl {
@@ -81,7 +129,7 @@
   }
 
   .heading-xl {
-    @apply text-2xl font-semibold text-slate-900 leading-tight;
+    @apply text-2xl font-bold text-slate-900 leading-tight;
   }
 
   .heading-lg {
@@ -102,6 +150,28 @@
 
   .text-small-muted {
     @apply text-xs text-gray-600;
+  }
+
+  .stats-section {
+    @apply rounded-xl border border-gray-200 bg-white px-6 py-5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 200ms ease-out;
+  }
+
+  .empty-state {
+    @apply rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center w-full my-6;
+  }
+
+  .empty-state-icon {
+    @apply mx-auto mb-4 h-16 w-16 text-gray-300 flex items-center justify-center;
+  }
+
+  .empty-state-title {
+    @apply text-lg font-semibold text-gray-700 mb-2;
+  }
+
+  .empty-state-description {
+    @apply text-sm text-gray-600;
   }
 
   .nav-link {

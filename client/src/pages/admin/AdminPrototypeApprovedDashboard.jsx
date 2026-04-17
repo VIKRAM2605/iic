@@ -300,10 +300,10 @@ export default function AdminPrototypeApprovedDashboard() {
           <button
             type="button"
             onClick={handleResetFilters}
-            className="btn-secondary-custom"
+            className="btn-reset-custom"
             disabled={loading}
           >
-            Reset Filters
+            Reset
           </button>
         </div>
       </div>
@@ -317,11 +317,24 @@ export default function AdminPrototypeApprovedDashboard() {
         </div>
 
         {!loading && filteredEvents.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
-            <p className="text-base text-gray-600 font-medium">
-              No prototypes found.
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg
+                className="mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <p className="empty-state-title">No Prototypes Found</p>
+            <p className="empty-state-description">
               Try adjusting your filters.
             </p>
           </div>
@@ -396,5 +409,3 @@ export default function AdminPrototypeApprovedDashboard() {
     </section>
   );
 }
-
-
