@@ -1,15 +1,15 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CirclePlus } from "lucide-react";
+import { CirclePlus, RotateCcw } from "lucide-react";
 import { getFacultyMyPrototypes } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
 const statusBadgeClass = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  approved: "bg-green-50 text-green-700 border-green-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
 const getEventDateLabel = (eventItem) => {
@@ -112,7 +112,7 @@ export default function TeacherPrototypesDashboard() {
       </div>
 
       <div className="border-b border-gray-200 bg-white px-8 py-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <SearchableSelect
             label="Quarter"
             value={quarterFilter}
@@ -129,39 +129,31 @@ export default function TeacherPrototypesDashboard() {
             emptyLabel="All Statuses"
           />
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">
-              Actions
-            </label>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="btn-secondary-custom"
-            >
-              Reset Filters
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-900">
-              Results
-            </label>
-            <span className="badge-primary mt-0.5">
-              {filteredEvents.length} prototype
-              {filteredEvents.length !== 1 ? "s" : ""}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="btn-reset-custom self-end"
+            title="Reset filters"
+          >
+            <RotateCcw size={14} strokeWidth={2} />
+            <span>Reset</span>
+          </button>
         </div>
       </div>
 
       <div className="px-8 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <span className="badge-primary text-base">
+            {filteredEvents.length} prototype
+            {filteredEvents.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
         {!loading && filteredEvents.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
-            <p className="text-base text-gray-600 font-medium">
-              No prototypes found.
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Try adjusting your filters or create a new prototype.
+          <div className="empty-state">
+            <p className="empty-state-title">No Prototypes Found</p>
+            <p className="empty-state-description">
+              Try adjusting your filters.
             </p>
           </div>
         )}
@@ -179,10 +171,10 @@ export default function TeacherPrototypesDashboard() {
                   {eventItem.eventName || `Prototype #${eventItem.id}`}
                 </h3>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize flex-shrink-0 ${
+                  className={`${
                     statusBadgeClass[eventItem.status] ||
-                    "bg-gray-100 text-gray-700"
-                  }`}
+                    "bg-gray-100 text-gray-700 border-gray-200"
+                  } rounded-lg px-3 py-1.5 text-xs font-semibold capitalize flex-shrink-0 border inline-flex items-center justify-center transition-all duration-200`}
                 >
                   {eventItem.status || "pending"}
                 </span>
@@ -230,5 +222,3 @@ export default function TeacherPrototypesDashboard() {
     </section>
   );
 }
-
-
