@@ -23,7 +23,7 @@ const businessFields = [
   },
   {
     key: "instituteName",
-    label: "Website of Startup",
+    label: "Website of Startup (if any)",
     type: "url",
     required: false,
   },
@@ -42,8 +42,22 @@ const businessFields = [
     ],
   },
   {
+    key: "smeRegisteredUnitGstNo",
+    label: "SME Registered Unit (Valid GST No.)",
+    type: "text",
+    required: true,
+  },
+  {
+    key: "gstCertificateCopy",
+    label: "GST Certificate Copy",
+    type: "file",
+    required: true,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
     key: "fyOfDevelopment",
-    label: "Financial Year of Development",
+    label: "Year of Establishment (FY) :",
     type: "select",
     required: true,
     options: [
@@ -56,6 +70,12 @@ const businessFields = [
       "2025-26",
       "2026-27",
     ],
+  },
+  {
+    key: "keyInnovation",
+    label: "Name a Key Innovation which is Core to the Startup / Venture",
+    type: "text",
+    required: true,
   },
   {
     key: "sectorDomain",
@@ -157,6 +177,211 @@ const businessFields = [
       "IRL 8: Pre-Commercial Demonstration",
       "IRL 9: Full Commercial Development",
     ],
+  },
+  {
+    key: "rpfYearOfEstablishment",
+    label: "Year of Establishment (FY)",
+    type: "select",
+    required: false,
+    options: [
+      "2019-20",
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26",
+      "2026-27",
+    ],
+  },
+  {
+    key: "rpfCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "rpfCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "rpfDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "rpfDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "rpfDpiitRecognition",
+    label: "Does your Startup/Venture Recognized by DPIIT, Startup India?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "rpfDpiitDocument",
+    label: "DPIIT Recognition Document",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "llpCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "llpCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "llpDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "llpDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "pvtYearOfEstablishment",
+    label: "Year of Establishment (FY)",
+    type: "select",
+    required: false,
+    options: [
+      "2019-20",
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26",
+      "2026-27",
+    ],
+  },
+  {
+    key: "pvtCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "pvtCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "pvtDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "pvtDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "pvtDpiitRecognition",
+    label: "Does your Startup/Venture Recognized by DPIIT, Startup India?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "pvtDpiitDocument",
+    label: "DPIIT Recognition Document",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "opcYearOfEstablishment",
+    label: "Year of Establishment (FY)",
+    type: "select",
+    required: false,
+    options: [
+      "2019-20",
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26",
+      "2026-27",
+    ],
+  },
+  {
+    key: "opcCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "opcCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "opcDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "opcDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "opcDpiitRecognition",
+    label: "Does your Startup/Venture Recognized by DPIIT, Startup India?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "opcDpiitDocument",
+    label: "DPIIT Recognition Document",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
   },
   {
     key: "problemRelevance",
@@ -299,11 +524,57 @@ const businessFields = [
 const displayStructure = [
   {
     section: "Business Details",
+    fields: ["innovationTitle", "instituteName"],
+  },
+  {
+    section: "Venture Details",
     fields: [
-      "innovationTitle",
-      "instituteName",
       "registrationType",
+      { type: "subsectionHeader", label: "2.A SME Registration & GST Details" },
       "fyOfDevelopment",
+      "smeRegisteredUnitGstNo",
+      "gstCertificateCopy",
+      { type: "subsectionHeader", label: "2.B Registered Partnership Firm" },
+      "rpfYearOfEstablishment",
+      "rpfCorporateIdentificationNo",
+      "rpfCinCopy",
+      "rpfDirectorIdentificationNo",
+      "rpfDinCopy",
+      "rpfDpiitRecognition",
+      "rpfDpiitDocument",
+      {
+        type: "subsectionHeader",
+        label: "2.C Limited Liability Partnership Firm (LLP)",
+      },
+      "llpCorporateIdentificationNo",
+      "llpCinCopy",
+      "llpDirectorIdentificationNo",
+      "llpDinCopy",
+      {
+        type: "subsectionHeader",
+        label: "2.D Private Limited Firm (Pvt. Ltd.)",
+      },
+      "pvtYearOfEstablishment",
+      "pvtCorporateIdentificationNo",
+      "pvtCinCopy",
+      "pvtDirectorIdentificationNo",
+      "pvtDinCopy",
+      "pvtDpiitRecognition",
+      "pvtDpiitDocument",
+      { type: "subsectionHeader", label: "2.E One Person Company (OPC)" },
+      "opcYearOfEstablishment",
+      "opcCorporateIdentificationNo",
+      "opcCinCopy",
+      "opcDirectorIdentificationNo",
+      "opcDinCopy",
+      "opcDpiitRecognition",
+      "opcDpiitDocument",
+    ],
+  },
+  {
+    section: "Innovation Profile",
+    fields: [
+      "keyInnovation",
       "sectorDomain",
       "developedAsPartOf",
       "innovationType",
@@ -350,6 +621,9 @@ const attachmentConditionalFields = {
   investmentAmount: "angelInvestment",
   recognitionAwardDocument: "recognitionAwardReceived",
   annualTurnoverDocument: "annualTurnover50Lakhs",
+  rpfDpiitDocument: "rpfDpiitRecognition",
+  pvtDpiitDocument: "pvtDpiitRecognition",
+  opcDpiitDocument: "opcDpiitRecognition",
 };
 
 function BusinessDetails() {
@@ -369,9 +643,23 @@ function BusinessDetails() {
     return displayStructure
       .map((section) => {
         const sectionFields = section.fields
-          .map((fieldKey) => fieldsByKey[fieldKey])
+          .map((fieldKeyOrObject) => {
+            if (
+              typeof fieldKeyOrObject === "object" &&
+              fieldKeyOrObject.type === "subsectionHeader"
+            ) {
+              return fieldKeyOrObject;
+            }
+            return fieldsByKey[fieldKeyOrObject];
+          })
           .filter(Boolean)
           .filter((field) => {
+            if (
+              typeof field === "object" &&
+              field.type === "subsectionHeader"
+            ) {
+              return true;
+            }
             if (renderedKeys.has(field.key)) {
               return false;
             }
@@ -436,6 +724,7 @@ function BusinessDetails() {
 
   const maxWordsByKey = {
     innovationTitle: 20,
+    keyInnovation: 20,
     problemRelevance: 100,
     solutionDescription: 100,
     uniquenessFeatures: 100,
@@ -544,6 +833,18 @@ function BusinessDetails() {
         nextValues.annualTurnoverDocument = null;
       }
 
+      if (field.key === "rpfDpiitRecognition" && value !== "YES") {
+        nextValues.rpfDpiitDocument = null;
+      }
+
+      if (field.key === "pvtDpiitRecognition" && value !== "YES") {
+        nextValues.pvtDpiitDocument = null;
+      }
+
+      if (field.key === "opcDpiitRecognition" && value !== "YES") {
+        nextValues.opcDpiitDocument = null;
+      }
+
       return nextValues;
     });
 
@@ -573,6 +874,18 @@ function BusinessDetails() {
 
       if (field.key === "annualTurnover50Lakhs" && value !== "YES") {
         nextErrors.annualTurnoverDocument = "";
+      }
+
+      if (field.key === "rpfDpiitRecognition" && value !== "YES") {
+        nextErrors.rpfDpiitDocument = "";
+      }
+
+      if (field.key === "pvtDpiitRecognition" && value !== "YES") {
+        nextErrors.pvtDpiitDocument = "";
+      }
+
+      if (field.key === "opcDpiitRecognition" && value !== "YES") {
+        nextErrors.opcDpiitDocument = "";
       }
 
       return nextErrors;
@@ -797,8 +1110,12 @@ function BusinessDetails() {
     </div>
   );
 
-  const shouldShowField = (fieldKey) => {
-    const dependencyKey = attachmentConditionalFields[fieldKey];
+  const shouldShowField = (fieldKeyOrObject) => {
+    if (typeof fieldKeyOrObject === "object") {
+      return true;
+    }
+
+    const dependencyKey = attachmentConditionalFields[fieldKeyOrObject];
     if (!dependencyKey) {
       return true;
     }
@@ -890,8 +1207,62 @@ function BusinessDetails() {
             </h2>
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {step.fields
-                .filter((field) => shouldShowField(field.key))
-                .map((field) => renderField(field))}
+                .filter((field) =>
+                  shouldShowField(
+                    typeof field === "object" &&
+                      field.type === "subsectionHeader"
+                      ? field
+                      : field.key
+                        ? field.key
+                        : null,
+                  ),
+                )
+                .map((field) => {
+                  if (
+                    typeof field === "object" &&
+                    field.type === "subsectionHeader"
+                  ) {
+                    // Extract section code (e.g., "2A" from "2.A SME Registration & GST Details")
+                    const sectionCode =
+                      field.label.match(/^\d+\.\w+/)?.[0]?.replace(".", "") ||
+                      "";
+                    const sectionTitle = field.label.replace(
+                      /^\d+\.\w+\s+/,
+                      "",
+                    );
+
+                    return (
+                      <div
+                        key={`subsection-${field.label}`}
+                        className="col-span-1 md:col-span-2 pt-6 pb-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="text-[#6c5ce7] font-bold text-xs flex-shrink-0"
+                            style={{ fontSize: "12px" }}
+                          >
+                            {sectionCode}
+                          </span>
+                          <span
+                            className="text-[#1a1a1a] font-semibold flex-shrink-0"
+                            style={{ fontSize: "14px" }}
+                          >
+                            {sectionTitle}
+                          </span>
+                          <div
+                            className="flex-1"
+                            style={{
+                              height: "1.5px",
+                              backgroundColor: "#6c5ce7",
+                              opacity: 0.2,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return renderField(field);
+                })}
             </div>
           </section>
         ))}
