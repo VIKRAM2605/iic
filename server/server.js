@@ -10,7 +10,6 @@ import multer from "multer";
 import eventDetailsRoutes from "./routes/eventDetailsRoutes.js";
 import ideaDetailsRoutes from "./routes/ideaDetailsRoutes.js";
 import prototypeDetailsRoutes from "./routes/prototypeDetailsRoutes.js";
-import businessDetailsRoutes from "./routes/businessDetailsRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import { runMigrations } from "./utils/runMigrations.js";
 
@@ -30,8 +29,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/event-details", eventDetailsRoutes);
 app.use("/api/idea-details", ideaDetailsRoutes);
 app.use("/api/prototype-details", prototypeDetailsRoutes);
-app.use("/api/business-details", businessDetailsRoutes);
-
 
 app.use((error, _request, response, _next) => {
   if (error instanceof multer.MulterError) {
