@@ -1,9 +1,18 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CirclePlus } from "lucide-react";
+import {
+  CirclePlus,
+  Search,
+  RotateCcw,
+  Eye,
+  Check,
+  X,
+  Download,
+} from "lucide-react";
 import {
   getAdminApprovedEvents,
   getAdminApprovedFilterOptions,
+  reviewEventByAdmin,
 } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
@@ -81,14 +90,14 @@ export default function AdminApprovedDashboard() {
   const location = useLocation();
 
   const [quarter, setQuarter] = useState("");
-  const [useSingleDate, setUseSingleDate] = useState(false);
-  const [date, setDate] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [facultyName, setFacultyName] = useState("");
+  const [activityName, setActivityName] = useState("");
+  const [searchTitle, setSearchTitle] = useState("");
   const [options, setOptions] = useState({ quarters: [], faculties: [] });
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
+  const [reviewingEventId, setReviewingEventId] = useState(null);
+  const [rejectionMessage, setRejectionMessage] = useState("");
+  const [processingReview, setProcessingReview] = useState(false);
   const [alertState, setAlertState] = useState({
     isOpen: false,
     message: "",
@@ -123,15 +132,11 @@ export default function AdminApprovedDashboard() {
     loadInitialData();
   }, [token]);
 
-  useEffect(() => {
-    if (useSingleDate) {
-      setFromDate("");
-      setToDate("");
-      return;
-    }
-
-    setDate("");
-  }, [useSingleDate]);
+  const activityOptions = useMemo(() => {
+    return Array.from(
+      new Set(events.map((item) => item.programActivityName).filter(Boolean)),
+    ).sort();
+  }, [events]);
 
   const filteredEvents = useMemo(() => {
     return events.filter((eventItem) => {
@@ -139,67 +144,157 @@ export default function AdminApprovedDashboard() {
         return false;
       }
 
-      if (facultyName) {
-        const facultyFields = [
-          eventItem.ownerName,
-          eventItem.faculty1,
-          eventItem.faculty2,
-          eventItem.faculty3,
-          eventItem.facultyApplied,
-        ]
-          .filter(Boolean)
-          .map((value) => String(value).toLowerCase());
+      if (activityName && eventItem.programActivityName !== activityName) {
+        return false;
+      }
 
+      if (searchTitle) {
+        const searchLower = searchTitle.toLowerCase();
+        const eventName = String(eventItem.eventName || "").toLowerCase();
+        const programName = String(
+          eventItem.programActivityName || "",
+        ).toLowerCase();
         if (
-          !facultyFields.some((value) =>
-            value.includes(facultyName.toLowerCase()),
-          )
+          !eventName.includes(searchLower) &&
+          !programName.includes(searchLower)
         ) {
-          return false;
-        }
-      }
-
-      const eventFrom = normalizeDate(eventItem.fromDate);
-      const eventTo = normalizeDate(eventItem.toDate) || eventFrom;
-
-      if (useSingleDate && date) {
-        const targetDate = normalizeDate(date);
-        if (
-          !targetDate ||
-          !eventFrom ||
-          !eventTo ||
-          targetDate < eventFrom ||
-          targetDate > eventTo
-        ) {
-          return false;
-        }
-      }
-
-      if (!useSingleDate && fromDate) {
-        const targetFromDate = normalizeDate(fromDate);
-        if (!targetFromDate || !eventTo || eventTo < targetFromDate) {
-          return false;
-        }
-      }
-
-      if (!useSingleDate && toDate) {
-        const targetToDate = normalizeDate(toDate);
-        if (!targetToDate || !eventFrom || eventFrom > targetToDate) {
           return false;
         }
       }
 
       return true;
     });
-  }, [events, quarter, useSingleDate, date, fromDate, toDate, facultyName]);
+  }, [events, quarter, activityName, searchTitle]);
 
   const handleResetFilters = () => {
     setQuarter("");
-    setUseSingleDate(false);
-    setDate("");
-    setFromDate("");
-    setToDate("");
-    setFacultyName("");
+    setActivityName("");
+    setSearchTitle("");
+  };
+
+  const handleReview = async (eventId, action) => {
+    if (!eventId) return;
+
+    setProcessingReview(true);
+    try {
+      const payload = await reviewEventByAdmin({
+        token,
+        eventId,
+        action,
+        rejectionMessage: action === "reject" ? rejectionMessage : "",
+      });
+
+      setAlertState({
+        isOpen: true,
+        message: payload.message || `Event ${action}d successfully.`,
+        severity: "success",
+      });
+
+      setEvents((previous) =>
+        previous.map((event) =>
+          event.id === eventId
+            ? {
+                ...event,
+                status: action === "approve" ? "approved" : "rejected",
+                rejectionMessage:
+                  action === "reject"
+                    ? rejectionMessage
+                    : event.rejectionMessage,
+              }
+            : event,
+        ),
+      );
+
+      setReviewingEventId(null);
+      setRejectionMessage("");
+    } catch (error) {
+      setAlertState({
+        isOpen: true,
+        message: error.message || "Failed to review event.",
+        severity: "error",
+      });
+    } finally {
+      setProcessingReview(false);
+    }
+  };
+
+  const handleDownloadReport = (eventItem) => {
+    try {
+      // Create PDF content as HTML
+      const pdfContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #5b21b6; margin-bottom: 20px; }
+            .section { margin-bottom: 20px; }
+            .label { font-weight: bold; color: #374151; }
+            .value { color: #4b5563; margin-top: 5px; }
+            hr { border: 1px solid #e5e7eb; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <h1>Event Report</h1>
+          <div class="section">
+            <div class="label">Event Name:</div>
+            <div class="value">${eventItem.eventName || "N/A"}</div>
+          </div>
+          <div class="section">
+            <div class="label">Activity Type:</div>
+            <div class="value">${eventItem.programActivityName || "N/A"}</div>
+          </div>
+          <div class="section">
+            <div class="label">Quarter:</div>
+            <div class="value">${eventItem.quarter || "N/A"}</div>
+          </div>
+          <div class="section">
+            <div class="label">From Date:</div>
+            <div class="value">${normalizeDate(eventItem.fromDate) || "N/A"}</div>
+          </div>
+          <div class="section">
+            <div class="label">To Date:</div>
+            <div class="value">${normalizeDate(eventItem.toDate) || "N/A"}</div>
+          </div>
+          <div class="section">
+            <div class="label">Status:</div>
+            <div class="value">${eventItem.status === "approved" ? "Approved" : eventItem.status === "rejected" ? "Rejected" : "Under Review"}</div>
+          </div>
+          <hr />
+          <div class="section">
+            <div class="label">Reviewer's Comment:</div>
+            <div class="value">${eventItem.rejectionMessage || "No comments"}</div>
+          </div>
+          <div class="section" style="margin-top: 30px; font-size: 12px; color: #9ca3af;">
+            <p>Generated on: ${new Date().toLocaleString()}</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Create blob and download
+      const blob = new Blob([pdfContent], { type: "text/html" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${eventItem.eventName || "Event"}_Report.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setAlertState({
+        isOpen: true,
+        message: "Report downloaded successfully.",
+        severity: "success",
+      });
+    } catch (error) {
+      setAlertState({
+        isOpen: true,
+        message: "Failed to download report.",
+        severity: "error",
+      });
+    }
   };
 
   const fromPath = `${location.pathname}${location.search}`;
@@ -226,83 +321,48 @@ export default function AdminApprovedDashboard() {
       </div>
 
       <div className="border-b border-gray-200 bg-white px-8 py-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
           <SearchableSelect
-            label="Quarter"
+            label=""
             value={quarter}
             onChange={setQuarter}
             options={options.quarters}
             emptyLabel="All Quarters"
           />
 
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-900">
-              Event Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              disabled={!useSingleDate}
-              className="input-custom"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-900">
-              From Date
-            </label>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(event) => setFromDate(event.target.value)}
-              disabled={useSingleDate}
-              className="input-custom"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-900">
-              To Date
-            </label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(event) => setToDate(event.target.value)}
-              disabled={useSingleDate}
-              className="input-custom"
-            />
-          </div>
-
           <SearchableSelect
-            label="Faculty Name"
-            value={facultyName}
-            onChange={setFacultyName}
-            options={options.faculties}
-            emptyLabel="All Faculty"
+            label=""
+            value={activityName}
+            onChange={setActivityName}
+            options={activityOptions}
+            emptyLabel="All Activities"
           />
-        </div>
 
-        <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={useSingleDate}
-              onChange={(event) => setUseSingleDate(event.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary-light cursor-pointer"
-            />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-              Use exact date search (turns off From/To range)
-            </span>
-          </label>
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className="btn-reset-custom"
-            disabled={loading}
-          >
-            Reset
-          </button>
+          <div className="col-span-full md:col-span-2 flex items-end gap-3">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={searchTitle}
+                onChange={(e) => setSearchTitle(e.target.value)}
+                placeholder="Search by title..."
+                className="input-custom w-full"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-purple-300 bg-white hover:bg-purple-50 text-purple-600 rounded-lg transition-all duration-200 font-medium text-sm"
+              disabled={loading}
+              title="Reset filters"
+              style={{
+                borderColor: "#e9d5ff",
+                color: "#7c3aed",
+              }}
+            >
+              <RotateCcw size={18} />
+              <span>Reset</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -338,49 +398,262 @@ export default function AdminApprovedDashboard() {
           </div>
         )}
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filteredEvents.map((eventItem) => (
-            <Link
-              to={`/event/${eventItem.id}`}
-              state={{ from: fromPath }}
-              key={eventItem.id}
-              className="card-custom group"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-base font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
-                  {eventItem.eventName || `Event #${eventItem.id}`}
-                </h3>
-                <span className="badge-success flex-shrink-0">approved</span>
-              </div>
-
-              <p className="mt-3 text-sm text-gray-700 line-clamp-2">
-                {eventItem.majorReason || "No major reason provided."}
-              </p>
-
-              <div className="mt-5 space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-4">
-                <div className="flex justify-between">
-                  <span className="font-semibold">Quarter:</span>
-                  <span className="text-gray-700">
-                    {eventItem.quarter || "-"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Date:</span>
-                  <span className="text-gray-700">
-                    {getEventDateLabel(eventItem)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Duration:</span>
-                  <span className="text-gray-700">
-                    {getDurationLabel(eventItem)}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {filteredEvents.length > 0 && (
+          <div
+            className="overflow-x-auto rounded-xl bg-white"
+            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}
+          >
+            <table className="w-full border-collapse">
+              <thead>
+                <tr
+                  className="border-b border-purple-100"
+                  style={{ backgroundColor: "#f3f0ff" }}
+                >
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    S.No.
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Title of Activity
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Quarter
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Program Driven By
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    View Activity Details
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Current Status of Report Submission
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Reviewer's Comment
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Download Report
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((eventItem, index) => {
+                  const isEvenRow = index % 2 === 0;
+                  return (
+                    <tr
+                      key={eventItem.id}
+                      className={`border-b border-purple-100 transition-colors ${
+                        isEvenRow ? "bg-white" : "bg-gray-50"
+                      } hover:bg-purple-50`}
+                    >
+                      <td className="px-4 py-3.5 text-xs font-medium text-gray-600">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs">
+                        <p className="font-semibold text-gray-900">
+                          {eventItem.eventName || `Event #${eventItem.id}`}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-center text-xs font-medium text-gray-700">
+                        {eventItem.quarter || "-"}
+                      </td>
+                      <td className="px-4 py-3.5 text-center text-xs font-medium text-gray-700">
+                        {eventItem.programDrivenBy || "-"}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <Link
+                          to={`/event/${eventItem.id}`}
+                          state={{ from: fromPath }}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold text-xs transition-colors inline-block"
+                          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+                        >
+                          View Details
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <span
+                          className="inline-block px-3 py-1 rounded-full text-xs font-semibold"
+                          style={{
+                            backgroundColor:
+                              eventItem.status === "approved"
+                                ? "#ecfdf5"
+                                : eventItem.status === "rejected"
+                                  ? "#fff1f1"
+                                  : "#eff6ff",
+                            color:
+                              eventItem.status === "approved"
+                                ? "#16a34a"
+                                : eventItem.status === "rejected"
+                                  ? "#dc2626"
+                                  : "#2563eb",
+                          }}
+                        >
+                          {eventItem.status === "approved"
+                            ? "Approved"
+                            : eventItem.status === "rejected"
+                              ? "Rejected"
+                              : "Under Review"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-center text-xs text-gray-700">
+                        {eventItem.rejectionMessage || "NA"}
+                      </td>
+                      <td className="px-4 py-3.5 text-center text-xs text-gray-700">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadReport(eventItem)}
+                          className="inline-flex items-center justify-center w-9 h-9 rounded-full text-purple-600 transition-colors hover:bg-purple-100"
+                          title="Download report"
+                        >
+                          <Download size={18} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        {eventItem.status === "approved" ||
+                        eventItem.status === "rejected" ? (
+                          <span className="text-xs text-gray-600 font-semibold">
+                            NA
+                          </span>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleReview(eventItem.id, "approve")
+                              }
+                              disabled={processingReview}
+                              className="inline-flex items-center gap-1.5 font-semibold text-xs transition-all duration-200"
+                              style={{
+                                border: processingReview
+                                  ? "1.5px solid #16a34a"
+                                  : "1.5px solid #16a34a",
+                                color: processingReview ? "white" : "#16a34a",
+                                background: processingReview
+                                  ? "#16a34a"
+                                  : "transparent",
+                                borderRadius: "999px",
+                                padding: "6px 18px",
+                                fontSize: "13px",
+                                ...(processingReview
+                                  ? {
+                                      boxShadow:
+                                        "0 2px 8px rgba(22,163,74,0.25)",
+                                    }
+                                  : {}),
+                                cursor: processingReview
+                                  ? "default"
+                                  : "pointer",
+                                opacity: processingReview ? 1 : 1,
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!processingReview) {
+                                  e.target.style.backgroundColor = "#f0fdf4";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!processingReview) {
+                                  e.target.style.backgroundColor =
+                                    "transparent";
+                                }
+                              }}
+                            >
+                              <Check size={14} />
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReviewingEventId(eventItem.id)}
+                              disabled={processingReview}
+                              className="inline-flex items-center gap-1.5 font-semibold text-xs transition-all duration-200"
+                              style={{
+                                border: processingReview
+                                  ? "1.5px solid #dc2626"
+                                  : "1.5px solid #dc2626",
+                                color: processingReview ? "white" : "#dc2626",
+                                background: processingReview
+                                  ? "#dc2626"
+                                  : "transparent",
+                                borderRadius: "999px",
+                                padding: "6px 18px",
+                                fontSize: "13px",
+                                ...(processingReview
+                                  ? {
+                                      boxShadow:
+                                        "0 2px 8px rgba(220,38,38,0.25)",
+                                    }
+                                  : {}),
+                                cursor: processingReview
+                                  ? "default"
+                                  : "pointer",
+                                opacity: processingReview ? 1 : 1,
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!processingReview) {
+                                  e.target.style.backgroundColor = "#fff1f1";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!processingReview) {
+                                  e.target.style.backgroundColor =
+                                    "transparent";
+                                }
+                              }}
+                            >
+                              <X size={14} />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+      {reviewingEventId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-lg font-semibold mb-4">Review Action</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Please provide a rejection message (optional):
+            </p>
+            <textarea
+              value={rejectionMessage}
+              onChange={(e) => setRejectionMessage(e.target.value)}
+              rows={4}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-primary focus:outline-none mb-4"
+              placeholder="Optional rejection reason..."
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setReviewingEventId(null);
+                  setRejectionMessage("");
+                }}
+                disabled={processingReview}
+                className="px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-70"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleReview(reviewingEventId, "reject")}
+                disabled={processingReview}
+                className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded disabled:opacity-70"
+              >
+                {processingReview ? "Processing..." : "Confirm Rejection"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Alert
         isOpen={alertState.isOpen}
