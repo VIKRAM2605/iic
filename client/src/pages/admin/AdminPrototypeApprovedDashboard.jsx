@@ -2,7 +2,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { CirclePlus } from "lucide-react";
 import {
-  getAdminApprovedPrototypes,
+  getAdminPrototypeReviewQueue,
   getAdminApprovedPrototypeFilterOptions,
 } from "../../../config/api";
 import Alert from "../../components/Alert";
@@ -97,13 +97,20 @@ export default function AdminPrototypeApprovedDashboard() {
 
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!token) {
+        setAlertState({
+          isOpen: true,
+          message: "Authentication required. Please log in.",
+          severity: "error",
+        });
+        return;
+      }
+
       setLoading(true);
       try {
         const [eventsPayload, optionsPayload] = await Promise.all([
-          getAdminApprovedPrototypes({ token, includeRejected: true }),
-          getAdminApprovedPrototypeFilterOptions(token, {
-            includeRejected: true,
-          }),
+          getAdminPrototypeReviewQueue(token),
+          getAdminApprovedPrototypeFilterOptions(token),
         ]);
 
         setEvents(eventsPayload.data || []);

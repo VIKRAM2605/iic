@@ -72,7 +72,8 @@ export default function BusinessDetails() {
   const user = useMemo(() => getAuthUser(), []);
   const isAdmin = user?.roleName === "admin";
   const backTo =
-    typeof location.state?.from === "string" && location.state.from.startsWith("/")
+    typeof location.state?.from === "string" &&
+    location.state.from.startsWith("/")
       ? location.state.from
       : isAdmin
         ? "/admin/business-review"
@@ -90,7 +91,9 @@ export default function BusinessDetails() {
   });
 
   const detailStepProgress =
-    detailSteps.length > 1 ? (activeDetailStep / (detailSteps.length - 1)) * 100 : 0;
+    detailSteps.length > 1
+      ? (activeDetailStep / (detailSteps.length - 1)) * 100
+      : 0;
 
   useEffect(() => {
     const loadBusiness = async () => {
@@ -174,13 +177,17 @@ export default function BusinessDetails() {
   return (
     <section className="-m-6 min-h-full bg-white px-6 py-5">
       <div className="mb-4 flex items-center justify-between">
-        <Link to={backTo} className="text-sm font-medium text-primary hover:underline">
+        <Link
+          to={backTo}
+          className="text-sm font-medium text-primary hover:underline"
+        >
           Back
         </Link>
         {businessData?.status && (
           <span
             className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-              statusBadgeClass[businessData.status] || "bg-gray-100 text-gray-700"
+              statusBadgeClass[businessData.status] ||
+              "bg-gray-100 text-gray-700"
             }`}
           >
             {businessData.status}
@@ -201,18 +208,40 @@ export default function BusinessDetails() {
             </p>
 
             <div className="mt-4 grid gap-3 text-xs text-gray-700 md:grid-cols-2 xl:grid-cols-4">
-              <p><span className="font-semibold">Financial Year:</span> {businessData.quarter || "-"}</p>
-              <p><span className="font-semibold">Owner:</span> {businessData.ownerName || "-"}</p>
-              <p><span className="font-semibold">Email:</span> {businessData.ownerEmail || "-"}</p>
-              <p><span className="font-semibold">Submitted:</span> {businessData.createdAt ? new Date(businessData.createdAt).toLocaleString() : "-"}</p>
-              <p><span className="font-semibold">Reviewed By:</span> {businessData.reviewerName || "-"}</p>
-              <p><span className="font-semibold">Rejection Msg:</span> {businessData.rejectionMessage || "-"}</p>
+              <p>
+                <span className="font-semibold">Financial Year:</span>{" "}
+                {businessData.quarter || "-"}
+              </p>
+              <p>
+                <span className="font-semibold">Owner:</span>{" "}
+                {businessData.ownerName || "-"}
+              </p>
+              <p>
+                <span className="font-semibold">Email:</span>{" "}
+                {businessData.ownerEmail || "-"}
+              </p>
+              <p>
+                <span className="font-semibold">Submitted:</span>{" "}
+                {businessData.createdAt
+                  ? new Date(businessData.createdAt).toLocaleString()
+                  : "-"}
+              </p>
+              <p>
+                <span className="font-semibold">Reviewed By:</span>{" "}
+                {businessData.reviewerName || "-"}
+              </p>
+              <p>
+                <span className="font-semibold">Rejection Msg:</span>{" "}
+                {businessData.rejectionMessage || "-"}
+              </p>
             </div>
           </div>
 
           {isAdmin && (
             <div className="rounded-md border border-gray-200 p-5">
-              <h3 className="text-sm font-semibold text-gray-900">Review Action</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                Review Action
+              </h3>
               <textarea
                 value={rejectMessage}
                 onChange={(event) => setRejectMessage(event.target.value)}
@@ -242,14 +271,18 @@ export default function BusinessDetails() {
           )}
 
           <div className="rounded-md border border-gray-200 p-5">
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">Detailed Information</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-900">
+              Detailed Information
+            </h3>
 
             <div className="mb-4 overflow-x-auto">
               <div className="relative min-w-190 px-2 pb-1">
                 <div className="absolute left-8 right-8 top-4 h-0.5 bg-gray-300" />
                 <div
                   className="absolute left-8 top-4 h-0.5 bg-primary transition-all duration-200"
-                  style={{ width: `calc((100% - 4rem) * ${detailStepProgress / 100})` }}
+                  style={{
+                    width: `calc((100% - 4rem) * ${detailStepProgress / 100})`,
+                  }}
                 />
                 <div className="relative flex items-start justify-between gap-2">
                   {detailSteps.map((step, index) => {
@@ -274,7 +307,9 @@ export default function BusinessDetails() {
                         </span>
                         <span
                           className={`mt-2 text-xs ${
-                            isActiveStep ? "font-semibold text-primary" : "text-gray-600"
+                            isActiveStep
+                              ? "font-semibold text-primary"
+                              : "text-gray-600"
                           }`}
                         >
                           {step.label}
@@ -287,13 +322,17 @@ export default function BusinessDetails() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              {renderDetails(businessData[detailSteps[activeDetailStep]?.key] || {})}
+              {renderDetails(
+                businessData[detailSteps[activeDetailStep]?.key] || {},
+              )}
             </div>
 
             <div className="mt-4 flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => setActiveDetailStep((previous) => Math.max(0, previous - 1))}
+                onClick={() =>
+                  setActiveDetailStep((previous) => Math.max(0, previous - 1))
+                }
                 disabled={activeDetailStep === 0}
                 className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 disabled:opacity-50"
               >
@@ -304,7 +343,11 @@ export default function BusinessDetails() {
               </span>
               <button
                 type="button"
-                onClick={() => setActiveDetailStep((previous) => Math.min(detailSteps.length - 1, previous + 1))}
+                onClick={() =>
+                  setActiveDetailStep((previous) =>
+                    Math.min(detailSteps.length - 1, previous + 1),
+                  )
+                }
                 disabled={activeDetailStep === detailSteps.length - 1}
                 className="rounded bg-primary px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
               >
@@ -317,7 +360,9 @@ export default function BusinessDetails() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />

@@ -4,7 +4,8 @@ import { sendEmail } from "../utils/mail.js";
 
 const getBodyValue = (body, key) => String(body?.[key] ?? "").trim();
 
-const getBodyBoolean = (body, key) => String(body?.[key] ?? "").toLowerCase() === "true";
+const getBodyBoolean = (body, key) =>
+  String(body?.[key] ?? "").toLowerCase() === "true";
 
 const getBodyNumber = (body, key) => {
   const rawValue = String(body?.[key] ?? "").trim();
@@ -32,7 +33,11 @@ const getNumericUserId = (requestUserId) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const triggerReviewNotification = ({ eventRow, nextStatus, rejectionMessage }) => {
+const triggerReviewNotification = ({
+  eventRow,
+  nextStatus,
+  rejectionMessage,
+}) => {
   if (!eventRow?.owner_email) {
     return false;
   }
@@ -58,7 +63,10 @@ const triggerReviewNotification = ({ eventRow, nextStatus, rejectionMessage }) =
     subject,
     text: textParts.join("\n"),
   }).catch((error) => {
-    console.error("Failed to send review notification email:", error?.message || error);
+    console.error(
+      "Failed to send review notification email:",
+      error?.message || error,
+    );
   });
 
   return true;
@@ -85,6 +93,7 @@ const normalizeEventRow = (row) => ({
   faculty2: row.faculty_2,
   faculty3: row.faculty_3,
   facultyApplied: row.faculty_applied,
+  programDrivenBy: row.program_driven_by,
 });
 
 const baseEventSelect = `
@@ -108,7 +117,8 @@ const baseEventSelect = `
     COALESCE(ed.faculty->>'faculty1', '') AS faculty_1,
     COALESCE(ed.faculty->>'faculty2', '') AS faculty_2,
     COALESCE(ed.faculty->>'faculty3', '') AS faculty_3,
-    COALESCE(ed.bip_portal->>'facultyApplied', '') AS faculty_applied
+    COALESCE(ed.bip_portal->>'facultyApplied', '') AS faculty_applied,
+    COALESCE(ed.program_details->>'programDrivenBy', '') AS program_driven_by
   FROM event_details ed
   LEFT JOIN users owner
     ON owner.id = CASE
@@ -173,7 +183,9 @@ export async function createEventDetails(request, response, next) {
 
     const brochureProofFile = getUploadedFilePath(files, "brochureProofName");
     const brochureWithLogo =
-      getUploadedFilePath(files, "brochureWithLogo") || brochureProofFile || null;
+      getUploadedFilePath(files, "brochureWithLogo") ||
+      brochureProofFile ||
+      null;
 
     const attachments = {
       feedbackDescription: getUploadedFilePath(files, "feedbackDescription"),
@@ -185,11 +197,18 @@ export async function createEventDetails(request, response, next) {
       offlineEventProof2: getUploadedFilePath(files, "offlineEventProof2"),
       onlineEventProof1: getUploadedFilePath(files, "onlineEventProof1"),
       onlineEventProof2: getUploadedFilePath(files, "onlineEventProof2"),
-      sessionScheduleWithHeader: getUploadedFilePath(files, "sessionScheduleWithHeader"),
+      sessionScheduleWithHeader: getUploadedFilePath(
+        files,
+        "sessionScheduleWithHeader",
+      ),
       sessionSchedule: getUploadedFilePath(files, "sessionSchedule"),
       brochureWithLogo,
-      brochureProofName: brochureProofFile || getBodyValue(body, "brochureProofName"),
-      attendanceSheetWithHeader: getUploadedFilePath(files, "attendanceSheetWithHeader"),
+      brochureProofName:
+        brochureProofFile || getBodyValue(body, "brochureProofName"),
+      attendanceSheetWithHeader: getUploadedFilePath(
+        files,
+        "attendanceSheetWithHeader",
+      ),
       attendanceSheetName: getBodyValue(body, "attendanceSheetName"),
       uploadedReport: getUploadedFilePath(files, "uploadedReport"),
     };
@@ -261,14 +280,19 @@ export async function getApprovedEventsForAdmin(request, response, next) {
     const date = getQueryValue(request.query, "date");
     const fromDate = getQueryValue(request.query, "fromDate");
     const toDate = getQueryValue(request.query, "toDate");
-    const facultyName = getQueryValue(request.query, "facultyName").toLowerCase();
+    const facultyName = getQueryValue(
+      request.query,
+      "facultyName",
+    ).toLowerCase();
 
     const conditions = ["ed.status = 'approved'"];
     const params = [];
 
     if (quarter) {
       params.push(quarter);
-      conditions.push(`LOWER(COALESCE(ed.program_details->>'quarter', '')) = LOWER($${params.length})`);
+      conditions.push(
+        `LOWER(COALESCE(ed.program_details->>'quarter', '')) = LOWER($${params.length})`,
+      );
     }
 
     if (date) {
@@ -282,12 +306,16 @@ export async function getApprovedEventsForAdmin(request, response, next) {
     } else {
       if (fromDate) {
         params.push(fromDate);
-        conditions.push(`NULLIF(ed.duration_details->>'toDate', '')::date >= $${params.length}::date`);
+        conditions.push(
+          `NULLIF(ed.duration_details->>'toDate', '')::date >= $${params.length}::date`,
+        );
       }
 
       if (toDate) {
         params.push(toDate);
-        conditions.push(`NULLIF(ed.duration_details->>'fromDate', '')::date <= $${params.length}::date`);
+        conditions.push(
+          `NULLIF(ed.duration_details->>'fromDate', '')::date <= $${params.length}::date`,
+        );
       }
     }
 
@@ -311,7 +339,7 @@ export async function getApprovedEventsForAdmin(request, response, next) {
       `${baseEventSelect}
        WHERE ${conditions.join(" AND ")}
        ORDER BY ed.approved_at DESC NULLS LAST, ed.created_at DESC`,
-      params
+      params,
     );
 
     response.status(200).json({
@@ -323,7 +351,11 @@ export async function getApprovedEventsForAdmin(request, response, next) {
   }
 }
 
-export async function getApprovedEventFilterOptionsForAdmin(_request, response, next) {
+export async function getApprovedEventFilterOptionsForAdmin(
+  _request,
+  response,
+  next,
+) {
   try {
     const quarterRows = await db.unsafe(
       `
@@ -332,7 +364,7 @@ export async function getApprovedEventFilterOptionsForAdmin(_request, response, 
       WHERE ed.status = 'approved'
         AND TRIM(COALESCE(ed.program_details->>'quarter', '')) <> ''
       ORDER BY quarter
-      `
+      `,
     );
 
     const facultyRows = await db.unsafe(
@@ -359,7 +391,7 @@ export async function getApprovedEventFilterOptionsForAdmin(_request, response, 
       ) names
       WHERE name <> ''
       ORDER BY name
-      `
+      `,
     );
 
     response.status(200).json({
@@ -387,7 +419,7 @@ export async function getMyEventsForFaculty(request, response, next) {
       `${baseEventSelect}
        WHERE ed.user_id = $1
        ORDER BY ed.created_at DESC`,
-      [userId]
+      [userId],
     );
 
     response.status(200).json({
@@ -404,7 +436,7 @@ export async function getReviewQueueForAdmin(_request, response, next) {
     const events = await db.unsafe(
       `${baseEventSelect}
        WHERE ed.status IN ('pending', 'rejected')
-       ORDER BY CASE ed.status WHEN 'pending' THEN 0 ELSE 1 END, ed.created_at DESC`
+       ORDER BY CASE ed.status WHEN 'pending' THEN 0 ELSE 1 END, ed.created_at DESC`,
     );
 
     response.status(200).json({
@@ -457,7 +489,7 @@ export async function getEventById(request, response, next) {
       WHERE ed.id = $1
       LIMIT 1
       `,
-      [eventId]
+      [eventId],
     );
 
     const eventRow = eventRows[0];
@@ -468,7 +500,10 @@ export async function getEventById(request, response, next) {
 
     const requestRole = String(request.user?.role ?? "").toLowerCase();
     const requestUserId = String(request.user?.id ?? "").trim();
-    if (requestRole === "faculty" && requestUserId !== String(eventRow.user_id)) {
+    if (
+      requestRole === "faculty" &&
+      requestUserId !== String(eventRow.user_id)
+    ) {
       response.status(403).json({ message: "Forbidden" });
       return;
     }
@@ -508,8 +543,12 @@ export async function getEventById(request, response, next) {
 export async function reviewEventByAdmin(request, response, next) {
   try {
     const eventId = Number(request.params?.eventId);
-    const action = String(request.body?.action ?? "").trim().toLowerCase();
-    const rejectionMessage = String(request.body?.rejectionMessage ?? "").trim();
+    const action = String(request.body?.action ?? "")
+      .trim()
+      .toLowerCase();
+    const rejectionMessage = String(
+      request.body?.rejectionMessage ?? "",
+    ).trim();
 
     if (!Number.isFinite(eventId) || eventId <= 0) {
       response.status(400).json({ message: "Invalid event id." });
@@ -517,7 +556,9 @@ export async function reviewEventByAdmin(request, response, next) {
     }
 
     if (!["approve", "reject"].includes(action)) {
-      response.status(400).json({ message: "Action must be approve or reject." });
+      response
+        .status(400)
+        .json({ message: "Action must be approve or reject." });
       return;
     }
 
@@ -538,7 +579,7 @@ export async function reviewEventByAdmin(request, response, next) {
       WHERE ed.id = $1
       LIMIT 1
       `,
-      [eventId]
+      [eventId],
     );
 
     const eventRow = eventRows[0];
@@ -571,11 +612,15 @@ export async function reviewEventByAdmin(request, response, next) {
         adminUserId,
         eventId,
         nextIqacStatus,
-      ]
+      ],
     );
 
     const updatedEvent = updatedRows[0];
-    const emailQueued = triggerReviewNotification({ eventRow, nextStatus, rejectionMessage });
+    const emailQueued = triggerReviewNotification({
+      eventRow,
+      nextStatus,
+      rejectionMessage,
+    });
 
     response.status(200).json({
       message: `Event ${nextStatus} successfully.`,
