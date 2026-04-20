@@ -435,8 +435,8 @@ export async function getReviewQueueForAdmin(_request, response, next) {
   try {
     const events = await db.unsafe(
       `${baseEventSelect}
-       WHERE ed.status IN ('pending', 'rejected')
-       ORDER BY CASE ed.status WHEN 'pending' THEN 0 ELSE 1 END, ed.created_at DESC`,
+       WHERE ed.status IN ('pending', 'rejected', 'approved')
+       ORDER BY CASE ed.status WHEN 'pending' THEN 0 WHEN 'rejected' THEN 1 ELSE 2 END, ed.created_at DESC`,
     );
 
     response.status(200).json({
@@ -608,7 +608,7 @@ export async function reviewEventByAdmin(request, response, next) {
       `,
       [
         nextStatus,
-        nextStatus === "rejected" ? rejectionMessage || null : null,
+        rejectionMessage || null,
         adminUserId,
         eventId,
         nextIqacStatus,

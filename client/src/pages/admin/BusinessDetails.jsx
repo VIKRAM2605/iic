@@ -84,6 +84,7 @@ export default function BusinessDetails() {
   const [loading, setLoading] = useState(false);
   const [rejectMessage, setRejectMessage] = useState("");
   const [processingReview, setProcessingReview] = useState(false);
+  const [messageInitialized, setMessageInitialized] = useState(false);
   const [alertState, setAlertState] = useState({
     isOpen: false,
     message: "",
@@ -105,7 +106,10 @@ export default function BusinessDetails() {
       try {
         const payload = await getBusinessById({ token, businessId });
         setBusinessData(payload.data || null);
-        setRejectMessage(payload.data?.rejectionMessage || "");
+        if (!messageInitialized) {
+          setRejectMessage(payload.data?.rejectionMessage || "");
+          setMessageInitialized(true);
+        }
         setActiveDetailStep(0);
       } catch (error) {
         setAlertState({
@@ -132,7 +136,7 @@ export default function BusinessDetails() {
         token,
         businessId,
         action,
-        rejectionMessage: action === "reject" ? rejectMessage : "",
+        rejectionMessage: rejectMessage,
       });
 
       setAlertState({
@@ -159,9 +163,8 @@ export default function BusinessDetails() {
           rejectedAt: reviewData.rejected_at || previous.rejectedAt,
         };
       });
-
-      if (action === "approve") {
-        setRejectMessage("");
+      if (reviewData.rejection_message !== undefined) {
+        setRejectMessage(reviewData.rejection_message || "");
       }
     } catch (error) {
       setAlertState({
@@ -247,7 +250,7 @@ export default function BusinessDetails() {
                 onChange={(event) => setRejectMessage(event.target.value)}
                 rows={4}
                 className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                placeholder="Optional rejection message"
+                placeholder="Optional reviewer comment"
               />
               <div className="mt-4 flex items-center gap-2">
                 <button

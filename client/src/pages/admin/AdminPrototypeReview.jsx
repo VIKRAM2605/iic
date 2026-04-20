@@ -160,13 +160,19 @@ export default function AdminPrototypeReview() {
                 </span>
               </div>
 
-              <p className="mt-3 line-clamp-3 text-sm text-gray-700">{eventItem.majorReason || "No major reason provided."}</p>
+              <p className="mt-3 line-clamp-2 text-sm text-gray-700">{eventItem.majorReason || "No major reason provided."}</p>
 
-              <div className="mt-4 space-y-1 text-xs text-gray-600">
+              <div className="mt-4 space-y-2 text-xs text-gray-600">
                 <p><span className="font-semibold">Owner:</span> {eventItem.ownerName || "-"}</p>
                 <p><span className="font-semibold">Quarter:</span> {eventItem.quarter || "-"}</p>
-                <p><span className="font-semibold">Rejection Msg:</span> {eventItem.rejectionMessage || "-"}</p>
               </div>
+
+              {eventItem.rejectionMessage && (
+                <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-2">
+                  <p className="text-xs font-semibold text-amber-900 mb-1">Reviewer's Comment</p>
+                  <p className="line-clamp-2 text-xs text-amber-800">{eventItem.rejectionMessage}</p>
+                </div>
+              )}
             </Link>
           ))}
         </div>

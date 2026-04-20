@@ -22,7 +22,11 @@ const getNumericUserId = (requestUserId) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const businessUploadDirectory = path.join(process.cwd(), "uploads", "business-details");
+const businessUploadDirectory = path.join(
+  process.cwd(),
+  "uploads",
+  "business-details",
+);
 
 const getBusinessAttachmentPaths = (attachments) => {
   const attachmentValues = [
@@ -35,7 +39,8 @@ const getBusinessAttachmentPaths = (attachments) => {
 
   return attachmentValues.filter(
     (value) =>
-      typeof value === "string" && value.startsWith("/uploads/business-details/"),
+      typeof value === "string" &&
+      value.startsWith("/uploads/business-details/"),
   );
 };
 
@@ -60,7 +65,11 @@ const deleteBusinessAttachmentFiles = async (attachmentPaths = []) => {
   );
 };
 
-const triggerReviewNotification = ({ businessRow, nextStatus, rejectionMessage }) => {
+const triggerReviewNotification = ({
+  businessRow,
+  nextStatus,
+  rejectionMessage,
+}) => {
   if (!businessRow?.owner_email) {
     return false;
   }
@@ -86,7 +95,10 @@ const triggerReviewNotification = ({ businessRow, nextStatus, rejectionMessage }
     subject,
     text: textParts.join("\n"),
   }).catch((error) => {
-    console.error("Failed to send review notification email:", error?.message || error);
+    console.error(
+      "Failed to send review notification email:",
+      error?.message || error,
+    );
   });
 
   return true;
@@ -182,8 +194,14 @@ export async function createBusinessDetails(request, response, next) {
 
     const attachments = {
       ipPatentDocument: getUploadedFilePath(files, "ipPatentDocument"),
-      recognitionAwardDocument: getUploadedFilePath(files, "recognitionAwardDocument"),
-      annualTurnoverDocument: getUploadedFilePath(files, "annualTurnoverDocument"),
+      recognitionAwardDocument: getUploadedFilePath(
+        files,
+        "recognitionAwardDocument",
+      ),
+      annualTurnoverDocument: getUploadedFilePath(
+        files,
+        "annualTurnoverDocument",
+      ),
       innovationVideoUrl: getBodyValue(body, "innovationVideoUrl"),
       innovationPhotograph: getUploadedFilePath(files, "innovationPhotograph"),
     };
@@ -221,12 +239,17 @@ export async function getApprovedBusinessesForAdmin(request, response, next) {
     const date = getQueryValue(request.query, "date");
     const fromDate = getQueryValue(request.query, "fromDate");
     const toDate = getQueryValue(request.query, "toDate");
-    const facultyName = getQueryValue(request.query, "facultyName").toLowerCase();
+    const facultyName = getQueryValue(
+      request.query,
+      "facultyName",
+    ).toLowerCase();
     const includeRejected =
       getQueryValue(request.query, "includeRejected").toLowerCase() === "true";
 
     const conditions = [
-      includeRejected ? "bd.status IN ('approved', 'rejected')" : "bd.status = 'approved'",
+      includeRejected
+        ? "bd.status IN ('approved', 'rejected')"
+        : "bd.status = 'approved'",
     ];
     const params = [];
 
@@ -276,11 +299,17 @@ export async function getApprovedBusinessesForAdmin(request, response, next) {
   }
 }
 
-export async function getApprovedBusinessFilterOptionsForAdmin(request, response, next) {
+export async function getApprovedBusinessFilterOptionsForAdmin(
+  request,
+  response,
+  next,
+) {
   try {
     const includeRejected =
       getQueryValue(request.query, "includeRejected").toLowerCase() === "true";
-    const statusFilter = includeRejected ? "IN ('approved', 'rejected')" : "= 'approved'";
+    const statusFilter = includeRejected
+      ? "IN ('approved', 'rejected')"
+      : "= 'approved'";
 
     const quarterRows = await db.unsafe(
       `
@@ -351,8 +380,8 @@ export async function getReviewQueueForAdmin(request, response, next) {
   try {
     const businesses = await db.unsafe(
       `${baseBusinessSelect}
-       WHERE bd.status IN ('pending', 'rejected')
-       ORDER BY CASE bd.status WHEN 'pending' THEN 0 ELSE 1 END, bd.created_at DESC`,
+       WHERE bd.status IN ('pending', 'rejected', 'approved')
+       ORDER BY CASE bd.status WHEN 'pending' THEN 0 WHEN 'rejected' THEN 1 ELSE 2 END, bd.created_at DESC`,
     );
 
     response.status(200).json({
@@ -412,7 +441,10 @@ export async function getBusinessById(request, response, next) {
 
     const requestRole = String(request.user?.role ?? "").toLowerCase();
     const requestUserId = String(request.user?.id ?? "").trim();
-    if (requestRole === "faculty" && requestUserId !== String(businessRow.user_id)) {
+    if (
+      requestRole === "faculty" &&
+      requestUserId !== String(businessRow.user_id)
+    ) {
       response.status(403).json({ message: "Forbidden" });
       return;
     }
@@ -448,8 +480,12 @@ export async function getBusinessById(request, response, next) {
 export async function reviewBusinessByAdmin(request, response, next) {
   try {
     const businessId = Number(request.params?.businessId);
-    const action = String(request.body?.action ?? "").trim().toLowerCase();
-    const rejectionMessage = String(request.body?.rejectionMessage ?? "").trim();
+    const action = String(request.body?.action ?? "")
+      .trim()
+      .toLowerCase();
+    const rejectionMessage = String(
+      request.body?.rejectionMessage ?? "",
+    ).trim();
 
     if (!Number.isFinite(businessId) || businessId <= 0) {
       response.status(400).json({ message: "Invalid business id." });
@@ -457,7 +493,9 @@ export async function reviewBusinessByAdmin(request, response, next) {
     }
 
     if (!["approve", "reject"].includes(action)) {
-      response.status(400).json({ message: "Action must be approve or reject." });
+      response
+        .status(400)
+        .json({ message: "Action must be approve or reject." });
       return;
     }
 
@@ -502,12 +540,7 @@ export async function reviewBusinessByAdmin(request, response, next) {
       WHERE id = $4
       RETURNING id, status, rejection_message, reviewed_at, approved_at, rejected_at
       `,
-      [
-        nextStatus,
-        nextStatus === "rejected" ? rejectionMessage || null : null,
-        adminUserId,
-        businessId,
-      ],
+      [nextStatus, rejectionMessage || null, adminUserId, businessId],
     );
 
     const updatedBusiness = updatedRows[0];
@@ -568,7 +601,9 @@ export async function deleteBusinessByAdmin(request, response, next) {
       WHERE id = ${businessId}
     `;
 
-    await deleteBusinessAttachmentFiles(getBusinessAttachmentPaths(businessRow.attachments));
+    await deleteBusinessAttachmentFiles(
+      getBusinessAttachmentPaths(businessRow.attachments),
+    );
 
     response.status(200).json({
       message: "Business deleted successfully.",

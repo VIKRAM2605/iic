@@ -165,11 +165,11 @@ export default function AdminBusinessReview() {
                 </span>
               </div>
 
-              <p className="mt-3 line-clamp-3 text-sm text-gray-700">
+              <p className="mt-3 line-clamp-2 text-sm text-gray-700">
                 {item.majorReason || "No major reason provided."}
               </p>
 
-              <div className="mt-4 space-y-1 text-xs text-gray-600">
+              <div className="mt-4 space-y-2 text-xs text-gray-600">
                 <p>
                   <span className="font-semibold">Owner:</span>{" "}
                   {item.ownerName || "-"}
@@ -178,11 +178,18 @@ export default function AdminBusinessReview() {
                   <span className="font-semibold">Financial Year:</span>{" "}
                   {item.quarter || "-"}
                 </p>
-                <p>
-                  <span className="font-semibold">Rejection Msg:</span>{" "}
-                  {item.rejectionMessage || "-"}
-                </p>
               </div>
+
+              {item.rejectionMessage && (
+                <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-2">
+                  <p className="text-xs font-semibold text-amber-900 mb-1">
+                    Reviewer's Comment
+                  </p>
+                  <p className="line-clamp-2 text-xs text-amber-800">
+                    {item.rejectionMessage}
+                  </p>
+                </div>
+              )}
             </Link>
           ))}
         </div>

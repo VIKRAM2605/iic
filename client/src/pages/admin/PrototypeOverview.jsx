@@ -170,7 +170,10 @@ export default function PrototypeOverview() {
     try {
       const payload = await getPrototypeById({ token, prototypeId });
       setEventData(payload.data || null);
-      setRejectMessage(payload.data?.rejectionMessage || "");
+      if (!messageInitialized) {
+        setRejectMessage(payload.data?.rejectionMessage || "");
+        setMessageInitialized(true);
+      }
       setActiveDetailStep(0);
     } catch (error) {
       setAlertState({
@@ -198,7 +201,7 @@ export default function PrototypeOverview() {
         token,
         prototypeId,
         action,
-        rejectionMessage: action === "reject" ? rejectMessage : "",
+        rejectionMessage: rejectMessage,
       });
 
       setAlertState({
@@ -225,9 +228,8 @@ export default function PrototypeOverview() {
           rejectedAt: reviewData.rejected_at || previous.rejectedAt,
         };
       });
-
-      if (action === "approve") {
-        setRejectMessage("");
+      if (reviewData.rejection_message !== undefined) {
+        setRejectMessage(reviewData.rejection_message || "");
       }
     } catch (error) {
       setAlertState({
@@ -310,7 +312,7 @@ export default function PrototypeOverview() {
                 onChange={(event) => setRejectMessage(event.target.value)}
                 rows={4}
                 className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                placeholder="Optional rejection message"
+                placeholder="Optional reviewer comment"
               />
               <div className="mt-4 flex items-center gap-2">
                 <button
