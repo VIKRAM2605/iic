@@ -10,13 +10,13 @@ import {
   Download,
 } from "lucide-react";
 import {
-  getAdminApprovedEvents,
+  getAdminReviewQueue,
   getAdminApprovedFilterOptions,
   reviewEventByAdmin,
 } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
-import { getAuthToken } from "../../utils/auth";
+import { getAuthToken, getAuthUser } from "../../utils/auth";
 
 const normalizeDate = (rawValue) => {
   const value = String(rawValue || "").trim();
@@ -87,6 +87,8 @@ const getDurationLabel = (eventItem) => {
 
 export default function AdminApprovedDashboard() {
   const token = useMemo(() => getAuthToken(), []);
+  const user = useMemo(() => getAuthUser(), []);
+  const isAdmin = user?.roleName === "admin";
   const location = useLocation();
 
   const [quarter, setQuarter] = useState("");
@@ -95,9 +97,13 @@ export default function AdminApprovedDashboard() {
   const [options, setOptions] = useState({ quarters: [], faculties: [] });
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
-  const [reviewingEventId, setReviewingEventId] = useState(null);
-  const [rejectionMessage, setRejectionMessage] = useState("");
+  const [rejectionMessages, setRejectionMessages] = useState({});
   const [processingReview, setProcessingReview] = useState(false);
+  const [actionModalData, setActionModalData] = useState({
+    eventId: null,
+    action: null, // "approve" or "reject"
+    message: "",
+  });
   const [alertState, setAlertState] = useState({
     isOpen: false,
     message: "",
@@ -106,16 +112,25 @@ export default function AdminApprovedDashboard() {
 
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!token) {
+        setAlertState({
+          isOpen: true,
+          message: "Authentication required. Please log in.",
+          severity: "error",
+        });
+        return;
+      }
+
       setLoading(true);
       try {
         const [eventsPayload, optionsPayload] = await Promise.all([
-          getAdminApprovedEvents({ token }),
+          getAdminReviewQueue(token),
           getAdminApprovedFilterOptions(token),
         ]);
 
         setEvents(eventsPayload.data || []);
         setOptions({
-          quarters: optionsPayload.data?.quarters || [],
+          quarters: [],
           faculties: optionsPayload.data?.faculties || [],
         });
       } catch (error) {
@@ -134,37 +149,54 @@ export default function AdminApprovedDashboard() {
 
   const activityOptions = useMemo(() => {
     return Array.from(
-      new Set(events.map((item) => item.programActivityName).filter(Boolean)),
+      new Set(events.map((item) => item.programDrivenBy).filter(Boolean)),
+    ).sort();
+  }, [events]);
+
+  const quarterOptions = useMemo(() => {
+    return Array.from(
+      new Set(events.map((item) => item.quarter).filter(Boolean)),
     ).sort();
   }, [events]);
 
   const filteredEvents = useMemo(() => {
-    return events.filter((eventItem) => {
-      if (quarter && String(eventItem.quarter || "") !== quarter) {
-        return false;
-      }
-
-      if (activityName && eventItem.programActivityName !== activityName) {
-        return false;
-      }
-
-      if (searchTitle) {
-        const searchLower = searchTitle.toLowerCase();
-        const eventName = String(eventItem.eventName || "").toLowerCase();
-        const programName = String(
-          eventItem.programActivityName || "",
-        ).toLowerCase();
-        if (
-          !eventName.includes(searchLower) &&
-          !programName.includes(searchLower)
-        ) {
+    return events
+      .filter((eventItem) => {
+        // Faculty can only see their own events
+        if (!isAdmin && eventItem.ownerId !== user?.id) {
           return false;
         }
-      }
 
-      return true;
-    });
-  }, [events, quarter, activityName, searchTitle]);
+        if (quarter && String(eventItem.quarter || "") !== quarter) {
+          return false;
+        }
+
+        if (activityName && eventItem.programDrivenBy !== activityName) {
+          return false;
+        }
+
+        if (searchTitle) {
+          const searchLower = searchTitle.toLowerCase();
+          const eventName = String(eventItem.eventName || "").toLowerCase();
+          const programName = String(
+            eventItem.programActivityName || "",
+          ).toLowerCase();
+          if (
+            !eventName.includes(searchLower) &&
+            !programName.includes(searchLower)
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        // Sort by status: pending first, then approved, then rejected
+        const statusOrder = { pending: 0, approved: 1, rejected: 2 };
+        return (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3);
+      });
+  }, [events, quarter, activityName, searchTitle, isAdmin, user?.id]);
 
   const handleResetFilters = () => {
     setQuarter("");
@@ -172,8 +204,17 @@ export default function AdminApprovedDashboard() {
     setSearchTitle("");
   };
 
-  const handleReview = async (eventId, action) => {
-    if (!eventId) return;
+  const handleActionClick = (eventId, action) => {
+    setActionModalData({
+      eventId,
+      action,
+      message: "",
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    const { eventId, action, message } = actionModalData;
+    if (!eventId || !action) return;
 
     setProcessingReview(true);
     try {
@@ -181,7 +222,8 @@ export default function AdminApprovedDashboard() {
         token,
         eventId,
         action,
-        rejectionMessage: action === "reject" ? rejectionMessage : "",
+        rejectionMessage: action === "reject" ? message : "",
+        approverComment: action === "approve" ? message : "",
       });
 
       setAlertState({
@@ -197,16 +239,21 @@ export default function AdminApprovedDashboard() {
                 ...event,
                 status: action === "approve" ? "approved" : "rejected",
                 rejectionMessage:
-                  action === "reject"
-                    ? rejectionMessage
-                    : event.rejectionMessage,
+                  action === "reject" ? message : event.rejectionMessage,
+                approverComment:
+                  action === "approve" ? message : event.approverComment,
               }
             : event,
         ),
       );
 
-      setReviewingEventId(null);
-      setRejectionMessage("");
+      setRejectionMessages((prev) => {
+        const updated = { ...prev };
+        delete updated[eventId];
+        return updated;
+      });
+
+      setActionModalData({ eventId: null, action: null, message: "" });
     } catch (error) {
       setAlertState({
         isOpen: true,
@@ -216,6 +263,22 @@ export default function AdminApprovedDashboard() {
     } finally {
       setProcessingReview(false);
     }
+  };
+
+  const handleRejectClick = (eventId) => {
+    setActionModalData({
+      eventId,
+      action: "reject",
+      message: "",
+    });
+  };
+
+  const handleConfirmReject = async (eventId) => {
+    handleConfirmAction();
+  };
+
+  const handleReview = (eventId, action) => {
+    handleActionClick(eventId, action);
   };
 
   const handleDownloadReport = (eventItem) => {
@@ -326,7 +389,7 @@ export default function AdminApprovedDashboard() {
             label=""
             value={quarter}
             onChange={setQuarter}
-            options={options.quarters}
+            options={quarterOptions}
             emptyLabel="All Quarters"
           />
 
@@ -367,12 +430,32 @@ export default function AdminApprovedDashboard() {
       </div>
 
       <div className="px-8 py-8">
+        {alertState.isOpen && alertState.severity === "error" && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">
+              <span className="font-semibold">Error:</span> {alertState.message}
+            </p>
+          </div>
+        )}
+
         <div className="mb-6 flex items-center justify-between">
           <span className="badge-primary text-base">
-            {filteredEvents.length} event
-            {filteredEvents.length !== 1 ? "s" : ""}
+            {loading ? "Loading..." : filteredEvents.length} event
+            {!loading && filteredEvents.length !== 1 ? "s" : ""}
           </span>
+          {!loading && (
+            <span className="text-xs text-gray-600">
+              Total: {events.length} | Quarters: {quarterOptions.length} |
+              Activities: {activityOptions.length}
+            </span>
+          )}
         </div>
+
+        {loading && (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Loading events...</p>
+          </div>
+        )}
 
         {!loading && filteredEvents.length === 0 && (
           <div className="empty-state">
@@ -433,9 +516,11 @@ export default function AdminApprovedDashboard() {
                   <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
                     Download Report
                   </th>
-                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
-                    Action
-                  </th>
+                  {isAdmin && (
+                    <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                      Action
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -453,7 +538,9 @@ export default function AdminApprovedDashboard() {
                       </td>
                       <td className="px-4 py-3.5 text-xs">
                         <p className="font-semibold text-gray-900">
-                          {eventItem.eventName || `Event #${eventItem.id}`}
+                          {(
+                            eventItem.eventName || `Event #${eventItem.id}`
+                          ).toUpperCase()}
                         </p>
                       </td>
                       <td className="px-4 py-3.5 text-center text-xs font-medium text-gray-700">
@@ -498,7 +585,13 @@ export default function AdminApprovedDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-center text-xs text-gray-700">
-                        {eventItem.rejectionMessage || "NA"}
+                        <span className="text-xs text-gray-600 font-semibold">
+                          {eventItem.status === "approved"
+                            ? eventItem.approverComment || "-"
+                            : eventItem.status === "rejected"
+                              ? eventItem.rejectionMessage || "-"
+                              : "-"}
+                        </span>
                       </td>
                       <td className="px-4 py-3.5 text-center text-xs text-gray-700">
                         <button
@@ -510,13 +603,8 @@ export default function AdminApprovedDashboard() {
                           <Download size={18} />
                         </button>
                       </td>
-                      <td className="px-4 py-3.5 text-center">
-                        {eventItem.status === "approved" ||
-                        eventItem.status === "rejected" ? (
-                          <span className="text-xs text-gray-600 font-semibold">
-                            NA
-                          </span>
-                        ) : (
+                      {isAdmin && (
+                        <td className="px-4 py-3.5 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
@@ -564,7 +652,9 @@ export default function AdminApprovedDashboard() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => setReviewingEventId(eventItem.id)}
+                              onClick={() =>
+                                handleReview(eventItem.id, "reject")
+                              }
                               disabled={processingReview}
                               className="inline-flex items-center gap-1.5 font-semibold text-xs transition-all duration-200"
                               style={{
@@ -605,8 +695,8 @@ export default function AdminApprovedDashboard() {
                               Reject
                             </button>
                           </div>
-                        )}
-                      </td>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
@@ -616,39 +706,67 @@ export default function AdminApprovedDashboard() {
         )}
       </div>
 
-      {reviewingEventId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-lg font-semibold mb-4">Review Action</h2>
+      {actionModalData.eventId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-md rounded-lg bg-white p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              {actionModalData.action === "approve"
+                ? "Add Reviewer's Comment"
+                : "Confirm Rejection"}
+            </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Please provide a rejection message (optional):
+              {actionModalData.action === "approve"
+                ? "Enter your reviewer's comment for this event."
+                : "Please enter your rejection reason for this event."}
             </p>
             <textarea
-              value={rejectionMessage}
-              onChange={(e) => setRejectionMessage(e.target.value)}
+              value={actionModalData.message}
+              onChange={(e) =>
+                setActionModalData((prev) => ({
+                  ...prev,
+                  message: e.target.value,
+                }))
+              }
               rows={4}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-primary focus:outline-none mb-4"
-              placeholder="Optional rejection reason..."
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-purple-600 focus:outline-none mb-4"
+              placeholder={
+                actionModalData.action === "approve"
+                  ? "Enter your reviewer's comment..."
+                  : "Enter your rejection reason..."
+              }
             />
-            <div className="flex gap-3 justify-end">
+            <div className="flex items-center gap-3 justify-end">
               <button
                 type="button"
-                onClick={() => {
-                  setReviewingEventId(null);
-                  setRejectionMessage("");
-                }}
+                onClick={() =>
+                  setActionModalData({
+                    eventId: null,
+                    action: null,
+                    message: "",
+                  })
+                }
                 disabled={processingReview}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-70"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-70"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={() => handleReview(reviewingEventId, "reject")}
+                onClick={handleConfirmAction}
                 disabled={processingReview}
-                className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded disabled:opacity-70"
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-70 ${
+                  actionModalData.action === "approve"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
               >
-                {processingReview ? "Processing..." : "Confirm Rejection"}
+                {processingReview
+                  ? actionModalData.action === "approve"
+                    ? "Approving..."
+                    : "Rejecting..."
+                  : actionModalData.action === "approve"
+                    ? "Confirm Approval"
+                    : "Confirm Rejection"}
               </button>
             </div>
           </div>

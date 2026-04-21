@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CirclePlus } from "lucide-react";
 import {
-  getAdminApprovedBusinesses,
+  getAdminBusinessReviewQueue,
   getAdminApprovedBusinessFilterOptions,
 } from "../../../config/api";
 import Alert from "../../components/Alert";
@@ -52,13 +52,20 @@ export default function AdminBusinessApprovedDashboard() {
 
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!token) {
+        setAlertState({
+          isOpen: true,
+          message: "Authentication required. Please log in.",
+          severity: "error",
+        });
+        return;
+      }
+
       setLoading(true);
       try {
         const [businessesPayload, optionsPayload] = await Promise.all([
-          getAdminApprovedBusinesses({ token, includeRejected: true }),
-          getAdminApprovedBusinessFilterOptions(token, {
-            includeRejected: true,
-          }),
+          getAdminBusinessReviewQueue(token),
+          getAdminApprovedBusinessFilterOptions(token),
         ]);
 
         setBusinesses(businessesPayload.data || []);

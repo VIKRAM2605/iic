@@ -11,10 +11,6 @@ export default function Topbar() {
       return "Activities & Events";
     }
 
-    if (location.pathname.startsWith("/admin/review")) {
-      return "Event Reviews";
-    }
-
     if (location.pathname.startsWith("/admin/ideas")) {
       return "Idea / PoC Repository";
     }

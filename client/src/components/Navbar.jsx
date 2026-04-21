@@ -37,7 +37,6 @@ export default function Navbar() {
         location.pathname.startsWith("/admin/prototype-review") ||
         location.pathname.startsWith("/admin/business-review"),
       children: [
-        { label: "Event Reviews", icon: CheckSquare, to: "/admin/review" },
         {
           label: "Idea & PoC Reviews",
           icon: CheckSquare,
@@ -145,7 +144,6 @@ export default function Navbar() {
         location.pathname.startsWith("/admin/prototype-review") ||
         location.pathname.startsWith("/admin/business-review"),
       children: [
-        { label: "Event Reviews", icon: CheckSquare, to: "/admin/review" },
         {
           label: "Idea & PoC Reviews",
           icon: CheckSquare,
