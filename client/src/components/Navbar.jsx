@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  Building2,
   CheckSquare,
   ChevronDown,
   LayoutDashboard,
@@ -26,6 +25,77 @@ export default function Navbar() {
   const isAdmin = user?.roleName === "admin";
   const isFaculty = user?.roleName === "faculty";
   const [expandedSection, setExpandedSection] = useState("Review Panel");
+
+  const adminOverviewSections = [
+    {
+      label: "Review Panel",
+      icon: CheckSquare,
+      to: null,
+      isActive:
+        location.pathname.startsWith("/admin/review") ||
+        location.pathname.startsWith("/admin/idea-review") ||
+        location.pathname.startsWith("/admin/prototype-review") ||
+        location.pathname.startsWith("/admin/business-review"),
+      children: [
+        { label: "Event Reviews", icon: CheckSquare, to: "/admin/review" },
+        {
+          label: "Idea & PoC Reviews",
+          icon: CheckSquare,
+          to: "/admin/idea-review",
+        },
+        {
+          label: "Prototype Reviews",
+          icon: CheckSquare,
+          to: "/admin/prototype-review",
+        },
+        {
+          label: "Startup Reviews",
+          icon: CheckSquare,
+          to: "/admin/business-review",
+        },
+      ],
+    },
+  ];
+
+  const institutionSections = [
+    {
+      label: "Activities & Events",
+      icon: LayoutDashboard,
+      to: "/admin/dashboard",
+      isActive:
+        location.pathname.startsWith("/admin/dashboard") ||
+        location.pathname.startsWith("/eventdetails"),
+      children: [],
+    },
+    {
+      label: "Idea / PoC Repository",
+      icon: LayoutDashboard,
+      to: "/admin/ideas",
+      isActive:
+        location.pathname.startsWith("/admin/ideas") ||
+        location.pathname.startsWith("/ideadetails"),
+      children: [],
+    },
+    {
+      label: "Innovation / Prototype Repository",
+      icon: LayoutDashboard,
+      to: "/admin/prototypes",
+      isActive:
+        location.pathname.startsWith("/admin/prototypes") ||
+        location.pathname.startsWith("/prototypedetails"),
+      children: [],
+    },
+    {
+      label: "Business Model / Startup",
+      icon: LayoutDashboard,
+      to: "/admin/businesses",
+      isActive:
+        location.pathname.startsWith("/admin/businesses") ||
+        location.pathname.startsWith("/businessdetails") ||
+        location.pathname.startsWith("/business/"),
+      children: [],
+    },
+  ];
 
   const adminSections = [
     {
@@ -56,7 +126,7 @@ export default function Navbar() {
       children: [],
     },
     {
-      label: "Business Repository",
+      label: "Business Model / Startup",
       icon: LayoutDashboard,
       to: "/admin/businesses",
       isActive:
@@ -87,7 +157,7 @@ export default function Navbar() {
           to: "/admin/prototype-review",
         },
         {
-          label: "Business Reviews",
+          label: "Startup Reviews",
           icon: CheckSquare,
           to: "/admin/business-review",
         },
@@ -118,7 +188,7 @@ export default function Navbar() {
       children: [],
     },
     {
-      label: "Business Repository",
+      label: "Business Model / Startup",
       icon: LayoutDashboard,
       to: "/teacher/businesses",
       isActive:
@@ -147,25 +217,209 @@ export default function Navbar() {
 
   return (
     <aside className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
-      <div className="flex h-16 items-center border-b border-gray-200 px-6">
-        <h1 className="flex items-center gap-2 text-lg font-bold text-slate-900">
-          <Building2 size={20} className="text-primary" aria-hidden="true" />
-          <span>BIT IIC</span>
+      <div className="flex h-16 items-center border-b border-gray-200 bg-white px-6">
+        <h1 className="flex items-center gap-3">
+          <img
+            src="/bit-iic-logo.png"
+            alt="BIT IIC"
+            className="h-14 w-14 object-contain"
+          />
+          <span className="text-xl font-bold tracking-wide text-blue-900">
+            BIT IIC
+          </span>
         </h1>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-5">
-        <p className="px-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
-          Navigation
-        </p>
-        <ul className="mt-3 space-y-1">
-          {isAdmin &&
-            adminSections.map((section) => {
-              const SectionIcon = section.icon;
+        {isAdmin && (
+          <>
+            <p className="px-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
+              Admin Overview
+            </p>
+            <ul className="mt-3 space-y-1">
+              {adminOverviewSections.map((section) => {
+                const SectionIcon = section.icon;
 
-              return (
-                <li key={section.label} className="space-y-1">
-                  {section.to ? (
+                return (
+                  <li key={section.label} className="space-y-1">
+                    {section.to ? (
+                      <NavLink
+                        to={section.to}
+                        className={() =>
+                          linkClassName({ isActive: section.isActive })
+                        }
+                      >
+                        <SectionIcon
+                          size={18}
+                          aria-hidden="true"
+                          className="flex-shrink-0"
+                        />
+                        <span>{section.label}</span>
+                      </NavLink>
+                    ) : (
+                      <button
+                        type="button"
+                        className={linkClassName({
+                          isActive:
+                            section.isActive ||
+                            expandedSection === section.label,
+                        })}
+                        onClick={() =>
+                          setExpandedSection(
+                            expandedSection === section.label
+                              ? ""
+                              : section.label,
+                          )
+                        }
+                      >
+                        <SectionIcon
+                          size={18}
+                          aria-hidden="true"
+                          className="flex-shrink-0"
+                        />
+                        <span className="flex-1 text-left">
+                          {section.label}
+                        </span>
+                        {section.children.length > 0 && (
+                          <ChevronDown
+                            size={16}
+                            aria-hidden="true"
+                            className={`flex-shrink-0 transition-transform duration-200 ${
+                              expandedSection === section.label
+                                ? "rotate-180"
+                                : ""
+                            }`}
+                          />
+                        )}
+                      </button>
+                    )}
+
+                    {(section.children.length === 0 ||
+                      expandedSection === section.label) && (
+                      <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
+                        {section.children.map((item) => {
+                          const ItemIcon = item.icon;
+
+                          return (
+                            <li key={item.label}>
+                              <NavLink to={item.to} className={linkClassName}>
+                                <ItemIcon
+                                  size={16}
+                                  aria-hidden="true"
+                                  className="flex-shrink-0 text-primary"
+                                />
+                                <span>{item.label}</span>
+                              </NavLink>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <p className="px-3 mt-6 text-xs font-semibold uppercase tracking-widest text-gray-500">
+              Institution
+            </p>
+            <ul className="mt-3 space-y-1">
+              {institutionSections.map((section) => {
+                const SectionIcon = section.icon;
+
+                return (
+                  <li key={section.label} className="space-y-1">
+                    {section.to ? (
+                      <NavLink
+                        to={section.to}
+                        className={() =>
+                          linkClassName({ isActive: section.isActive })
+                        }
+                      >
+                        <SectionIcon
+                          size={18}
+                          aria-hidden="true"
+                          className="flex-shrink-0"
+                        />
+                        <span>{section.label}</span>
+                      </NavLink>
+                    ) : (
+                      <button
+                        type="button"
+                        className={linkClassName({
+                          isActive:
+                            section.isActive ||
+                            expandedSection === section.label,
+                        })}
+                        onClick={() =>
+                          setExpandedSection(
+                            expandedSection === section.label
+                              ? ""
+                              : section.label,
+                          )
+                        }
+                      >
+                        <SectionIcon
+                          size={18}
+                          aria-hidden="true"
+                          className="flex-shrink-0"
+                        />
+                        <span className="flex-1 text-left">
+                          {section.label}
+                        </span>
+                        {section.children.length > 0 && (
+                          <ChevronDown
+                            size={16}
+                            aria-hidden="true"
+                            className={`flex-shrink-0 transition-transform duration-200 ${
+                              expandedSection === section.label
+                                ? "rotate-180"
+                                : ""
+                            }`}
+                          />
+                        )}
+                      </button>
+                    )}
+
+                    {(section.children.length === 0 ||
+                      expandedSection === section.label) && (
+                      <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
+                        {section.children.map((item) => {
+                          const ItemIcon = item.icon;
+
+                          return (
+                            <li key={item.label}>
+                              <NavLink to={item.to} className={linkClassName}>
+                                <ItemIcon
+                                  size={16}
+                                  aria-hidden="true"
+                                  className="flex-shrink-0 text-primary"
+                                />
+                                <span>{item.label}</span>
+                              </NavLink>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+
+        {isFaculty && (
+          <>
+            <p className="px-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
+              Institution
+            </p>
+            <ul className="mt-3 space-y-1">
+              {facultySections.map((section) => {
+                const SectionIcon = section.icon;
+
+                return (
+                  <li key={section.label} className="space-y-1">
                     <NavLink
                       to={section.to}
                       className={() =>
@@ -179,43 +433,7 @@ export default function Navbar() {
                       />
                       <span>{section.label}</span>
                     </NavLink>
-                  ) : (
-                    <button
-                      type="button"
-                      className={linkClassName({
-                        isActive:
-                          section.isActive || expandedSection === section.label,
-                      })}
-                      onClick={() =>
-                        setExpandedSection(
-                          expandedSection === section.label
-                            ? ""
-                            : section.label,
-                        )
-                      }
-                    >
-                      <SectionIcon
-                        size={18}
-                        aria-hidden="true"
-                        className="flex-shrink-0"
-                      />
-                      <span className="flex-1 text-left">{section.label}</span>
-                      {section.children.length > 0 && (
-                        <ChevronDown
-                          size={16}
-                          aria-hidden="true"
-                          className={`flex-shrink-0 transition-transform duration-200 ${
-                            expandedSection === section.label
-                              ? "rotate-180"
-                              : ""
-                          }`}
-                        />
-                      )}
-                    </button>
-                  )}
 
-                  {(section.children.length === 0 ||
-                    expandedSection === section.label) && (
                     <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
                       {section.children.map((item) => {
                         const ItemIcon = item.icon;
@@ -234,53 +452,12 @@ export default function Navbar() {
                         );
                       })}
                     </ul>
-                  )}
-                </li>
-              );
-            })}
-
-          {isFaculty &&
-            facultySections.map((section) => {
-              const SectionIcon = section.icon;
-
-              return (
-                <li key={section.label} className="space-y-1">
-                  <NavLink
-                    to={section.to}
-                    className={() =>
-                      linkClassName({ isActive: section.isActive })
-                    }
-                  >
-                    <SectionIcon
-                      size={18}
-                      aria-hidden="true"
-                      className="flex-shrink-0"
-                    />
-                    <span>{section.label}</span>
-                  </NavLink>
-
-                  <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
-                    {section.children.map((item) => {
-                      const ItemIcon = item.icon;
-
-                      return (
-                        <li key={item.label}>
-                          <NavLink to={item.to} className={linkClassName}>
-                            <ItemIcon
-                              size={16}
-                              aria-hidden="true"
-                              className="flex-shrink-0 text-primary"
-                            />
-                            <span>{item.label}</span>
-                          </NavLink>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </li>
-              );
-            })}
-        </ul>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
       </nav>
 
       <div className="border-t border-gray-200 p-3">

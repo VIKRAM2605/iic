@@ -23,7 +23,7 @@ const businessFields = [
   },
   {
     key: "instituteName",
-    label: "Website of Startup",
+    label: "Website of Startup (if any)",
     type: "url",
     required: false,
   },
@@ -42,8 +42,22 @@ const businessFields = [
     ],
   },
   {
+    key: "smeRegisteredUnitGstNo",
+    label: "SME Registered Unit (Valid GST No.)",
+    type: "text",
+    required: true,
+  },
+  {
+    key: "gstCertificateCopy",
+    label: "GST Certificate Copy",
+    type: "file",
+    required: true,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
     key: "fyOfDevelopment",
-    label: "Financial Year of Development",
+    label: "Year of Establishment (FY) :",
     type: "select",
     required: true,
     options: [
@@ -56,6 +70,12 @@ const businessFields = [
       "2025-26",
       "2026-27",
     ],
+  },
+  {
+    key: "keyInnovation",
+    label: "Name a Key Innovation which is Core to the Startup / Venture",
+    type: "text",
+    required: true,
   },
   {
     key: "sectorDomain",
@@ -159,6 +179,211 @@ const businessFields = [
     ],
   },
   {
+    key: "rpfYearOfEstablishment",
+    label: "Year of Establishment (FY)",
+    type: "select",
+    required: false,
+    options: [
+      "2019-20",
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26",
+      "2026-27",
+    ],
+  },
+  {
+    key: "rpfCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "rpfCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "rpfDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "rpfDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "rpfDpiitRecognition",
+    label: "Does your Startup/Venture Recognized by DPIIT, Startup India?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "rpfDpiitDocument",
+    label: "DPIIT Recognition Document",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "llpCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "llpCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "llpDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "llpDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "pvtYearOfEstablishment",
+    label: "Year of Establishment (FY)",
+    type: "select",
+    required: false,
+    options: [
+      "2019-20",
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26",
+      "2026-27",
+    ],
+  },
+  {
+    key: "pvtCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "pvtCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "pvtDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "pvtDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "pvtDpiitRecognition",
+    label: "Does your Startup/Venture Recognized by DPIIT, Startup India?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "pvtDpiitDocument",
+    label: "DPIIT Recognition Document",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "opcYearOfEstablishment",
+    label: "Year of Establishment (FY)",
+    type: "select",
+    required: false,
+    options: [
+      "2019-20",
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26",
+      "2026-27",
+    ],
+  },
+  {
+    key: "opcCorporateIdentificationNo",
+    label: "Corporate Identification No (CIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "opcCinCopy",
+    label: "Corporate Identification No (CIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "opcDirectorIdentificationNo",
+    label: "Director's Identification Number (DIN)",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "opcDinCopy",
+    label: "Director's Identification Number (DIN) Copy",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
+    key: "opcDpiitRecognition",
+    label: "Does your Startup/Venture Recognized by DPIIT, Startup India?",
+    type: "select",
+    required: true,
+    options: ["YES", "NO"],
+  },
+  {
+    key: "opcDpiitDocument",
+    label: "DPIIT Recognition Document",
+    type: "file",
+    required: false,
+    accept: ".jpg,.jpeg,.png",
+    maxSizeBytes: 2 * 1024 * 1024,
+  },
+  {
     key: "problemRelevance",
     label:
       "Define the Problem - Solution fit achieved/to be achieved by the Startup: Briefly explain the relevance of the innovative solutions are being offered by the startup and what/whose problem (Industry/Society/Market) these are solving.",
@@ -226,8 +451,7 @@ const businessFields = [
   },
   {
     key: "instituteGrantAmount",
-    label:
-      "Mention Total Grant Amount Received in past three Financial Years",
+    label: "Mention Total Grant Amount Received in past three Financial Years",
     type: "text",
     required: false,
   },
@@ -300,11 +524,57 @@ const businessFields = [
 const displayStructure = [
   {
     section: "Business Details",
+    fields: ["innovationTitle", "instituteName"],
+  },
+  {
+    section: "Venture Details",
     fields: [
-      "innovationTitle",
-      "instituteName",
       "registrationType",
+      { type: "subsectionHeader", label: "2.A SME Registration & GST Details" },
       "fyOfDevelopment",
+      "smeRegisteredUnitGstNo",
+      "gstCertificateCopy",
+      { type: "subsectionHeader", label: "2.B Registered Partnership Firm" },
+      "rpfYearOfEstablishment",
+      "rpfCorporateIdentificationNo",
+      "rpfCinCopy",
+      "rpfDirectorIdentificationNo",
+      "rpfDinCopy",
+      "rpfDpiitRecognition",
+      "rpfDpiitDocument",
+      {
+        type: "subsectionHeader",
+        label: "2.C Limited Liability Partnership Firm (LLP)",
+      },
+      "llpCorporateIdentificationNo",
+      "llpCinCopy",
+      "llpDirectorIdentificationNo",
+      "llpDinCopy",
+      {
+        type: "subsectionHeader",
+        label: "2.D Private Limited Firm (Pvt. Ltd.)",
+      },
+      "pvtYearOfEstablishment",
+      "pvtCorporateIdentificationNo",
+      "pvtCinCopy",
+      "pvtDirectorIdentificationNo",
+      "pvtDinCopy",
+      "pvtDpiitRecognition",
+      "pvtDpiitDocument",
+      { type: "subsectionHeader", label: "2.E One Person Company (OPC)" },
+      "opcYearOfEstablishment",
+      "opcCorporateIdentificationNo",
+      "opcCinCopy",
+      "opcDirectorIdentificationNo",
+      "opcDinCopy",
+      "opcDpiitRecognition",
+      "opcDpiitDocument",
+    ],
+  },
+  {
+    section: "Innovation Profile",
+    fields: [
+      "keyInnovation",
       "sectorDomain",
       "developedAsPartOf",
       "innovationType",
@@ -351,6 +621,9 @@ const attachmentConditionalFields = {
   investmentAmount: "angelInvestment",
   recognitionAwardDocument: "recognitionAwardReceived",
   annualTurnoverDocument: "annualTurnover50Lakhs",
+  rpfDpiitDocument: "rpfDpiitRecognition",
+  pvtDpiitDocument: "pvtDpiitRecognition",
+  opcDpiitDocument: "opcDpiitRecognition",
 };
 
 function BusinessDetails() {
@@ -370,9 +643,23 @@ function BusinessDetails() {
     return displayStructure
       .map((section) => {
         const sectionFields = section.fields
-          .map((fieldKey) => fieldsByKey[fieldKey])
+          .map((fieldKeyOrObject) => {
+            if (
+              typeof fieldKeyOrObject === "object" &&
+              fieldKeyOrObject.type === "subsectionHeader"
+            ) {
+              return fieldKeyOrObject;
+            }
+            return fieldsByKey[fieldKeyOrObject];
+          })
           .filter(Boolean)
           .filter((field) => {
+            if (
+              typeof field === "object" &&
+              field.type === "subsectionHeader"
+            ) {
+              return true;
+            }
             if (renderedKeys.has(field.key)) {
               return false;
             }
@@ -437,6 +724,7 @@ function BusinessDetails() {
 
   const maxWordsByKey = {
     innovationTitle: 20,
+    keyInnovation: 20,
     problemRelevance: 100,
     solutionDescription: 100,
     uniquenessFeatures: 100,
@@ -506,7 +794,10 @@ function BusinessDetails() {
       return;
     }
 
-    if (maxWordsByKey[field.key] && countWords(value) > maxWordsByKey[field.key]) {
+    if (
+      maxWordsByKey[field.key] &&
+      countWords(value) > maxWordsByKey[field.key]
+    ) {
       setErrors((previous) => ({
         ...previous,
         [field.key]: `${field.label} must be ${maxWordsByKey[field.key]} words or less.`,
@@ -542,6 +833,18 @@ function BusinessDetails() {
         nextValues.annualTurnoverDocument = null;
       }
 
+      if (field.key === "rpfDpiitRecognition" && value !== "YES") {
+        nextValues.rpfDpiitDocument = null;
+      }
+
+      if (field.key === "pvtDpiitRecognition" && value !== "YES") {
+        nextValues.pvtDpiitDocument = null;
+      }
+
+      if (field.key === "opcDpiitRecognition" && value !== "YES") {
+        nextValues.opcDpiitDocument = null;
+      }
+
       return nextValues;
     });
 
@@ -573,6 +876,18 @@ function BusinessDetails() {
         nextErrors.annualTurnoverDocument = "";
       }
 
+      if (field.key === "rpfDpiitRecognition" && value !== "YES") {
+        nextErrors.rpfDpiitDocument = "";
+      }
+
+      if (field.key === "pvtDpiitRecognition" && value !== "YES") {
+        nextErrors.pvtDpiitDocument = "";
+      }
+
+      if (field.key === "opcDpiitRecognition" && value !== "YES") {
+        nextErrors.opcDpiitDocument = "";
+      }
+
       return nextErrors;
     });
   };
@@ -594,7 +909,10 @@ function BusinessDetails() {
         return;
       }
 
-      if (maxWordsByKey[field.key] && countWords(value) > maxWordsByKey[field.key]) {
+      if (
+        maxWordsByKey[field.key] &&
+        countWords(value) > maxWordsByKey[field.key]
+      ) {
         nextErrors[field.key] =
           `${field.label} must be ${maxWordsByKey[field.key]} words or less.`;
       }
@@ -632,7 +950,8 @@ function BusinessDetails() {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setAlertMessage(
-        Object.values(validationErrors)[0] || "Please complete all required fields.",
+        Object.values(validationErrors)[0] ||
+          "Please complete all required fields.",
       );
       setAlertSeverity("error");
       setAlertOpen(true);
@@ -673,7 +992,9 @@ function BusinessDetails() {
 
       window.setTimeout(() => {
         navigate(
-          user?.roleName === "admin" ? "/admin/businesses" : "/teacher/businesses",
+          user?.roleName === "admin"
+            ? "/admin/businesses"
+            : "/teacher/businesses",
           { replace: true },
         );
       }, 700);
@@ -690,9 +1011,7 @@ function BusinessDetails() {
     if (field.type === "file" && field.maxSizeBytes) {
       const maxMb = Math.round(field.maxSizeBytes / (1024 * 1024));
       return (
-        <p className="text-xs text-gray-500">
-          JPG / PNG only, max {maxMb}MB
-        </p>
+        <p className="text-xs text-gray-500">JPG / PNG only, max {maxMb}MB</p>
       );
     }
 
@@ -709,8 +1028,12 @@ function BusinessDetails() {
 
   const renderField = (field) => (
     <div key={field.key} className="space-y-1">
-      <label className="block text-sm font-medium text-gray-800" htmlFor={field.key}>
-        {field.label} {field.required && <span className="text-red-600">*</span>}
+      <label
+        className="block text-sm font-medium text-gray-800"
+        htmlFor={field.key}
+      >
+        {field.label}{" "}
+        {field.required && <span className="text-red-600">*</span>}
       </label>
 
       {field.type === "textarea" && (
@@ -726,7 +1049,8 @@ function BusinessDetails() {
           {maxWordsByKey[field.key] && (
             <p
               className={`text-xs ${
-                countWords(formValues[field.key]) / maxWordsByKey[field.key] >= 0.8
+                countWords(formValues[field.key]) / maxWordsByKey[field.key] >=
+                0.8
                   ? "text-red-600"
                   : "text-gray-500"
               }`}
@@ -744,7 +1068,9 @@ function BusinessDetails() {
             name={field.key}
             type="file"
             accept={field.accept}
-            onChange={(event) => handleChange(field, event.target.files?.[0] ?? null)}
+            onChange={(event) =>
+              handleChange(field, event.target.files?.[0] ?? null)
+            }
             className="w-full rounded border border-gray-300 p-2 outline-none focus:border-gray-500"
           />
           {formValues[field.key] instanceof File && (
@@ -784,8 +1110,12 @@ function BusinessDetails() {
     </div>
   );
 
-  const shouldShowField = (fieldKey) => {
-    const dependencyKey = attachmentConditionalFields[fieldKey];
+  const shouldShowField = (fieldKeyOrObject) => {
+    if (typeof fieldKeyOrObject === "object") {
+      return true;
+    }
+
+    const dependencyKey = attachmentConditionalFields[fieldKeyOrObject];
     if (!dependencyKey) {
       return true;
     }
@@ -805,7 +1135,7 @@ function BusinessDetails() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-              Submit a Business
+              Register a Startup
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[#7a80a6]">
               Fill in the business details carefully and submit all required
@@ -850,7 +1180,9 @@ function BusinessDetails() {
                       </span>
                       <span
                         className={`mt-2 text-xs ${
-                          isActiveStep ? "font-semibold text-primary" : "text-gray-600"
+                          isActiveStep
+                            ? "font-semibold text-primary"
+                            : "text-gray-600"
                         }`}
                       >
                         {group.section}
@@ -870,11 +1202,67 @@ function BusinessDetails() {
               index === currentStepIndex ? "block" : "hidden"
             }`}
           >
-            <h2 className="text-lg font-medium text-gray-900">{step.section}</h2>
+            <h2 className="text-lg font-medium text-gray-900">
+              {step.section}
+            </h2>
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {step.fields
-                .filter((field) => shouldShowField(field.key))
-                .map((field) => renderField(field))}
+                .filter((field) =>
+                  shouldShowField(
+                    typeof field === "object" &&
+                      field.type === "subsectionHeader"
+                      ? field
+                      : field.key
+                        ? field.key
+                        : null,
+                  ),
+                )
+                .map((field) => {
+                  if (
+                    typeof field === "object" &&
+                    field.type === "subsectionHeader"
+                  ) {
+                    // Extract section code (e.g., "2A" from "2.A SME Registration & GST Details")
+                    const sectionCode =
+                      field.label.match(/^\d+\.\w+/)?.[0]?.replace(".", "") ||
+                      "";
+                    const sectionTitle = field.label.replace(
+                      /^\d+\.\w+\s+/,
+                      "",
+                    );
+
+                    return (
+                      <div
+                        key={`subsection-${field.label}`}
+                        className="col-span-1 md:col-span-2 pt-6 pb-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="text-[#6c5ce7] font-bold text-xs flex-shrink-0"
+                            style={{ fontSize: "12px" }}
+                          >
+                            {sectionCode}
+                          </span>
+                          <span
+                            className="text-[#1a1a1a] font-semibold flex-shrink-0"
+                            style={{ fontSize: "14px" }}
+                          >
+                            {sectionTitle}
+                          </span>
+                          <div
+                            className="flex-1"
+                            style={{
+                              height: "1.5px",
+                              backgroundColor: "#6c5ce7",
+                              opacity: 0.2,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return renderField(field);
+                })}
             </div>
           </section>
         ))}

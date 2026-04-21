@@ -56,7 +56,9 @@ export default function AdminBusinessApprovedDashboard() {
       try {
         const [businessesPayload, optionsPayload] = await Promise.all([
           getAdminApprovedBusinesses({ token, includeRejected: true }),
-          getAdminApprovedBusinessFilterOptions(token, { includeRejected: true }),
+          getAdminApprovedBusinessFilterOptions(token, {
+            includeRejected: true,
+          }),
         ]);
 
         setBusinesses(businessesPayload.data || []);
@@ -97,7 +99,9 @@ export default function AdminBusinessApprovedDashboard() {
 
         if (
           facultyName &&
-          !String(item.ownerName || "").toLowerCase().includes(facultyName.toLowerCase())
+          !String(item.ownerName || "")
+            .toLowerCase()
+            .includes(facultyName.toLowerCase())
         ) {
           return false;
         }
@@ -108,7 +112,11 @@ export default function AdminBusinessApprovedDashboard() {
           return submittedDate === normalizeDate(date);
         }
 
-        if (!useSingleDate && fromDate && submittedDate < normalizeDate(fromDate)) {
+        if (
+          !useSingleDate &&
+          fromDate &&
+          submittedDate < normalizeDate(fromDate)
+        ) {
           return false;
         }
 
@@ -128,9 +136,9 @@ export default function AdminBusinessApprovedDashboard() {
       <div className="border-b border-gray-200 bg-white px-8 py-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <h1 className="heading-xl">Business Repository</h1>
+            <h1 className="heading-xl">My Startups</h1>
             <p className="text-muted">
-              View and manage your business submissions
+              All your registered ventures and their status in both users
             </p>
           </div>
 
@@ -224,10 +232,10 @@ export default function AdminBusinessApprovedDashboard() {
               setToDate("");
               setFacultyName("");
             }}
-            className="btn-secondary-custom"
+            className="btn-reset-custom"
             disabled={loading}
           >
-            Reset Filters
+            Reset
           </button>
         </div>
       </div>
@@ -241,9 +249,24 @@ export default function AdminBusinessApprovedDashboard() {
         </div>
 
         {!loading && filteredBusinesses.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
-            <p className="text-base font-medium text-gray-600">No businesses found.</p>
-            <p className="mt-1 text-sm text-gray-500">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg
+                className="mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4 0h1m-1-4h1"
+                />
+              </svg>
+            </div>
+            <p className="empty-state-title">No Businesses Found</p>
+            <p className="empty-state-description">
               Try adjusting your filters.
             </p>
           </div>
@@ -262,11 +285,11 @@ export default function AdminBusinessApprovedDashboard() {
                   {item.eventName || `Business #${item.id}`}
                 </h3>
                 <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize flex-shrink-0 ${
+                  className={`${
                     item.status === "rejected"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-green-100 text-green-700"
-                  }`}
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : "bg-green-50 text-green-700 border-green-200"
+                  } rounded-lg px-3 py-1.5 text-xs font-semibold capitalize flex-shrink-0 border inline-flex items-center justify-center transition-all duration-200`}
                 >
                   {item.status || "approved"}
                 </span>
@@ -284,7 +307,9 @@ export default function AdminBusinessApprovedDashboard() {
                 <div className="flex justify-between">
                   <span className="font-semibold">Submitted:</span>
                   <span className="text-gray-700">
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "-"}
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleDateString()
+                      : "-"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -299,7 +324,9 @@ export default function AdminBusinessApprovedDashboard() {
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />
