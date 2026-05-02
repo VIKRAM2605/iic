@@ -1,27 +1,133 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CirclePlus, RotateCcw } from "lucide-react";
-import { getFacultyMyIdeas } from "../../../config/api";
+import { CirclePlus, RotateCcw, Download } from "lucide-react";
+import { jsPDF } from "jspdf";
+import { getFacultyMyIdeas, getIdeaById } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
-const statusBadgeClass = {
-  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  approved: "bg-green-50 text-green-700 border-green-200",
-  rejected: "bg-red-50 text-red-700 border-red-200",
+const detailSteps = [
+  { key: "ideaDetails", label: "Idea Details" },
+  { key: "overview", label: "Overview" },
+  { key: "attachments", label: "Attachments" },
+];
+
+const toLabel = (key) =>
+  String(key || "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^./, (char) => char.toUpperCase());
+
+const toDisplayValue = (value) => {
+  if (value === null || value === undefined) {
+    return "-";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  if (typeof value === "object") {
+    const serialized = JSON.stringify(value);
+    return serialized && serialized !== "{}" ? serialized : "-";
+  }
+
+  const text = String(value).trim();
+  return text || "-";
 };
 
-const getEventDateLabel = (eventItem) => {
-  if (eventItem.fromDate && eventItem.toDate) {
-    return `${eventItem.fromDate} to ${eventItem.toDate}`;
-  }
+const sanitizeFileName = (value, fallback) => {
+  const text = String(value || fallback).trim() || fallback;
+  return text.replace(/[\\/:*?"<>|]+/g, "_");
+};
 
-  if (eventItem.fromDate) {
-    return eventItem.fromDate;
-  }
+const buildEntries = (sectionData) =>
+  Object.entries(sectionData && typeof sectionData === "object" ? sectionData : {}).map(
+    ([key, value]) => ({
+      label: toLabel(key),
+      value: toDisplayValue(value),
+    }),
+  );
 
-  return "-";
+const downloadPdfReport = ({ title, sections, fallbackName }) => {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginX = 14;
+  let y = 18;
+
+  const ensureSpace = (requiredHeight = 10) => {
+    if (y + requiredHeight <= pageHeight - 14) {
+      return;
+    }
+
+    doc.addPage();
+    y = 18;
+  };
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text(title, marginX, y);
+  y += 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, marginX, y);
+  y += 8;
+
+  sections.forEach((section) => {
+    const entries = buildEntries(section.data);
+    if (entries.length === 0) {
+      return;
+    }
+
+    ensureSpace(12);
+    doc.setFillColor(243, 240, 255);
+    doc.rect(marginX, y - 4, pageWidth - marginX * 2, 8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(section.label, marginX + 2, y + 1.5);
+    y += 10;
+
+    entries.forEach((entry) => {
+      const lines = doc.splitTextToSize(
+        `${entry.label}: ${entry.value}`,
+        pageWidth - marginX * 2,
+      );
+      ensureSpace(lines.length * 5 + 2);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(lines, marginX, y);
+      y += lines.length * 5 + 2;
+    });
+
+    y += 2;
+  });
+
+  doc.save(`${sanitizeFileName(title, fallbackName)}_Report.pdf`);
+};
+
+const getTeamLabel = (eventItem) => {
+  return (
+    eventItem.eventName ||
+    eventItem.innovationTitle ||
+    `Idea #${eventItem.id}`
+  );
+};
+
+const getTeamLeadLabel = (eventItem) => {
+  return eventItem.teamLeadName || eventItem.ownerName || "-";
+};
+
+const getTeamLeadDetails = (eventItem) => {
+  const details = [eventItem.teamLeadEmail, eventItem.teamLeadGender].filter(
+    Boolean,
+  );
+
+  return details.length > 0 ? details.join(" | ") : "-";
 };
 
 export default function TeacherIdeasDashboard() {
@@ -31,6 +137,7 @@ export default function TeacherIdeasDashboard() {
   const [quarterFilter, setQuarterFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [alertState, setAlertState] = useState({
     isOpen: false,
     message: "",
@@ -86,6 +193,46 @@ export default function TeacherIdeasDashboard() {
   const handleReset = () => {
     setQuarterFilter("");
     setStatusFilter("");
+  };
+
+  const handleDownloadReport = async (eventItem) => {
+    if (!token) {
+      return;
+    }
+
+    setDownloadingId(eventItem.id);
+    try {
+      const payload = await getIdeaById({ token, ideaId: eventItem.id });
+      const ideaData = payload?.data || {};
+      const title =
+        ideaData?.ideaDetails?.innovationTitle ||
+        eventItem.innovationTitle ||
+        eventItem.eventName ||
+        `Idea #${eventItem.id}`;
+
+      downloadPdfReport({
+        title,
+        fallbackName: `Idea_${eventItem.id}`,
+        sections: detailSteps.map((step) => ({
+          label: step.label,
+          data: ideaData?.[step.key],
+        })),
+      });
+
+      setAlertState({
+        isOpen: true,
+        message: "Idea report downloaded successfully.",
+        severity: "success",
+      });
+    } catch (error) {
+      setAlertState({
+        isOpen: true,
+        message: error.message || "Failed to download report.",
+        severity: "error",
+      });
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const fromPath = `${location.pathname}${location.search}`;
@@ -157,57 +304,115 @@ export default function TeacherIdeasDashboard() {
           </div>
         )}
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filteredEvents.map((eventItem) => (
-            <Link
-              to={`/idea/${eventItem.id}`}
-              state={{ from: fromPath }}
-              key={eventItem.id}
-              className="card-custom group"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-base font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
-                  {eventItem.eventName || `Idea #${eventItem.id}`}
-                </h3>
-                <span
-                  className={`${
-                    statusBadgeClass[eventItem.status] ||
-                    "bg-gray-100 text-gray-700 border-gray-200"
-                  } rounded-lg px-3 py-1.5 text-xs font-semibold capitalize flex-shrink-0 border inline-flex items-center justify-center transition-all duration-200`}
+        {filteredEvents.length > 0 && (
+          <div
+            className="overflow-x-auto rounded-xl bg-white"
+            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}
+          >
+            <table className="w-full border-collapse">
+              <thead>
+                <tr
+                  className="border-b border-purple-100"
+                  style={{ backgroundColor: "#f3f0ff" }}
                 >
-                  {eventItem.status || "pending"}
-                </span>
-              </div>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    S.No.
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Team
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Lead
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Lead Details
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Status
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Review Comments
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Download Report
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    View Details
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((eventItem, index) => {
+                  const isEvenRow = index % 2 === 0;
 
-              <p className="mt-3 text-sm text-gray-700 line-clamp-2">
-                {eventItem.majorReason || "No major reason provided."}
-              </p>
-
-              <div className="mt-5 space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-4">
-                <div className="flex justify-between">
-                  <span className="font-semibold">Quarter:</span>
-                  <span className="text-gray-700">
-                    {eventItem.quarter || "-"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Date:</span>
-                  <span className="text-gray-700">
-                    {getEventDateLabel(eventItem)}
-                  </span>
-                </div>
-                {eventItem.rejectionMessage && (
-                  <div className="flex justify-between">
-                    <span className="font-semibold">Rejection:</span>
-                    <span className="text-gray-700">
-                      {eventItem.rejectionMessage}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
+                  return (
+                    <tr
+                      key={eventItem.id}
+                      className={`border-b border-purple-100 transition-colors ${
+                        isEvenRow ? "bg-white" : "bg-gray-50"
+                      } hover:bg-purple-50`}
+                    >
+                      <td className="px-4 py-3.5 text-xs font-medium text-gray-600">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-semibold text-gray-900">
+                        {getTeamLabel(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-medium text-gray-700">
+                        {getTeamLeadLabel(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-gray-700">
+                        {getTeamLeadDetails(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <span
+                          className={`inline-block rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                            eventItem.status === "rejected"
+                              ? "bg-red-50 text-red-700"
+                              : eventItem.status === "pending"
+                              ? "bg-yellow-50 text-yellow-700"
+                              : "bg-green-50 text-green-700"
+                          }`}
+                        >
+                          {eventItem.status || "pending"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-gray-700">
+                        {eventItem.rejectionMessage || "-"}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadReport(eventItem)}
+                          disabled={downloadingId === eventItem.id}
+                          className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+                        >
+                          <Download size={14} />
+                          <span>
+                            {downloadingId === eventItem.id
+                              ? "Downloading..."
+                              : "Download Report"}
+                          </span>
+                        </button>
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <Link
+                          to={`/idea/${eventItem.id}`}
+                          state={{ from: fromPath }}
+                          className="inline-block rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-700"
+                          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+                        >
+                          View Details
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <Alert

@@ -1,94 +1,149 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CirclePlus } from "lucide-react";
+import { CirclePlus, Download } from "lucide-react";
+import { jsPDF } from "jspdf";
 import {
   getAdminApprovedPrototypes,
   getAdminApprovedPrototypeFilterOptions,
+  getPrototypeById,
 } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
-const normalizeDate = (rawValue) => {
-  const value = String(rawValue || "").trim();
-  if (!value) {
-    return "";
+const detailSteps = [
+  { key: "programDetails", label: "Prototype Details" },
+  { key: "overview", label: "Overview" },
+  { key: "analysis", label: "Analysis" },
+  { key: "attachments", label: "Attachments" },
+];
+
+const toLabel = (key) =>
+  String(key || "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^./, (char) => char.toUpperCase());
+
+const toDisplayValue = (value) => {
+  if (value === null || value === undefined) {
+    return "-";
   }
 
-  const maybeDate = value.slice(0, 10);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(maybeDate)) {
-    return maybeDate;
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
   }
 
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
+  if (typeof value === "object") {
+    const serialized = JSON.stringify(value);
+    return serialized && serialized !== "{}" ? serialized : "-";
   }
 
-  const year = parsed.getFullYear();
-  const month = String(parsed.getMonth() + 1).padStart(2, "0");
-  const day = String(parsed.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const text = String(value).trim();
+  return text || "-";
 };
 
-const getEventDateLabel = (eventItem) => {
-  const fromDate = normalizeDate(eventItem.fromDate);
-  const toDate = normalizeDate(eventItem.toDate);
-
-  if (fromDate && toDate) {
-    return `${fromDate} to ${toDate}`;
-  }
-
-  if (fromDate) {
-    return fromDate;
-  }
-
-  return "-";
+const sanitizeFileName = (value, fallback) => {
+  const text = String(value || fallback).trim() || fallback;
+  return text.replace(/[\\/:*?"<>|]+/g, "_");
 };
 
-const getDurationLabel = (eventItem) => {
-  const fromDateRaw = String(eventItem.fromDate || "").trim();
-  const toDateRaw = String(eventItem.toDate || "").trim();
+const buildEntries = (sectionData) =>
+  Object.entries(sectionData && typeof sectionData === "object" ? sectionData : {}).map(
+    ([key, value]) => ({
+      label: toLabel(key),
+      value: toDisplayValue(value),
+    }),
+  );
 
-  if (!fromDateRaw || !toDateRaw) {
-    return "-";
-  }
+const downloadPdfReport = ({ title, sections, fallbackName }) => {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginX = 14;
+  let y = 18;
 
-  const fromDateTime = new Date(fromDateRaw);
-  const toDateTime = new Date(toDateRaw);
-  if (
-    Number.isNaN(fromDateTime.getTime()) ||
-    Number.isNaN(toDateTime.getTime())
-  ) {
-    return "-";
-  }
+  const ensureSpace = (requiredHeight = 10) => {
+    if (y + requiredHeight <= pageHeight - 14) {
+      return;
+    }
 
-  const hours =
-    (toDateTime.getTime() - fromDateTime.getTime()) / (1000 * 60 * 60);
-  if (!Number.isFinite(hours) || hours < 0) {
-    return "-";
-  }
+    doc.addPage();
+    y = 18;
+  };
 
-  if (hours === 0) {
-    return "0 hr";
-  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text(title, marginX, y);
+  y += 8;
 
-  return `${hours.toFixed(1)} hrs`;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, marginX, y);
+  y += 8;
+
+  sections.forEach((section) => {
+    const entries = buildEntries(section.data);
+    if (entries.length === 0) {
+      return;
+    }
+
+    ensureSpace(12);
+    doc.setFillColor(243, 240, 255);
+    doc.rect(marginX, y - 4, pageWidth - marginX * 2, 8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(section.label, marginX + 2, y + 1.5);
+    y += 10;
+
+    entries.forEach((entry) => {
+      const lines = doc.splitTextToSize(
+        `${entry.label}: ${entry.value}`,
+        pageWidth - marginX * 2,
+      );
+      ensureSpace(lines.length * 5 + 2);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(lines, marginX, y);
+      y += lines.length * 5 + 2;
+    });
+
+    y += 2;
+  });
+
+  doc.save(`${sanitizeFileName(title, fallbackName)}_Report.pdf`);
+};
+
+const getTeamLabel = (eventItem) => {
+  return (
+    eventItem.eventName ||
+    eventItem.innovationTitle ||
+    `Prototype #${eventItem.id}`
+  );
+};
+
+const getTeamLeadLabel = (eventItem) => {
+  return eventItem.teamLeadName || eventItem.ownerName || "-";
+};
+
+const getTeamLeadDetails = (eventItem) => {
+  const details = [eventItem.teamLeadEmail, eventItem.teamLeadGender].filter(
+    Boolean,
+  );
+
+  return details.length > 0 ? details.join(" | ") : "-";
 };
 
 export default function AdminPrototypeApprovedDashboard() {
   const token = useMemo(() => getAuthToken(), []);
   const location = useLocation();
 
-  const [quarter, setQuarter] = useState("");
-  const [useSingleDate, setUseSingleDate] = useState(false);
-  const [date, setDate] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
   const [facultyName, setFacultyName] = useState("");
   const [options, setOptions] = useState({ quarters: [], faculties: [] });
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState([]);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [alertState, setAlertState] = useState({
     isOpen: false,
     message: "",
@@ -125,22 +180,8 @@ export default function AdminPrototypeApprovedDashboard() {
     loadInitialData();
   }, [token]);
 
-  useEffect(() => {
-    if (useSingleDate) {
-      setFromDate("");
-      setToDate("");
-      return;
-    }
-
-    setDate("");
-  }, [useSingleDate]);
-
   const filteredEvents = useMemo(() => {
     return events.filter((eventItem) => {
-      if (quarter && String(eventItem.quarter || "") !== quarter) {
-        return false;
-      }
-
       if (facultyName) {
         const facultyFields = [
           eventItem.ownerName,
@@ -161,47 +202,55 @@ export default function AdminPrototypeApprovedDashboard() {
         }
       }
 
-      const eventFrom = normalizeDate(eventItem.fromDate);
-      const eventTo = normalizeDate(eventItem.toDate) || eventFrom;
-
-      if (useSingleDate && date) {
-        const targetDate = normalizeDate(date);
-        if (
-          !targetDate ||
-          !eventFrom ||
-          !eventTo ||
-          targetDate < eventFrom ||
-          targetDate > eventTo
-        ) {
-          return false;
-        }
-      }
-
-      if (!useSingleDate && fromDate) {
-        const targetFromDate = normalizeDate(fromDate);
-        if (!targetFromDate || !eventTo || eventTo < targetFromDate) {
-          return false;
-        }
-      }
-
-      if (!useSingleDate && toDate) {
-        const targetToDate = normalizeDate(toDate);
-        if (!targetToDate || !eventFrom || eventFrom > targetToDate) {
-          return false;
-        }
-      }
-
       return true;
     });
-  }, [events, quarter, useSingleDate, date, fromDate, toDate, facultyName]);
+  }, [events, facultyName]);
 
   const handleResetFilters = () => {
-    setQuarter("");
-    setUseSingleDate(false);
-    setDate("");
-    setFromDate("");
-    setToDate("");
     setFacultyName("");
+  };
+
+  const handleDownloadReport = async (eventItem) => {
+    if (!token) {
+      return;
+    }
+
+    setDownloadingId(eventItem.id);
+    try {
+      const payload = await getPrototypeById({
+        token,
+        prototypeId: eventItem.id,
+      });
+      const prototypeData = payload?.data || {};
+      const title =
+        prototypeData?.programDetails?.innovationTitle ||
+        eventItem.innovationTitle ||
+        eventItem.eventName ||
+        `Prototype #${eventItem.id}`;
+
+      downloadPdfReport({
+        title,
+        fallbackName: `Prototype_${eventItem.id}`,
+        sections: detailSteps.map((step) => ({
+          label: step.label,
+          data: prototypeData?.[step.key],
+        })),
+      });
+
+      setAlertState({
+        isOpen: true,
+        message: "PoC report downloaded successfully.",
+        severity: "success",
+      });
+    } catch (error) {
+      setAlertState({
+        isOpen: true,
+        message: error.message || "Failed to download report.",
+        severity: "error",
+      });
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const fromPath = `${location.pathname}${location.search}`;
@@ -230,53 +279,6 @@ export default function AdminPrototypeApprovedDashboard() {
       <div className="border-b border-gray-200 bg-white px-8 py-6">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <SearchableSelect
-            label="Quarter"
-            value={quarter}
-            onChange={setQuarter}
-            options={options.quarters}
-            emptyLabel="All Quarters"
-          />
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-900">
-              Prototype Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              disabled={!useSingleDate}
-              className="input-custom"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-900">
-              From Date
-            </label>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(event) => setFromDate(event.target.value)}
-              disabled={useSingleDate}
-              className="input-custom"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-900">
-              To Date
-            </label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(event) => setToDate(event.target.value)}
-              disabled={useSingleDate}
-              className="input-custom"
-            />
-          </div>
-
-          <SearchableSelect
             label="Faculty Name"
             value={facultyName}
             onChange={setFacultyName}
@@ -286,17 +288,7 @@ export default function AdminPrototypeApprovedDashboard() {
         </div>
 
         <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={useSingleDate}
-              onChange={(event) => setUseSingleDate(event.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary-light cursor-pointer"
-            />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-              Use exact date search (turns off From/To range)
-            </span>
-          </label>
+          <div />
           <button
             type="button"
             onClick={handleResetFilters}
@@ -340,62 +332,113 @@ export default function AdminPrototypeApprovedDashboard() {
           </div>
         )}
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filteredEvents.map((eventItem) => (
-            <Link
-              to={`/prototype/${eventItem.id}`}
-              state={{ from: fromPath }}
-              key={eventItem.id}
-              className="card-custom group"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-base font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
-                  {eventItem.eventName || `Prototype #${eventItem.id}`}
-                </h3>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize flex-shrink-0 ${
-                    eventItem.status === "rejected"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-green-100 text-green-700"
-                  }`}
+        {filteredEvents.length > 0 && (
+          <div
+            className="overflow-x-auto rounded-xl bg-white"
+            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}
+          >
+            <table className="w-full border-collapse">
+              <thead>
+                <tr
+                  className="border-b border-purple-100"
+                  style={{ backgroundColor: "#f3f0ff" }}
                 >
-                  {eventItem.status || "approved"}
-                </span>
-              </div>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    S.No.
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Team
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Lead
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Lead Details
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Status
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Review Comments
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Download Report
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    View Details
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((eventItem, index) => {
+                  const isEvenRow = index % 2 === 0;
 
-              <p className="mt-3 text-sm text-gray-700 line-clamp-2">
-                {eventItem.majorReason || "No major reason provided."}
-              </p>
-
-              <div className="mt-5 space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-4">
-                <div className="flex justify-between">
-                  <span className="font-semibold">Quarter:</span>
-                  <span className="text-gray-700">
-                    {eventItem.quarter || "-"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Date:</span>
-                  <span className="text-gray-700">
-                    {getEventDateLabel(eventItem)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Duration:</span>
-                  <span className="text-gray-700">
-                    {getDurationLabel(eventItem)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Owner:</span>
-                  <span className="text-gray-700">
-                    {eventItem.ownerName || "-"}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  return (
+                    <tr
+                      key={eventItem.id}
+                      className={`border-b border-purple-100 transition-colors ${
+                        isEvenRow ? "bg-white" : "bg-gray-50"
+                      } hover:bg-purple-50`}
+                    >
+                      <td className="px-4 py-3.5 text-xs font-medium text-gray-600">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-semibold text-gray-900">
+                        {getTeamLabel(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-medium text-gray-700">
+                        {getTeamLeadLabel(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-gray-700">
+                        {getTeamLeadDetails(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <span
+                          className={`inline-block rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                            eventItem.status === "rejected"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-green-50 text-green-700"
+                          }`}
+                        >
+                          {eventItem.status || "approved"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-gray-700">
+                        {eventItem.rejectionMessage || "-"}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadReport(eventItem)}
+                          disabled={downloadingId === eventItem.id}
+                          className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+                        >
+                          <Download size={14} />
+                          <span>
+                            {downloadingId === eventItem.id
+                              ? "Downloading..."
+                              : "Download Report"}
+                          </span>
+                        </button>
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <Link
+                          to={`/prototype/${eventItem.id}`}
+                          state={{ from: fromPath }}
+                          className="inline-block rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-700"
+                          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+                        >
+                          View Details
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <Alert

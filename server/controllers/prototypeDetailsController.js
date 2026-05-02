@@ -81,6 +81,8 @@ const normalizePrototypeRow = (row) => ({
   ownerName: row.owner_name,
   ownerEmail: row.owner_email,
   reviewerName: row.reviewer_name,
+  innovationTitle: row.innovation_title,
+  teamLeadName: row.team_lead_name,
   faculty1: row.faculty_1,
   faculty2: row.faculty_2,
   faculty3: row.faculty_3,
@@ -97,7 +99,7 @@ const basePrototypeSelect = `
     id.reviewed_at,
     id.approved_at,
     id.rejected_at,
-    COALESCE(id.program_details->>'programActivityName', '') AS event_name,
+    COALESCE(id.program_details->>'innovationTitle', id.program_details->>'programActivityName', '') AS event_name,
     COALESCE(id.program_details->>'aboutEvent', '') AS major_reason,
     COALESCE(id.program_details->>'quarter', '') AS quarter,
     COALESCE(id.duration_details->>'fromDate', '') AS from_date,
@@ -105,6 +107,8 @@ const basePrototypeSelect = `
     COALESCE(owner.name, '') AS owner_name,
     COALESCE(owner.email, '') AS owner_email,
     COALESCE(reviewer.name, '') AS reviewer_name,
+    COALESCE(id.program_details->>'innovationTitle', '') AS innovation_title,
+    COALESCE(id.program_details->>'teamLeadName', '') AS team_lead_name,
     COALESCE(id.faculty->>'faculty1', '') AS faculty_1,
     COALESCE(id.faculty->>'faculty2', '') AS faculty_2,
     COALESCE(id.faculty->>'faculty3', '') AS faculty_3,
@@ -573,7 +577,7 @@ export async function reviewPrototypeByAdmin(request, response, next) {
       WHERE id = $4
       RETURNING id, status, rejection_message, reviewed_at, approved_at, rejected_at
       `,
-      [nextStatus, nextStatus === "rejected" ? rejectionMessage || null : null, adminUserId, prototypeId]
+      [nextStatus, rejectionMessage || null, adminUserId, prototypeId]
     );
 
     const updatedPrototype = updatedRows[0];

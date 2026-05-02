@@ -184,7 +184,7 @@ export default function PrototypeOverview() {
         token,
         prototypeId,
         action,
-        rejectionMessage: action === "reject" ? rejectMessage : "",
+        rejectionMessage: rejectMessage,
       });
 
       setAlertState({

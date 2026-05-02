@@ -1,24 +1,41 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getAdminPrototypeReviewQueue } from "../../../config/api";
 import Alert from "../../components/Alert";
 import SearchableSelect from "../../components/SearchableSelect";
 import { getAuthToken } from "../../utils/auth";
 
-const statusBadgeClass = {
-  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  approved: "bg-green-50 text-green-700 border-green-200",
-  rejected: "bg-red-50 text-red-700 border-red-200",
+const getTeamLabel = (eventItem) => {
+  return (
+    eventItem.eventName ||
+    eventItem.innovationTitle ||
+    `Prototype #${eventItem.id}`
+  );
+};
+
+const getTeamLeadLabel = (eventItem) => {
+  return eventItem.teamLeadName || eventItem.ownerName || "-";
+};
+
+const getTeamLeadDetails = (eventItem) => {
+  const details = [eventItem.teamLeadEmail, eventItem.teamLeadGender].filter(
+    Boolean,
+  );
+
+  return details.length > 0 ? details.join(" | ") : "-";
 };
 
 export default function AdminPrototypeReview() {
   const token = useMemo(() => getAuthToken(), []);
   const location = useLocation();
   const [events, setEvents] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [facultyFilter, setFacultyFilter] = useState("");
+  const [facultyName, setFacultyName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [alertState, setAlertState] = useState({ isOpen: false, message: "", severity: "info" });
+  const [alertState, setAlertState] = useState({
+    isOpen: false,
+    message: "",
+    severity: "info",
+  });
 
   const loadQueue = async () => {
     setLoading(true);
@@ -40,30 +57,30 @@ export default function AdminPrototypeReview() {
     loadQueue();
   }, [token]);
 
-  const statusOptions = useMemo(() => {
-    return Array.from(new Set(events.map((eventItem) => eventItem.status).filter(Boolean)));
-  }, [events]);
-
   const facultyOptions = useMemo(() => {
     const collected = new Set();
 
     events.forEach((eventItem) => {
-      [eventItem.ownerName, eventItem.faculty1, eventItem.faculty2, eventItem.faculty3, eventItem.facultyApplied]
+      [
+        eventItem.ownerName,
+        eventItem.faculty1,
+        eventItem.faculty2,
+        eventItem.faculty3,
+        eventItem.facultyApplied,
+      ]
         .filter(Boolean)
         .forEach((value) => collected.add(value));
     });
 
-    return Array.from(collected).sort((left, right) => left.localeCompare(right));
+    return Array.from(collected).sort((left, right) =>
+      left.localeCompare(right),
+    );
   }, [events]);
 
   const filteredEvents = useMemo(() => {
     return events.filter((eventItem) => {
-      if (statusFilter && eventItem.status !== statusFilter) {
-        return false;
-      }
-
-      if (facultyFilter) {
-        const facultyValues = [
+      if (facultyName) {
+        const facultyFields = [
           eventItem.ownerName,
           eventItem.faculty1,
           eventItem.faculty2,
@@ -71,66 +88,85 @@ export default function AdminPrototypeReview() {
           eventItem.facultyApplied,
         ]
           .filter(Boolean)
-          .map((value) => String(value));
+          .map((value) => String(value).toLowerCase());
 
-        if (!facultyValues.includes(facultyFilter)) {
+        if (
+          !facultyFields.some((value) =>
+            value.includes(facultyName.toLowerCase()),
+          )
+        ) {
           return false;
         }
       }
 
       return true;
     });
-  }, [events, statusFilter, facultyFilter]);
+  }, [events, facultyName]);
 
-  const handleReset = () => {
-    setStatusFilter("");
-    setFacultyFilter("");
+  const handleResetFilters = () => {
+    setFacultyName("");
   };
 
   const fromPath = `${location.pathname}${location.search}`;
 
   return (
-    <section className="-m-6 min-h-[calc(100vh-4rem)] bg-white">
-      <div className="grid gap-4 border-b border-gray-200 px-6 py-5 md:grid-cols-2 xl:grid-cols-4">
-        <SearchableSelect
-          label="Status"
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={statusOptions}
-          emptyLabel="All Statuses"
-        />
+    <section className="min-h-[calc(100vh-4rem)] bg-gray-50">
+      <div className="border-b border-gray-200 bg-white px-8 py-8">
+        <div className="space-y-2">
+          <h1 className="heading-xl">PoC Review Queue</h1>
+          <p className="text-muted">
+            Review and manage pending PoC submissions
+          </p>
+        </div>
+      </div>
 
-        <SearchableSelect
-          label="Faculty"
-          value={facultyFilter}
-          onChange={setFacultyFilter}
-          options={facultyOptions}
-          emptyLabel="All Faculty"
-        />
+      <div className="border-b border-gray-200 bg-white px-8 py-6">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <SearchableSelect
+            label="Faculty Name"
+            value={facultyName}
+            onChange={setFacultyName}
+            options={facultyOptions}
+            emptyLabel="All Faculty"
+          />
+        </div>
 
-        <div className="flex items-end gap-2">
+        <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div />
           <button
             type="button"
-            onClick={handleReset}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            onClick={handleResetFilters}
+            className="btn-reset-custom"
+            disabled={loading}
           >
             Reset
           </button>
         </div>
-
-        <div className="flex items-end justify-end">
-          <span className="badge-primary">
-            {filteredEvents.length} prototype{filteredEvents.length !== 1 ? 's' : ''}
-          </span>
-        </div>
       </div>
 
-      <div className="px-6 py-5">
+      <div className="px-8 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <span className="badge-primary text-base">
+            {filteredEvents.length} prototype
+            {filteredEvents.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
         {!loading && filteredEvents.length === 0 && (
-          <div className="empty-state mx-auto max-w-md py-8">
+          <div className="empty-state">
             <div className="empty-state-icon">
-              <svg className="mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+              <svg
+                className="mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <p className="empty-state-title">No Prototypes in Review Queue</p>
@@ -139,47 +175,107 @@ export default function AdminPrototypeReview() {
             </p>
           </div>
         )}
-        )}
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredEvents.map((eventItem) => (
-            <Link
-              to={`/prototype/${eventItem.id}`}
-              state={{ from: fromPath }}
-              key={eventItem.id}
-              className="card-custom group"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="line-clamp-1 text-base font-semibold text-slate-900 group-hover:text-primary transition-colors">{eventItem.eventName || `Prototype #${eventItem.id}`}</h3>
-                <span
-                  className={`${
-                    statusBadgeClass[eventItem.status] || "bg-gray-100 text-gray-700 border-gray-200"
-                  } rounded-lg px-3 py-1.5 text-xs font-semibold capitalize border inline-flex items-center justify-center transition-all duration-200`}
+        {filteredEvents.length > 0 && (
+          <div
+            className="overflow-x-auto rounded-xl bg-white"
+            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}
+          >
+            <table className="w-full border-collapse">
+              <thead>
+                <tr
+                  className="border-b border-purple-100"
+                  style={{ backgroundColor: "#f3f0ff" }}
                 >
-                  {eventItem.status || "pending"}
-                </span>
-              </div>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    S.No.
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Team
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Lead
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Lead Details
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    Status
+                  </th>
+                  <th className="px-4 py-3.5 text-left text-sm font-bold text-purple-700">
+                    Review Comments
+                  </th>
+                  <th className="px-4 py-3.5 text-center text-sm font-bold text-purple-700">
+                    View Details
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((eventItem, index) => {
+                  const isEvenRow = index % 2 === 0;
 
-              <p className="mt-3 line-clamp-3 text-sm text-gray-700">{eventItem.majorReason || "No major reason provided."}</p>
-
-              <div className="mt-4 space-y-1 text-xs text-gray-600">
-                <p><span className="font-semibold">Owner:</span> {eventItem.ownerName || "-"}</p>
-                <p><span className="font-semibold">Quarter:</span> {eventItem.quarter || "-"}</p>
-                <p><span className="font-semibold">Rejection Msg:</span> {eventItem.rejectionMessage || "-"}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  return (
+                    <tr
+                      key={eventItem.id}
+                      className={`border-b border-purple-100 transition-colors ${
+                        isEvenRow ? "bg-white" : "bg-gray-50"
+                      } hover:bg-purple-50`}
+                    >
+                      <td className="px-4 py-3.5 text-xs font-medium text-gray-600">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-semibold text-gray-900">
+                        {getTeamLabel(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-medium text-gray-700">
+                        {getTeamLeadLabel(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-gray-700">
+                        {getTeamLeadDetails(eventItem)}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <span
+                          className={`inline-block rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                            eventItem.status === "rejected"
+                              ? "bg-red-50 text-red-700"
+                              : eventItem.status === "pending"
+                              ? "bg-yellow-50 text-yellow-700"
+                              : "bg-green-50 text-green-700"
+                          }`}
+                        >
+                          {eventItem.status || "pending"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-gray-700">
+                        {eventItem.rejectionMessage || "-"}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <Link
+                          to={`/prototype/${eventItem.id}`}
+                          state={{ from: fromPath }}
+                          className="inline-block rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-700"
+                          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+                        >
+                          View Details
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <Alert
         isOpen={alertState.isOpen}
-        onClose={() => setAlertState((previous) => ({ ...previous, isOpen: false }))}
+        onClose={() =>
+          setAlertState((previous) => ({ ...previous, isOpen: false }))
+        }
         severity={alertState.severity}
         message={alertState.message}
       />
     </section>
   );
 }
-
-

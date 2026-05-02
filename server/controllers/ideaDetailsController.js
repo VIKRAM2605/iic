@@ -118,6 +118,10 @@ const normalizeIdeaRow = (row) => ({
   ownerName: row.owner_name,
   ownerEmail: row.owner_email,
   reviewerName: row.reviewer_name,
+  innovationTitle: row.innovation_title,
+  teamLeadName: row.team_lead_name,
+  teamLeadEmail: row.team_lead_email,
+  teamLeadGender: row.team_lead_gender,
   faculty1: row.faculty_1,
   faculty2: row.faculty_2,
   faculty3: row.faculty_3,
@@ -134,14 +138,18 @@ const baseIdeaSelect = `
     id.reviewed_at,
     id.approved_at,
     id.rejected_at,
-    COALESCE(id.program_details->>'programActivityName', '') AS event_name,
-    COALESCE(id.program_details->>'aboutEvent', '') AS major_reason,
-    COALESCE(id.program_details->>'quarter', '') AS quarter,
-    COALESCE(id.duration_details->>'fromDate', '') AS from_date,
-    COALESCE(id.duration_details->>'toDate', '') AS to_date,
+    COALESCE(id.program_details->>'innovationTitle', id.program_details->>'programActivityName', '') AS event_name,
+    COALESCE(id.overview->>'problemRelevance', id.program_details->>'aboutEvent', '') AS major_reason,
+    COALESCE(id.program_details->>'fyOfDevelopment', id.program_details->>'quarter', '') AS quarter,
+    COALESCE(NULLIF(id.duration_details->>'fromDate', ''), TO_CHAR(id.created_at::date, 'YYYY-MM-DD')) AS from_date,
+    COALESCE(NULLIF(id.duration_details->>'toDate', ''), TO_CHAR(id.created_at::date, 'YYYY-MM-DD')) AS to_date,
     COALESCE(owner.name, '') AS owner_name,
     COALESCE(owner.email, '') AS owner_email,
     COALESCE(reviewer.name, '') AS reviewer_name,
+    COALESCE(id.program_details->>'innovationTitle', '') AS innovation_title,
+    COALESCE(id.program_details->>'teamLeadName', '') AS team_lead_name,
+    COALESCE(id.program_details->>'teamLeadEmail', '') AS team_lead_email,
+    COALESCE(id.program_details->>'teamLeadGender', '') AS team_lead_gender,
     COALESCE(id.faculty->>'faculty1', '') AS faculty_1,
     COALESCE(id.faculty->>'faculty2', '') AS faculty_2,
     COALESCE(id.faculty->>'faculty3', '') AS faculty_3,
@@ -161,35 +169,17 @@ export async function createIdeaDetails(request, response, next) {
     const bodyUserId = getBodyValue(body, "userId");
     const userId = String(request.user?.id ?? (bodyUserId || randomUUID()));
 
-    const faculty = {
-      faculty1: getBodyValue(body, "faculty1"),
-      faculty2: getBodyValue(body, "faculty2"),
-      faculty3: getBodyValue(body, "faculty3"),
-    };
-
     const programDetails = {
-      previousAcademicYear: getBodyValue(body, "previousAcademicYear"),
-      currentAcademicYear: getBodyValue(body, "currentAcademicYear"),
-      quarter: getBodyValue(body, "quarter"),
-      programDrivenBy: getBodyValue(body, "programDrivenBy"),
-      programActivityName: getBodyValue(body, "programActivityName"),
-      programType: getBodyValue(body, "programType"),
-      activityLedBy: getBodyValue(body, "activityLedBy"),
-      programTheme: getBodyValue(body, "programTheme"),
-      aboutEvent: getBodyValue(body, "aboutEvent"),
-      studentParticipants: getBodyNumber(body, "studentParticipants"),
-      facultyParticipants: getBodyNumber(body, "facultyParticipants"),
-      externalParticipants: getBodyNumber(body, "externalParticipants"),
-      expenditureAmount: getBodyNumber(body, "expenditureAmount"),
-      modeOfSession: getBodyValue(body, "modeOfSession"),
-      eventType: getBodyValue(body, "eventType"),
-    };
-
-    const durationDetails = {
-      durationManual: getBodyBoolean(body, "durationManual"),
-      fromDate: getBodyValue(body, "fromDate"),
-      toDate: getBodyValue(body, "toDate"),
-      durationHours: getBodyNumber(body, "durationHours"),
+      instituteName: getBodyValue(body, "instituteName"),
+      innovationTitle: getBodyValue(body, "innovationTitle"),
+      teamLeadName: getBodyValue(body, "teamLeadName"),
+      teamLeadEmail: getBodyValue(body, "teamLeadEmail"),
+      teamLeadGender: getBodyValue(body, "teamLeadGender"),
+      fyOfDevelopment: getBodyValue(body, "fyOfDevelopment"),
+      sectorDomain: getBodyValue(body, "sectorDomain"),
+      developedAsPartOf: getBodyValue(body, "developedAsPartOf"),
+      innovationType: getBodyValue(body, "innovationType"),
+      developmentStage: getBodyValue(body, "developmentStage"),
     };
 
     const overview = {
@@ -197,15 +187,6 @@ export async function createIdeaDetails(request, response, next) {
       solutionDescription: getBodyValue(body, "solutionDescription"),
       uniquenessFeatures: getBodyValue(body, "uniquenessFeatures"),
       competitorDifference: getBodyValue(body, "competitorDifference"),
-    };
-
-    const speakerDetails = {
-      speakerName: getBodyValue(body, "speakerName"),
-      speakerDesignation: getBodyValue(body, "speakerDesignation"),
-      speakerOrganization: getBodyValue(body, "speakerOrganization"),
-      aboutSpeaker: getBodyValue(body, "aboutSpeaker"),
-      sessionVideoUrl: getBodyValue(body, "sessionVideoUrl"),
-      publishedSocialMediaUrl: getBodyValue(body, "publishedSocialMediaUrl"),
     };
 
     const attachments = {
@@ -222,32 +203,11 @@ export async function createIdeaDetails(request, response, next) {
       innovationVideoUrl: getBodyValue(body, "innovationVideoUrl"),
       innovationPhotograph: getUploadedFilePath(files, "innovationPhotograph"),
     };
-
-    const socialMedia = {
-      promoteTwitter: getBodyBoolean(body, "promoteTwitter"),
-      twitterUrl: getBodyValue(body, "twitterUrl"),
-      promoteFacebook: getBodyBoolean(body, "promoteFacebook"),
-      facebookUrl: getBodyValue(body, "facebookUrl"),
-      promoteInstagram: getBodyBoolean(body, "promoteInstagram"),
-      instagramUrl: getBodyValue(body, "instagramUrl"),
-      promoteLinkedin: getBodyBoolean(body, "promoteLinkedin"),
-      linkedinUrl: getBodyValue(body, "linkedinUrl"),
-    };
-
-    const bipPortal = {
-      facultyApplied: getBodyValue(body, "facultyApplied"),
-      taskId: getBodyValue(body, "taskId"),
-      departmentsInvolved: getBodyValue(body, "departmentsInvolved"),
-      department: getBodyValue(body, "department"),
-      specialLabsInvolved: getBodyValue(body, "specialLabsInvolved"),
-      specialLabs: getBodyValue(body, "specialLabs"),
-      clubInvolved: getBodyValue(body, "clubInvolved"),
-      club: getBodyValue(body, "club"),
-      firstFacultyInvolved: getBodyValue(body, "firstFacultyInvolved"),
-      secondFacultyInvolved: getBodyValue(body, "secondFacultyInvolved"),
-      thirdFacultyInvolved: getBodyValue(body, "thirdFacultyInvolved"),
-      iqacVerification: getBodyValue(body, "iqacVerification"),
-    };
+    const durationDetails = {};
+    const speakerDetails = {};
+    const socialMedia = {};
+    const bipPortal = {};
+    const faculty = {};
 
     const insertedRows = await db`
       INSERT INTO idea_details (
@@ -300,26 +260,32 @@ export async function getApprovedIdeasForAdmin(request, response, next) {
 
     if (quarter) {
       params.push(quarter);
-      conditions.push(`LOWER(COALESCE(id.program_details->>'quarter', '')) = LOWER($${params.length})`);
+      conditions.push(
+        `LOWER(COALESCE(id.program_details->>'fyOfDevelopment', id.program_details->>'quarter', '')) = LOWER($${params.length})`
+      );
     }
 
     if (date) {
       params.push(date);
       conditions.push(`
         (
-          NULLIF(id.duration_details->>'fromDate', '')::date <= $${params.length}::date
-          AND NULLIF(id.duration_details->>'toDate', '')::date >= $${params.length}::date
+          COALESCE(NULLIF(id.duration_details->>'fromDate', '')::date, id.created_at::date) <= $${params.length}::date
+          AND COALESCE(NULLIF(id.duration_details->>'toDate', '')::date, id.created_at::date) >= $${params.length}::date
         )
       `);
     } else {
       if (fromDate) {
         params.push(fromDate);
-        conditions.push(`NULLIF(id.duration_details->>'toDate', '')::date >= $${params.length}::date`);
+        conditions.push(
+          `COALESCE(NULLIF(id.duration_details->>'toDate', '')::date, id.created_at::date) >= $${params.length}::date`
+        );
       }
 
       if (toDate) {
         params.push(toDate);
-        conditions.push(`NULLIF(id.duration_details->>'fromDate', '')::date <= $${params.length}::date`);
+        conditions.push(
+          `COALESCE(NULLIF(id.duration_details->>'fromDate', '')::date, id.created_at::date) <= $${params.length}::date`
+        );
       }
     }
 
@@ -363,10 +329,10 @@ export async function getApprovedIdeaFilterOptionsForAdmin(_request, response, n
 
     const quarterRows = await db.unsafe(
       `
-      SELECT DISTINCT TRIM(COALESCE(id.program_details->>'quarter', '')) AS quarter
+      SELECT DISTINCT TRIM(COALESCE(id.program_details->>'fyOfDevelopment', id.program_details->>'quarter', '')) AS quarter
       FROM idea_details id
       WHERE id.status ${statusFilter}
-        AND TRIM(COALESCE(id.program_details->>'quarter', '')) <> ''
+        AND TRIM(COALESCE(id.program_details->>'fyOfDevelopment', id.program_details->>'quarter', '')) <> ''
       ORDER BY quarter
       `
     );
@@ -520,14 +486,30 @@ export async function getIdeaById(request, response, next) {
         approvedAt: ideaRow.approved_at,
         rejectedAt: ideaRow.rejected_at,
         createdAt: ideaRow.created_at,
-        eventName: ideaRow.program_details?.programActivityName || "",
-        majorReason: ideaRow.program_details?.aboutEvent || "",
-        quarter: ideaRow.program_details?.quarter || "",
+        eventName:
+          ideaRow.program_details?.innovationTitle ||
+          ideaRow.program_details?.programActivityName ||
+          "",
+        majorReason:
+          ideaRow.overview?.problemRelevance ||
+          ideaRow.program_details?.aboutEvent ||
+          "",
+        quarter:
+          ideaRow.program_details?.fyOfDevelopment ||
+          ideaRow.program_details?.quarter ||
+          "",
         ownerName: ideaRow.owner_name,
         ownerEmail: ideaRow.owner_email,
         reviewerName: ideaRow.reviewer_name,
+        ideaDetails: ideaRow.program_details,
         programDetails: ideaRow.program_details,
-        durationDetails: ideaRow.duration_details,
+        durationDetails:
+          ideaRow.duration_details && Object.keys(ideaRow.duration_details).length > 0
+            ? ideaRow.duration_details
+            : {
+                fromDate: ideaRow.created_at,
+                toDate: ideaRow.created_at,
+              },
         overview: ideaRow.overview,
         speakerDetails: ideaRow.speaker_details,
         attachments: ideaRow.attachments,
@@ -562,7 +544,7 @@ export async function reviewIdeaByAdmin(request, response, next) {
       SELECT
         id.id,
         id.user_id,
-        COALESCE(id.program_details->>'programActivityName', '') AS event_name,
+        COALESCE(id.program_details->>'innovationTitle', id.program_details->>'programActivityName', '') AS event_name,
         owner.email AS owner_email,
         owner.name AS owner_name
       FROM idea_details id
@@ -599,7 +581,7 @@ export async function reviewIdeaByAdmin(request, response, next) {
       WHERE id = $4
       RETURNING id, status, rejection_message, reviewed_at, approved_at, rejected_at
       `,
-      [nextStatus, nextStatus === "rejected" ? rejectionMessage || null : null, adminUserId, ideaId]
+      [nextStatus, rejectionMessage || null, adminUserId, ideaId]
     );
 
     const updatedIdea = updatedRows[0];
@@ -631,7 +613,7 @@ export async function deleteIdeaByAdmin(request, response, next) {
       SELECT
         id.id,
         id.attachments,
-        COALESCE(id.program_details->>'programActivityName', '') AS event_name,
+        COALESCE(id.program_details->>'innovationTitle', id.program_details->>'programActivityName', '') AS event_name,
         COALESCE(owner.name, '') AS owner_name
       FROM idea_details id
       LEFT JOIN users owner

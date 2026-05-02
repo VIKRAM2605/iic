@@ -40,30 +40,88 @@ const prettifyKey = (key) =>
     .trim()
     .replace(/^./, (char) => char.toUpperCase());
 
+const IDEA_FIELD_LABELS = {
+  instituteName: "Institute Name",
+  innovationTitle: "Title of the Innovation",
+  teamLeadName: "Team Lead Name",
+  teamLeadEmail: "Team Lead Email",
+  teamLeadGender: "Team Lead Gender",
+  fyOfDevelopment: "Financial Year of Development",
+  sectorDomain: "Sector / Domain",
+  developedAsPartOf: "Developed as Part of",
+  innovationType: "Innovation Type",
+  developmentStage: "Development Stage",
+  problemRelevance:
+    "Define the Problem and Its Relevance to Today's Market / Society / Industry Need",
+  solutionDescription: "Describe the Solution / Proposed / Developed",
+  uniquenessFeatures:
+    "Explain the Uniqueness and Distinctive Features of the Solution",
+  competitorDifference:
+    "How Your Solution Differs from Similar Competitor Products",
+  ipPatentAssociated:
+    "Is There Any IP or Patentable Component Associated with the Solution?",
+  ipPatentDocument: "IP / Patent Document",
+  innovationGrantSupport: "Innovation Grant / Seed Fund Support",
+  innovationGrantDocument: "Innovation Grant Document",
+  recognitionsObtained: "Recognitions Obtained",
+  latestAchievementDocument: "Latest Achievement Document",
+  commercializedSolution:
+    "Commercialized Through Technology Transfer or Startup",
+  startupRegistrationDocument: "Startup / Enterprise Registration Copy",
+  incubationSupportReceived: "Received Pre-Incubation / Incubation Support",
+  incubationUnitName: "Pre-Incubation / Incubation Unit Name",
+  innovationVideoUrl: "Video URL",
+  innovationPhotograph: "Innovation Photograph",
+};
+
+const isUploadPath = (value) =>
+  typeof value === "string" && value.startsWith("/uploads/");
+
+const renderValue = (key, value) => {
+  if (key === "fromDate" || key === "toDate") {
+    const dateValue = normalizeDate(value);
+    return dateValue || "-";
+  }
+
+  if (value === null || value === undefined) {
+    return "-";
+  }
+
+  if (typeof value === "object") {
+    const objectValue = JSON.stringify(value);
+    return objectValue && objectValue !== "{}" ? objectValue : "-";
+  }
+
+  const textValue = String(value).trim();
+  if (!textValue) {
+    return "-";
+  }
+
+  if (isUploadPath(textValue) || /^https?:\/\//i.test(textValue)) {
+    return (
+      <a
+        href={textValue}
+        target="_blank"
+        rel="noreferrer"
+        className="text-primary hover:underline"
+      >
+        Open file
+      </a>
+    );
+  }
+
+  return textValue;
+};
+
 const renderDetails = (details = {}) => {
   return Object.entries(details)
     .map(([key, value]) => (
       <div key={key} className="rounded-md border border-gray-200 p-3">
-        <p className="text-xs font-semibold uppercase text-gray-500">{prettifyKey(key)}</p>
+        <p className="text-xs font-semibold uppercase text-gray-500">
+          {IDEA_FIELD_LABELS[key] || prettifyKey(key)}
+        </p>
         <p className="mt-1 wrap-break-word text-sm text-gray-800">
-          {(() => {
-            if (key === "fromDate" || key === "toDate") {
-              const dateValue = normalizeDate(value);
-              return dateValue || "-";
-            }
-
-            if (value === null || value === undefined) {
-              return "-";
-            }
-
-            if (typeof value === "object") {
-              const objectValue = JSON.stringify(value);
-              return objectValue && objectValue !== "{}" ? objectValue : "-";
-            }
-
-            const textValue = String(value).trim();
-            return textValue || "-";
-          })()}
+          {renderValue(key, value)}
         </p>
       </div>
     ));
@@ -116,12 +174,9 @@ const getDurationLabel = (eventData) => {
 };
 
 const detailSteps = [
-  { key: "programDetails", label: "Program" },
-  { key: "durationDetails", label: "Duration" },
+  { key: "ideaDetails", label: "Idea Details" },
   { key: "overview", label: "Overview" },
-  { key: "speakerDetails", label: "Speaker" },
-  { key: "bipPortal", label: "BIP Portal" },
-  { key: "faculty", label: "Faculty" },
+  { key: "attachments", label: "Attachments" },
 ];
 
 export default function IdeaOverview() {
@@ -183,7 +238,7 @@ export default function IdeaOverview() {
         token,
         ideaId,
         action,
-        rejectionMessage: action === "reject" ? rejectMessage : "",
+        rejectionMessage: rejectMessage,
       });
 
       setAlertState({
