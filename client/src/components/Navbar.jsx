@@ -1,11 +1,6 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import {
-  CheckSquare,
-  ChevronDown,
-  LayoutDashboard,
-  LogOut,
-} from "lucide-react";
+import { CheckSquare, ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 import { logoutUser } from "../../config/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "../utils/auth";
 
@@ -16,6 +11,61 @@ function linkClassName({ isActive }) {
       ? "bg-primary text-white shadow-md"
       : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900",
   ].join(" ");
+}
+
+function renderSection(section, expandedSection, setExpandedSection) {
+  const SectionIcon = section.icon;
+
+  return (
+    <li key={section.label} className="space-y-1">
+      {section.to ? (
+        <NavLink to={section.to} className={() => linkClassName({ isActive: section.isActive })}>
+          <SectionIcon size={18} aria-hidden="true" className="flex-shrink-0" />
+          <span>{section.label}</span>
+        </NavLink>
+      ) : (
+        <button
+          type="button"
+          className={linkClassName({
+            isActive: section.isActive || expandedSection === section.label,
+          })}
+          onClick={() =>
+            setExpandedSection(expandedSection === section.label ? "" : section.label)
+          }
+        >
+          <SectionIcon size={18} aria-hidden="true" className="flex-shrink-0" />
+          <span className="flex-1 text-left">{section.label}</span>
+          {section.children.length > 0 && (
+            <ChevronDown
+              size={16}
+              aria-hidden="true"
+              className={`flex-shrink-0 transition-transform duration-200 ${
+                expandedSection === section.label ? "rotate-180" : ""
+              }`}
+            />
+          )}
+        </button>
+      )}
+
+      {section.children.length > 0 &&
+        (expandedSection === section.label || section.isActive) && (
+          <ul className="ml-2 space-y-1 border-l-2 border-gray-200 pl-5">
+            {section.children.map((item) => {
+              const ItemIcon = item.icon;
+
+              return (
+                <li key={item.label}>
+                  <NavLink to={item.to} className={linkClassName}>
+                    <ItemIcon size={16} aria-hidden="true" className="flex-shrink-0 text-primary" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+    </li>
+  );
 }
 
 export default function Navbar() {
@@ -35,23 +85,39 @@ export default function Navbar() {
         location.pathname.startsWith("/admin/review") ||
         location.pathname.startsWith("/admin/idea-review") ||
         location.pathname.startsWith("/admin/prototype-review") ||
-        location.pathname.startsWith("/admin/business-review"),
+        location.pathname.startsWith("/admin/business-review") ||
+        location.pathname.startsWith("/admin/iic-applied-review") ||
+        location.pathname.startsWith("/admin/rd-cell-activities-review") ||
+        location.pathname.startsWith("/admin/rd-cell-review") ||
+        location.pathname.startsWith("/admin/rd-facilities-services-review") ||
+        location.pathname.startsWith("/admin/rd-equipments-services-review") ||
+        location.pathname.startsWith("/admin/rd-projects-outputs-review"),
       children: [
         { label: "Event Reviews", icon: CheckSquare, to: "/admin/review" },
+        { label: "Idea & PoC Reviews", icon: CheckSquare, to: "/admin/idea-review" },
+        { label: "Prototype Reviews", icon: CheckSquare, to: "/admin/prototype-review" },
+        { label: "Startup Reviews", icon: CheckSquare, to: "/admin/business-review" },
+        { label: "IIC Applied Reviews", icon: CheckSquare, to: "/admin/iic-applied-review" },
         {
-          label: "Idea & PoC Reviews",
+          label: "R & D Cell Activities Reviews",
           icon: CheckSquare,
-          to: "/admin/idea-review",
+          to: "/admin/rd-cell-activities-review",
+        },
+        { label: "R & D Cell Reviews", icon: CheckSquare, to: "/admin/rd-cell-review" },
+        {
+          label: "R & D Facilities Reviews",
+          icon: CheckSquare,
+          to: "/admin/rd-facilities-services-review",
         },
         {
-          label: "Prototype Reviews",
+          label: "R & D Equipments Reviews",
           icon: CheckSquare,
-          to: "/admin/prototype-review",
+          to: "/admin/rd-equipments-services-review",
         },
         {
-          label: "Startup Reviews",
+          label: "R & D Projects Reviews",
           icon: CheckSquare,
-          to: "/admin/business-review",
+          to: "/admin/rd-projects-outputs-review",
         },
       ],
     },
@@ -95,71 +161,61 @@ export default function Navbar() {
         location.pathname.startsWith("/business/"),
       children: [],
     },
-  ];
-
-  const adminSections = [
     {
-      label: "Activities & Events",
+      label: "IIC Applied",
       icon: LayoutDashboard,
-      to: "/admin/dashboard",
+      to: "/admin/iic-applied",
       isActive:
-        location.pathname.startsWith("/admin/dashboard") ||
-        location.pathname.startsWith("/eventdetails"),
+        location.pathname.startsWith("/admin/iic-applied") ||
+        location.pathname.startsWith("/iicapplied") ||
+        location.pathname.startsWith("/iic-applied/"),
       children: [],
     },
     {
-      label: "Idea / PoC Repository",
+      label: "R&D",
       icon: LayoutDashboard,
-      to: "/admin/ideas",
-      isActive:
-        location.pathname.startsWith("/admin/ideas") ||
-        location.pathname.startsWith("/ideadetails"),
-      children: [],
-    },
-    {
-      label: "Innovation / Prototype Repository",
-      icon: LayoutDashboard,
-      to: "/admin/prototypes",
-      isActive:
-        location.pathname.startsWith("/admin/prototypes") ||
-        location.pathname.startsWith("/prototypedetails"),
-      children: [],
-    },
-    {
-      label: "Business Model / Startup",
-      icon: LayoutDashboard,
-      to: "/admin/businesses",
-      isActive:
-        location.pathname.startsWith("/admin/businesses") ||
-        location.pathname.startsWith("/businessdetails") ||
-        location.pathname.startsWith("/business/"),
-      children: [],
-    },
-    {
-      label: "Review Panel",
-      icon: CheckSquare,
       to: null,
       isActive:
-        location.pathname.startsWith("/admin/review") ||
-        location.pathname.startsWith("/admin/idea-review") ||
-        location.pathname.startsWith("/admin/prototype-review") ||
-        location.pathname.startsWith("/admin/business-review"),
+        location.pathname.startsWith("/admin/rd-cell-activities") ||
+        location.pathname.startsWith("/admin/rd-cell-nominations") ||
+        location.pathname.startsWith("/admin/rd-facilities-services") ||
+        location.pathname.startsWith("/admin/rd-equipments-services") ||
+        location.pathname.startsWith("/admin/rd-projects-outputs") ||
+        location.pathname.startsWith("/rdcellactivities") ||
+        location.pathname.startsWith("/rdcellnominations") ||
+        location.pathname.startsWith("/rdfacilitiesservices") ||
+        location.pathname.startsWith("/rdequipmentsservices") ||
+        location.pathname.startsWith("/rdprojectsoutputs") ||
+        location.pathname.startsWith("/rd-cell-activity/") ||
+        location.pathname.startsWith("/rd-cell-nomination/") ||
+        location.pathname.startsWith("/rd-facility-service/") ||
+        location.pathname.startsWith("/rd-equipment-service/") ||
+        location.pathname.startsWith("/rd-project-output/"),
       children: [
-        { label: "Event Reviews", icon: CheckSquare, to: "/admin/review" },
         {
-          label: "Idea & PoC Reviews",
-          icon: CheckSquare,
-          to: "/admin/idea-review",
+          label: "R & D Cell Activities",
+          icon: LayoutDashboard,
+          to: "/admin/rd-cell-activities",
         },
         {
-          label: "Prototype Reviews",
-          icon: CheckSquare,
-          to: "/admin/prototype-review",
+          label: "R & D Cell Nominations",
+          icon: LayoutDashboard,
+          to: "/admin/rd-cell-nominations",
         },
         {
-          label: "Startup Reviews",
-          icon: CheckSquare,
-          to: "/admin/business-review",
+          label: "R & D Facilities and Services",
+          icon: LayoutDashboard,
+          to: "/admin/rd-facilities-services",
+        },
+        {
+          label: "R & D Equipments & Services",
+          icon: LayoutDashboard,
+          to: "/admin/rd-equipments-services",
+        },
+        {
+          label: "R & D Projects & Outputs",
+          icon: LayoutDashboard,
+          to: "/admin/rd-projects-outputs",
         },
       ],
     },
@@ -198,6 +254,70 @@ export default function Navbar() {
         location.pathname.startsWith("/business/"),
       children: [],
     },
+    {
+      label: "IIC Applied",
+      icon: LayoutDashboard,
+      to: "/teacher/iic-applied",
+      isActive:
+        location.pathname.startsWith("/teacher/iic-applied") ||
+        location.pathname.startsWith("/teacher/iicapplied") ||
+        location.pathname.startsWith("/iicapplied") ||
+        location.pathname.startsWith("/iic-applied/"),
+      children: [],
+    },
+    {
+      label: "R&D",
+      icon: LayoutDashboard,
+      to: null,
+      isActive:
+        location.pathname.startsWith("/teacher/rd-cell-activities") ||
+        location.pathname.startsWith("/teacher/rd-cell-nominations") ||
+        location.pathname.startsWith("/teacher/rd-facilities-services") ||
+        location.pathname.startsWith("/teacher/rd-equipments-services") ||
+        location.pathname.startsWith("/teacher/rd-projects-outputs") ||
+        location.pathname.startsWith("/teacher/rdcellactivities") ||
+        location.pathname.startsWith("/teacher/rdcellnominations") ||
+        location.pathname.startsWith("/teacher/rdfacilitiesservices") ||
+        location.pathname.startsWith("/teacher/rdequipmentsservices") ||
+        location.pathname.startsWith("/teacher/rdprojectsoutputs") ||
+        location.pathname.startsWith("/rdcellactivities") ||
+        location.pathname.startsWith("/rdcellnominations") ||
+        location.pathname.startsWith("/rdfacilitiesservices") ||
+        location.pathname.startsWith("/rdequipmentsservices") ||
+        location.pathname.startsWith("/rdprojectsoutputs") ||
+        location.pathname.startsWith("/rd-cell-activity/") ||
+        location.pathname.startsWith("/rd-cell-nomination/") ||
+        location.pathname.startsWith("/rd-facility-service/") ||
+        location.pathname.startsWith("/rd-equipment-service/") ||
+        location.pathname.startsWith("/rd-project-output/"),
+      children: [
+        {
+          label: "R & D Cell Activities",
+          icon: LayoutDashboard,
+          to: "/teacher/rd-cell-activities",
+        },
+        {
+          label: "R & D Cell Nominations",
+          icon: LayoutDashboard,
+          to: "/teacher/rd-cell-nominations",
+        },
+        {
+          label: "R & D Facilities and Services",
+          icon: LayoutDashboard,
+          to: "/teacher/rd-facilities-services",
+        },
+        {
+          label: "R & D Equipments & Services",
+          icon: LayoutDashboard,
+          to: "/teacher/rd-equipments-services",
+        },
+        {
+          label: "R & D Projects & Outputs",
+          icon: LayoutDashboard,
+          to: "/teacher/rd-projects-outputs",
+        },
+      ],
+    },
   ];
 
   const handleLogout = async () => {
@@ -219,14 +339,8 @@ export default function Navbar() {
     <aside className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
       <div className="flex h-16 items-center border-b border-gray-200 bg-white px-6">
         <h1 className="flex items-center gap-3">
-          <img
-            src="/bit-iic-logo.png"
-            alt="BIT IIC"
-            className="h-14 w-14 object-contain"
-          />
-          <span className="text-xl font-bold tracking-wide text-blue-900">
-            BIT IIC
-          </span>
+          <img src="/bit-iic-logo.png" alt="BIT IIC" className="h-14 w-14 object-contain" />
+          <span className="text-xl font-bold tracking-wide text-blue-900">BIT IIC</span>
         </h1>
       </div>
 
@@ -237,174 +351,18 @@ export default function Navbar() {
               Admin Overview
             </p>
             <ul className="mt-3 space-y-1">
-              {adminOverviewSections.map((section) => {
-                const SectionIcon = section.icon;
-
-                return (
-                  <li key={section.label} className="space-y-1">
-                    {section.to ? (
-                      <NavLink
-                        to={section.to}
-                        className={() =>
-                          linkClassName({ isActive: section.isActive })
-                        }
-                      >
-                        <SectionIcon
-                          size={18}
-                          aria-hidden="true"
-                          className="flex-shrink-0"
-                        />
-                        <span>{section.label}</span>
-                      </NavLink>
-                    ) : (
-                      <button
-                        type="button"
-                        className={linkClassName({
-                          isActive:
-                            section.isActive ||
-                            expandedSection === section.label,
-                        })}
-                        onClick={() =>
-                          setExpandedSection(
-                            expandedSection === section.label
-                              ? ""
-                              : section.label,
-                          )
-                        }
-                      >
-                        <SectionIcon
-                          size={18}
-                          aria-hidden="true"
-                          className="flex-shrink-0"
-                        />
-                        <span className="flex-1 text-left">
-                          {section.label}
-                        </span>
-                        {section.children.length > 0 && (
-                          <ChevronDown
-                            size={16}
-                            aria-hidden="true"
-                            className={`flex-shrink-0 transition-transform duration-200 ${
-                              expandedSection === section.label
-                                ? "rotate-180"
-                                : ""
-                            }`}
-                          />
-                        )}
-                      </button>
-                    )}
-
-                    {(section.children.length === 0 ||
-                      expandedSection === section.label) && (
-                      <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
-                        {section.children.map((item) => {
-                          const ItemIcon = item.icon;
-
-                          return (
-                            <li key={item.label}>
-                              <NavLink to={item.to} className={linkClassName}>
-                                <ItemIcon
-                                  size={16}
-                                  aria-hidden="true"
-                                  className="flex-shrink-0 text-primary"
-                                />
-                                <span>{item.label}</span>
-                              </NavLink>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
+              {adminOverviewSections.map((section) =>
+                renderSection(section, expandedSection, setExpandedSection),
+              )}
             </ul>
 
-            <p className="px-3 mt-6 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <p className="mt-6 px-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
               Institution
             </p>
             <ul className="mt-3 space-y-1">
-              {institutionSections.map((section) => {
-                const SectionIcon = section.icon;
-
-                return (
-                  <li key={section.label} className="space-y-1">
-                    {section.to ? (
-                      <NavLink
-                        to={section.to}
-                        className={() =>
-                          linkClassName({ isActive: section.isActive })
-                        }
-                      >
-                        <SectionIcon
-                          size={18}
-                          aria-hidden="true"
-                          className="flex-shrink-0"
-                        />
-                        <span>{section.label}</span>
-                      </NavLink>
-                    ) : (
-                      <button
-                        type="button"
-                        className={linkClassName({
-                          isActive:
-                            section.isActive ||
-                            expandedSection === section.label,
-                        })}
-                        onClick={() =>
-                          setExpandedSection(
-                            expandedSection === section.label
-                              ? ""
-                              : section.label,
-                          )
-                        }
-                      >
-                        <SectionIcon
-                          size={18}
-                          aria-hidden="true"
-                          className="flex-shrink-0"
-                        />
-                        <span className="flex-1 text-left">
-                          {section.label}
-                        </span>
-                        {section.children.length > 0 && (
-                          <ChevronDown
-                            size={16}
-                            aria-hidden="true"
-                            className={`flex-shrink-0 transition-transform duration-200 ${
-                              expandedSection === section.label
-                                ? "rotate-180"
-                                : ""
-                            }`}
-                          />
-                        )}
-                      </button>
-                    )}
-
-                    {(section.children.length === 0 ||
-                      expandedSection === section.label) && (
-                      <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
-                        {section.children.map((item) => {
-                          const ItemIcon = item.icon;
-
-                          return (
-                            <li key={item.label}>
-                              <NavLink to={item.to} className={linkClassName}>
-                                <ItemIcon
-                                  size={16}
-                                  aria-hidden="true"
-                                  className="flex-shrink-0 text-primary"
-                                />
-                                <span>{item.label}</span>
-                              </NavLink>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
+              {institutionSections.map((section) =>
+                renderSection(section, expandedSection, setExpandedSection),
+              )}
             </ul>
           </>
         )}
@@ -415,46 +373,9 @@ export default function Navbar() {
               Institution
             </p>
             <ul className="mt-3 space-y-1">
-              {facultySections.map((section) => {
-                const SectionIcon = section.icon;
-
-                return (
-                  <li key={section.label} className="space-y-1">
-                    <NavLink
-                      to={section.to}
-                      className={() =>
-                        linkClassName({ isActive: section.isActive })
-                      }
-                    >
-                      <SectionIcon
-                        size={18}
-                        aria-hidden="true"
-                        className="flex-shrink-0"
-                      />
-                      <span>{section.label}</span>
-                    </NavLink>
-
-                    <ul className="space-y-1 border-l-2 border-gray-200 pl-5 ml-2">
-                      {section.children.map((item) => {
-                        const ItemIcon = item.icon;
-
-                        return (
-                          <li key={item.label}>
-                            <NavLink to={item.to} className={linkClassName}>
-                              <ItemIcon
-                                size={16}
-                                aria-hidden="true"
-                                className="flex-shrink-0 text-primary"
-                              />
-                              <span>{item.label}</span>
-                            </NavLink>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </li>
-                );
-              })}
+              {facultySections.map((section) =>
+                renderSection(section, expandedSection, setExpandedSection),
+              )}
             </ul>
           </>
         )}

@@ -11,6 +11,12 @@ import eventDetailsRoutes from "./routes/eventDetailsRoutes.js";
 import ideaDetailsRoutes from "./routes/ideaDetailsRoutes.js";
 import prototypeDetailsRoutes from "./routes/prototypeDetailsRoutes.js";
 import businessDetailsRoutes from "./routes/businessDetailsRoutes.js";
+import iicAppliedRoutes from "./routes/iicAppliedRoutes.js";
+import rdCellActivitiesRoutes from "./routes/rdCellActivitiesRoutes.js";
+import rdCellNominationsRoutes from "./routes/rdCellNominationsRoutes.js";
+import rdFacilitiesServicesRoutes from "./routes/rdFacilitiesServicesRoutes.js";
+import rdEquipmentsServicesRoutes from "./routes/rdEquipmentsServicesRoutes.js";
+import rdProjectsOutputsRoutes from "./routes/rdProjectsOutputsRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import { runMigrations } from "./utils/runMigrations.js";
 
@@ -31,6 +37,12 @@ app.use("/api/event-details", eventDetailsRoutes);
 app.use("/api/idea-details", ideaDetailsRoutes);
 app.use("/api/prototype-details", prototypeDetailsRoutes);
 app.use("/api/business-details", businessDetailsRoutes);
+app.use("/api/iic-applied", iicAppliedRoutes);
+app.use("/api/rd-cell-activities", rdCellActivitiesRoutes);
+app.use("/api/rd-cell-nominations", rdCellNominationsRoutes);
+app.use("/api/rd-facilities-services", rdFacilitiesServicesRoutes);
+app.use("/api/rd-equipments-services", rdEquipmentsServicesRoutes);
+app.use("/api/rd-projects-outputs", rdProjectsOutputsRoutes);
 
 app.use((error, _request, response, _next) => {
   if (error instanceof multer.MulterError) {

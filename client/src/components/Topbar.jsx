@@ -51,12 +51,108 @@ export default function Topbar() {
       return "Startup Reviews";
     }
 
+    if (location.pathname.startsWith("/admin/iic-applied-review")) {
+      return "IIC Applied Reviews";
+    }
+
+    if (location.pathname.startsWith("/admin/iic-applied")) {
+      return "IIC Applied";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-cell-activities-review")) {
+      return "R & D Cell Activities Reviews";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-cell-activities")) {
+      return "R & D Cell Activities";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-cell-nominations")) {
+      return "R & D Cell Nominations";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-cell-review")) {
+      return "R & D Cell Reviews";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-facilities-services-review")) {
+      return "R & D Facilities and Services Reviews";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-facilities-services")) {
+      return "R & D Facilities and Services";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-equipments-services-review")) {
+      return "R & D Equipments Services Reviews";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-equipments-services")) {
+      return "R & D Equipments Services";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-projects-outputs-review")) {
+      return "R & D Projects & Outputs Reviews";
+    }
+
+    if (location.pathname.startsWith("/admin/rd-projects-outputs")) {
+      return "R & D Projects & Outputs";
+    }
+
     if (location.pathname.startsWith("/teacher/businesses")) {
       return "Business Model / Startup";
     }
 
     if (location.pathname.startsWith("/teacher/businessdetails")) {
       return "Business Submission";
+    }
+
+    if (location.pathname.startsWith("/teacher/iic-applied")) {
+      return "IIC Applied";
+    }
+
+    if (location.pathname.startsWith("/teacher/iicapplied")) {
+      return "IIC Applied Submission";
+    }
+
+    if (location.pathname.startsWith("/teacher/rd-cell-activities")) {
+      return "R & D Cell Activities";
+    }
+
+    if (location.pathname.startsWith("/teacher/rdcellactivities")) {
+      return "R & D Cell Activities Submission";
+    }
+
+    if (location.pathname.startsWith("/teacher/rd-cell-nominations")) {
+      return "R & D Cell Nominations";
+    }
+
+    if (location.pathname.startsWith("/teacher/rdcellnominations")) {
+      return "R & D Cell Nomination Submission";
+    }
+
+    if (location.pathname.startsWith("/teacher/rd-facilities-services")) {
+      return "R & D Facilities and Services";
+    }
+
+    if (location.pathname.startsWith("/teacher/rdfacilitiesservices")) {
+      return "R & D Facilities and Services Submission";
+    }
+
+    if (location.pathname.startsWith("/teacher/rd-equipments-services")) {
+      return "R & D Equipments Services";
+    }
+
+    if (location.pathname.startsWith("/teacher/rdequipmentsservices")) {
+      return "R & D Equipments Services Submission";
+    }
+
+    if (location.pathname.startsWith("/teacher/rd-projects-outputs")) {
+      return "R & D Projects & Outputs";
+    }
+
+    if (location.pathname.startsWith("/teacher/rdprojectsoutputs")) {
+      return "R & D Projects & Outputs Submission";
     }
 
     if (location.pathname.startsWith("/eventdetails")) {
@@ -89,6 +185,54 @@ export default function Topbar() {
 
     if (location.pathname.startsWith("/business/")) {
       return "Business Details";
+    }
+
+    if (location.pathname.startsWith("/iicapplied")) {
+      return "IIC Applied Submission";
+    }
+
+    if (location.pathname.startsWith("/iic-applied/")) {
+      return "IIC Applied Details";
+    }
+
+    if (location.pathname.startsWith("/rdcellactivities")) {
+      return "R & D Cell Activities Submission";
+    }
+
+    if (location.pathname.startsWith("/rd-cell-activity/")) {
+      return "R & D Cell Activities Details";
+    }
+
+    if (location.pathname.startsWith("/rdcellnominations")) {
+      return "R & D Cell Nomination Submission";
+    }
+
+    if (location.pathname.startsWith("/rd-cell-nomination/")) {
+      return "R & D Cell Nomination Details";
+    }
+
+    if (location.pathname.startsWith("/rdfacilitiesservices")) {
+      return "R & D Facilities and Services Submission";
+    }
+
+    if (location.pathname.startsWith("/rd-facility-service/")) {
+      return "R & D Facilities and Services Details";
+    }
+
+    if (location.pathname.startsWith("/rdequipmentsservices")) {
+      return "R & D Equipments Services Submission";
+    }
+
+    if (location.pathname.startsWith("/rd-equipment-service/")) {
+      return "R & D Equipments Services Details";
+    }
+
+    if (location.pathname.startsWith("/rdprojectsoutputs")) {
+      return "R & D Projects & Outputs Submission";
+    }
+
+    if (location.pathname.startsWith("/rd-project-output/")) {
+      return "R & D Projects & Outputs Details";
     }
 
     return "Dashboard";
